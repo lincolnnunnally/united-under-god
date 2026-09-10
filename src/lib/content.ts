@@ -76,7 +76,7 @@ export const GIVE_WAYS = [
   {
     id: "goods" as const,
     title: "Goods",
-    body: "Food that will not sell. Furniture a family can use. Clothing. Produce. Overstock. If it can bless a neighbor, we will receive it with care, track it, and put it in someone’s hands.",
+    body: "Furniture a family can use. Clothing. Household goods. Tell us what it is, what vehicle to bring, and how many people to lift it — we will come get it.",
   },
 ] as const;
 

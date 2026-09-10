@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { GiveForm } from "@/components/give-form";
+import { GiveGoodsForm } from "@/components/give-goods-form";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SiteShell } from "@/components/site-shell";
 import { GIVE_WAYS, LEGAL } from "@/lib/content";
@@ -20,8 +21,66 @@ const TABS: { id: InvolvementIntent; label: string }[] = [
   { id: "goods", label: "Goods" },
 ];
 
+const SIDE: Record<
+  "money" | "time" | "goods",
+  { title: string; points: { lead: string; body: string }[] }
+> = {
+  money: {
+    title: "Why your gift belongs here",
+    points: [
+      {
+        lead: "It becomes meals.",
+        body: "Food, fuel, and the people who pack boxes — so a household eats this week.",
+      },
+      {
+        lead: "It becomes unity.",
+        body: "Money keeps shared tools in reach of churches that cannot afford another software bill.",
+      },
+      {
+        lead: "It becomes a life.",
+        body: "Time and goods are the other two doors. Money is how the work stays standing.",
+      },
+    ],
+  },
+  time: {
+    title: "Ordinary hours. Real work.",
+    points: [
+      {
+        lead: "A shift, not a career.",
+        body: "Pack boxes. Drive a route. Sit with someone. Offer the skill you already have.",
+      },
+      {
+        lead: "Tell us when.",
+        body: "Evenings, a Saturday, a truck you can bring. We will put you on something real.",
+      },
+      {
+        lead: "Live on Mission.",
+        body: "Time is how unity is worked out in action — not a poster on a wall.",
+      },
+    ],
+  },
+  goods: {
+    title: "We come get it.",
+    points: [
+      {
+        lead: "What is it?",
+        body: "Clothes, furniture, household — so we know which box to check before we leave.",
+      },
+      {
+        lead: "What should we bring?",
+        body: "The vehicle and how many people to lift it. Stairs and weight belong in the notes.",
+      },
+      {
+        lead: "When, and where.",
+        body: "Days, a time window, your address, and a way to reach you. Then we show up.",
+      },
+    ],
+  },
+};
+
 function GivePage() {
   const [tab, setTab] = useState<InvolvementIntent>("money");
+  const side = SIDE[tab as "money" | "time" | "goods"];
 
   return (
     <SiteShell>
@@ -82,22 +141,14 @@ function GivePage() {
 
         <div className="mt-10 grid gap-10 md:grid-cols-[0.9fr_1.1fr] md:items-start">
           <div>
-            <h2 className="text-2xl">Why your gift belongs here</h2>
+            <h2 className="text-2xl">{side.title}</h2>
             <ul className="mt-5 space-y-4 text-muted">
-              <li>
-                <span className="font-medium text-ink">It becomes meals.</span>{" "}
-                Food gifts move through the Vidalia pantry, so we can tell you
-                what they became.
-              </li>
-              <li>
-                <span className="font-medium text-ink">It becomes unity.</span>{" "}
-                Money keeps shared tools in reach of churches that cannot
-                afford another software bill.
-              </li>
-              <li>
-                <span className="font-medium text-ink">It becomes a life.</span>{" "}
-                Time is how Live on Mission stays a practice, not a poster.
-              </li>
+              {side.points.map((point) => (
+                <li key={point.lead}>
+                  <span className="font-medium text-ink">{point.lead}</span>{" "}
+                  {point.body}
+                </li>
+              ))}
             </ul>
             <p className="mt-6 text-sm text-muted">
               {LEGAL.name} is a {LEGAL.status}. EIN {LEGAL.ein}. Gifts are
@@ -108,12 +159,11 @@ function GivePage() {
             <p className="mt-6 text-sm text-muted">
               Grocery stores, restaurants, and farms with unsold food have a
               dedicated page.{" "}
-              <Link to="/food-donors" className="text-forest underline-offset-4 hover:underline">
+              <Link
+                to="/food-donors"
+                className="text-forest underline-offset-4 hover:underline"
+              >
                 Food donor information
-              </Link>
-              . Furniture and clothes can be offered on the{" "}
-              <Link to="/donate" className="text-forest underline-offset-4 hover:underline">
-                donate page
               </Link>
               .
             </p>
@@ -138,7 +188,13 @@ function GivePage() {
                 </button>
               ))}
             </div>
-            {tab === "money" ? <GiveForm /> : <InvolvementForm intent={tab} />}
+            {tab === "money" ? (
+              <GiveForm />
+            ) : tab === "goods" ? (
+              <GiveGoodsForm />
+            ) : (
+              <InvolvementForm intent={tab} />
+            )}
           </div>
         </div>
       </section>
