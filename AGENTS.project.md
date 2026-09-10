@@ -51,6 +51,17 @@ This site’s mapping (ministry front door, not a storefront):
 - **Live on Mission** is the original card: red bar, condensed word, heart made of hands (`LiveOnMissionMark`, `/images/live-on-mission-heart-and-hands.png`). That mark never goes on the UUG tab.
 - Live on Mission has one invitation (`/mission`) and one workbench (`https://liveonmission.unitedundergod.org`, same app as `https://live-on-mission.com`). Spark of Hope is the testimony after the act. ChurchConnect missions is the church’s trip/team desk — not the public invitation.
 
+## Layout (do not orphan a card)
+
+Never default a card grid to three columns. Four items in a 3-up grid leave one sitting alone — that is a bug, not a style. Default is two columns from the tablet breakpoint up.
+
+- 2 items → one pair
+- 3 items → three across (only then)
+- 4 items → 2×2
+- 5+ → rows of two, or a deliberate 3-across **only** when the last row is also full
+
+Same rule for photos. Break long reading with real pictures. Do not ship a homepage that is only text blocks.
+
 ## Accounts
 
 - **Public members** (churches, businesses, charities, households) sign in on this site (`/login` → `/account`). They keep the seal, united buying, Live on Mission, and volunteer stands here.
