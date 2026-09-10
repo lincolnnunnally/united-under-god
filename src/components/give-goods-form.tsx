@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { saveInvolvement } from "@/lib/involvement";
+import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -40,7 +40,7 @@ export function GiveGoodsForm({ className }: { className?: string }) {
     }
   }
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const data = new FormData(event.currentTarget);
@@ -57,26 +57,31 @@ export function GiveGoodsForm({ className }: { className?: string }) {
       return;
     }
     const days = PICKUP_DAYS.filter((day) => data.get(`day-${day}`)).join(", ");
-    saveInvolvement({
-      intent: "goods",
-      name,
-      email,
-      phone,
-      organization: "",
-      orgType: "Giving",
-      city: String(data.get("city") ?? "").trim(),
-      address: String(data.get("address") ?? "").trim(),
-      poundsPerWeek: "",
-      pickupDay: days,
-      pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
-      destination: "Operate",
-      message,
-      categories: categories.join(", "),
-      vehicle,
-      helpers,
-      photos,
-      needItem: "",
+    const result = await submitInquiry({
+      data: {
+        intent: "goods",
+        name,
+        email,
+        phone,
+        organization: "",
+        orgType: "Giving",
+        city: String(data.get("city") ?? "").trim(),
+        address: String(data.get("address") ?? "").trim(),
+        poundsPerWeek: "",
+        pickupDay: days,
+        pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
+        destination: "Operate",
+        message,
+        categories: categories.join(", "),
+        vehicle,
+        helpers,
+        hp: String(data.get("website") ?? ""),
+      },
     });
+    if (!result.ok) {
+      setError(result.error || "We could not receive that. Try again.");
+      return;
+    }
     setDone(true);
   }
 
@@ -104,13 +109,21 @@ export function GiveGoodsForm({ className }: { className?: string }) {
     <form
       onSubmit={onSubmit}
       className={cn(
-        "rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
+        "relative rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
         className,
       )}
     >
       <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
         Schedule a pickup
       </p>
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        className="absolute -left-[9999px] h-px w-px opacity-0"
+        aria-hidden="true"
+      />
       <p className="mt-2 text-sm text-muted">
         Tell us what it is and what we should bring. Stairs, weight, a second
         floor — that is how we come prepared.

@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   INTENT_COPY,
-  saveInvolvement,
   type InvolvementIntent,
 } from "@/lib/involvement";
+import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
 const ORG_TYPES = [
@@ -31,7 +31,7 @@ export function InvolvementForm({ intent, className }: Props) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const data = new FormData(event.currentTarget);
@@ -41,21 +41,31 @@ export function InvolvementForm({ intent, className }: Props) {
       setError("A name and email let us actually follow up.");
       return;
     }
-    saveInvolvement({
-      intent,
-      name,
-      email,
-      phone: String(data.get("phone") ?? "").trim(),
-      organization: String(data.get("organization") ?? "").trim(),
-      orgType: String(data.get("orgType") ?? "").trim(),
-      city: String(data.get("city") ?? "").trim(),
-      message: String(data.get("message") ?? "").trim(),
-      poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
-      address: String(data.get("address") ?? "").trim(),
-      pickupDay: String(data.get("pickupDay") ?? "").trim(),
-      pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
-      destination: "",
+    const result = await submitInquiry({
+      data: {
+        intent,
+        name,
+        email,
+        phone: String(data.get("phone") ?? "").trim(),
+        organization: String(data.get("organization") ?? "").trim(),
+        orgType: String(data.get("orgType") ?? "").trim(),
+        city: String(data.get("city") ?? "").trim(),
+        message: String(data.get("message") ?? "").trim(),
+        poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
+        address: String(data.get("address") ?? "").trim(),
+        pickupDay: String(data.get("pickupDay") ?? "").trim(),
+        pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
+        destination: "",
+        categories: "",
+        vehicle: "",
+        helpers: "",
+        hp: String(data.get("website") ?? ""),
+      },
     });
+    if (!result.ok) {
+      setError(result.error || "We could not receive that. Try again.");
+      return;
+    }
     setDone(true);
   }
 
@@ -84,7 +94,7 @@ export function InvolvementForm({ intent, className }: Props) {
     <form
       onSubmit={onSubmit}
       className={cn(
-        "rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
+        "relative rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
         className,
       )}
     >
@@ -92,6 +102,14 @@ export function InvolvementForm({ intent, className }: Props) {
         {copy.title}
       </p>
       <p className="mt-2 max-w-prose text-sm text-muted">{copy.lead}</p>
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        className="absolute -left-[9999px] h-px w-px opacity-0"
+        aria-hidden="true"
+      />
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <Field label="Your name" htmlFor={`${intent}-name`}>

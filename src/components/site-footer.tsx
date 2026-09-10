@@ -98,6 +98,10 @@ export function SiteFooter() {
           <Link to="/terms" className="underline-offset-4 hover:underline">
             Terms
           </Link>
+          {" · "}
+          <Link to="/admin" className="underline-offset-4 hover:underline">
+            Desk
+          </Link>
         </p>
       </div>
     </footer>

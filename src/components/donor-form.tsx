@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DONOR_PATHS, PLENTY_DONATE } from "@/lib/content";
-import { saveInvolvement, type InvolvementIntent } from "@/lib/involvement";
+import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
 type DonorKind = (typeof DONOR_PATHS)[number]["id"];
@@ -32,7 +32,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
   const [error, setError] = useState("");
   const path = DONOR_PATHS.find((item) => item.id === kind) ?? DONOR_PATHS[0];
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
     const data = new FormData(event.currentTarget);
@@ -43,23 +43,32 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       return;
     }
     const days = PICKUP_DAYS.filter((day) => data.get(`day-${day}`)).join(", ");
-    const intent: InvolvementIntent =
-      kind === "food" ? "food" : kind === "org" ? "org" : "goods";
-    saveInvolvement({
-      intent,
-      name,
-      email,
-      phone: String(data.get("phone") ?? "").trim(),
-      organization: String(data.get("organization") ?? "").trim(),
-      orgType: String(data.get("orgType") ?? "").trim(),
-      city: String(data.get("city") ?? "").trim(),
-      address: String(data.get("address") ?? "").trim(),
-      poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
-      pickupDay: days,
-      pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
-      destination: path.desk,
-      message: String(data.get("message") ?? "").trim(),
+    const intent = kind === "food" ? "food" : kind === "org" ? "org" : "goods";
+    const result = await submitInquiry({
+      data: {
+        intent,
+        name,
+        email,
+        phone: String(data.get("phone") ?? "").trim(),
+        organization: String(data.get("organization") ?? "").trim(),
+        orgType: String(data.get("orgType") ?? "").trim(),
+        city: String(data.get("city") ?? "").trim(),
+        address: String(data.get("address") ?? "").trim(),
+        poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
+        pickupDay: days,
+        pickupWindow: String(data.get("pickupWindow") ?? "").trim(),
+        destination: path.desk,
+        message: String(data.get("message") ?? "").trim(),
+        categories: kind === "goods" ? "Household" : "",
+        vehicle: "",
+        helpers: "",
+        hp: String(data.get("website") ?? ""),
+      },
     });
+    if (!result.ok) {
+      setError(result.error || "We could not receive that. Try again.");
+      return;
+    }
     setDone(true);
   }
 
@@ -102,13 +111,21 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
     <form
       onSubmit={onSubmit}
       className={cn(
-        "rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
+        "relative rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7",
         className,
       )}
     >
       <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
         {kind === "food" ? "Sign up and schedule pickup" : "Schedule a goods pickup"}
       </p>
+      <input
+        type="text"
+        name="website"
+        tabIndex={-1}
+        autoComplete="off"
+        className="absolute -left-[9999px] h-px w-px opacity-0"
+        aria-hidden="true"
+      />
       <p className="mt-2 text-sm text-muted">
         {lockKind ? path.deskNote : "One form. We put you in the right desk."}
       </p>
