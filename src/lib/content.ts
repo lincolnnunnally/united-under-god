@@ -104,7 +104,7 @@ export const APPS = {
     {
       name: "Live On Mission",
       href: "https://liveonmission.unitedundergod.org",
-      blurb: "See the need. Do the thing. Tell the story. The ordinary path into joy.",
+      blurb: "See the need. Do the thing. Tell the story. The ordinary path into a purposeful life.",
     },
     {
       name: "Spark of Hope",
@@ -261,6 +261,8 @@ export const PLENTY_URL = "https://plenty.unitedundergod.org";
 export const PLENTY_DONATE = "https://plenty.unitedundergod.org/donate";
 export const SPARK_URL = "https://spark.unitedundergod.org";
 export const MISSION_APP = "https://liveonmission.unitedundergod.org";
+export const MISSION_PUBLIC = "https://live-on-mission.com";
+export const CHURCHCONNECT_URL = "https://churchconnect.unitedundergod.org";
 
 export const DONOR_URL = "https://unitedundergod.org/food-donors";
 
@@ -379,7 +381,7 @@ export const DESKS: {
   },
   {
     name: "Live on Mission",
-    role: "The public next step for a person who is ready to act this week.",
+    role: "The public next step for a person who is ready to act this week. Same app as live-on-mission.com.",
     href: "https://liveonmission.unitedundergod.org",
   },
 ] as const;

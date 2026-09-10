@@ -3,6 +3,7 @@ import { ImpactCalculator } from "@/components/impact-calculator";
 import { DonorForm } from "@/components/donor-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { PLENTY_URL } from "@/lib/content";
 
 export const Route = createFileRoute("/pantry")({
   component: PantryPage,
@@ -75,6 +76,23 @@ function PantryPage() {
             </article>
           ))}
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-10 md:px-8">
+        <p className="max-w-2xl text-sm text-muted">
+          Neighbors who need food, and people who pack or shop the pantry, sign
+          in on{" "}
+          <a
+            href={PLENTY_URL}
+            className="text-forest underline-offset-4 hover:underline"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Plenty
+          </a>
+          . Churches and businesses who want the seal or united buying sign in
+          on this site.
+        </p>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">

@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { DonorBenefits } from "@/components/donor-benefits";
 import { InvolvementForm } from "@/components/involvement-form";
+import { LiveOnMissionMark } from "@/components/live-on-mission-mark";
 import { SealBadge } from "@/components/seal-mark";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -121,54 +122,51 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:items-center md:px-8 md:py-24">
-        <figure className="overflow-hidden rounded-xl shadow-[var(--shadow-soft)]">
-          <img
-            src="/images/hands.jpg"
-            alt="Hands packing food into paper bags"
-            className="aspect-[4/3] w-full object-cover"
-          />
-        </figure>
-        <div>
-          <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-            Live on Mission
-          </p>
-          <h2 className="mt-3 text-3xl">
-            See the need. Do the thing. Tell the story.
-          </h2>
-          <p className="mt-5 text-muted">
-            This is not extra. It is the thing you already needed to do — and
-            the thing you will get the greatest joy from. Live on Mission is
-            the walk. Spark of Hope is where the story lives, so the next
-            person does not start from zero.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm text-ink">
-            <li className="border-l-2 border-forest pl-4">
-              See the need. Maybe God let you see it so you could help.
-            </li>
-            <li className="border-l-2 border-forest pl-4">
-              Do the thing. A meal, a truck, a porch, a pantry shift.
-            </li>
-            <li className="border-l-2 border-forest pl-4">
-              Tell the story — so courage travels.
-            </li>
-          </ul>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <Link to="/mission">
-                Start living on mission
-                <ArrowRight className="size-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <a
-                href="https://spark.unitedundergod.org"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Spark of Hope
-              </a>
-            </Button>
+      <section className="border-y border-rule bg-cream">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-[auto_1fr] md:px-8 md:py-24">
+          <LiveOnMissionMark size="md" className="mx-auto md:mx-0" />
+          <div>
+            <p className="text-xs font-semibold tracking-[0.18em] text-mission uppercase">
+              Live on Mission
+            </p>
+            <h2 className="mt-3 text-3xl text-balance">
+              Your life is purposeful when you use it for a purpose.
+            </h2>
+            <p className="mt-5 max-w-prose text-pretty text-muted">
+              People are lonely because they made life comfortable. The soul
+              is crying out for something more. Live on Mission is the walk:
+              do good work God can be praised for, come alive in it, and
+              unite with the neighbor beside you. The heart of hands is this
+              work — not the United Under God tab.
+            </p>
+            <ul className="mt-6 space-y-3 text-sm text-ink">
+              <li className="border-l-2 border-mission pl-4">
+                See the need. Maybe God let you see it so you could help.
+              </li>
+              <li className="border-l-2 border-mission pl-4">
+                Do the thing. A meal, a truck, a porch, a pantry shift.
+              </li>
+              <li className="border-l-2 border-mission pl-4">
+                Tell the story — so courage travels.
+              </li>
+            </ul>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild variant="mission">
+                <Link to="/mission">
+                  Start living on mission
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <a
+                  href="https://spark.unitedundergod.org"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Spark of Hope
+                </a>
+              </Button>
+            </div>
           </div>
         </div>
       </section>

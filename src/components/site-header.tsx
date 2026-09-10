@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SealMark } from "@/components/seal-mark";
 import { Button } from "@/components/ui/button";
+import { SignedIn, SignedOut } from "@/lib/auth/gates";
 import { NAV } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
@@ -48,6 +49,25 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <SignedOut>
+            <Link
+              to="/login"
+              className="ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
+            >
+              Sign in
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              to="/account"
+              className={cn(
+                "ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink",
+                pathname === "/account" && "text-ink",
+              )}
+            >
+              My account
+            </Link>
+          </SignedIn>
           <Button asChild className="ml-3">
             <Link to="/join">Take the seal</Link>
           </Button>
@@ -80,6 +100,22 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <SignedOut>
+              <Link
+                to="/login"
+                className="flex min-h-11 items-center rounded-md px-3 text-base text-ink"
+              >
+                Sign in
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link
+                to="/account"
+                className="flex min-h-11 items-center rounded-md px-3 text-base text-ink"
+              >
+                My account
+              </Link>
+            </SignedIn>
             <Button asChild className="mt-2 w-full">
               <Link to="/join">Take the seal</Link>
             </Button>

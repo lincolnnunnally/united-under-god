@@ -16,6 +16,8 @@ const buttonVariants = cva(
           "bg-transparent text-paper shadow-[inset_0_0_0_1px_rgba(243,238,228,0.38)] hover:bg-paper/10",
         ghost: "bg-transparent text-ink hover:bg-cream",
         invert: "bg-paper text-ink hover:bg-cream",
+        mission:
+          "bg-mission text-paper hover:bg-mission-deep shadow-[var(--shadow-border)]",
       },
       size: {
         default: "min-h-11 px-5 text-sm",

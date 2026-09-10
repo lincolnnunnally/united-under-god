@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { InvolvementForm } from "@/components/involvement-form";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 
@@ -50,6 +51,7 @@ function BuyingPage() {
             buying what it needs, everyone paying less — so more of the money
             reaches the work.
           </p>
+          <SignInNudge about="united buying" />
         </div>
       </section>
 

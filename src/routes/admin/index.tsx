@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { EcosystemDeskCard } from "@/components/ecosystem-desk-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   listInquiries,
   listStaff,
+  readDeskGlance,
   updateInquiry,
   type InquiryRow,
   type StaffRow,
@@ -30,16 +32,21 @@ function InboxPage() {
   const [staff, setStaff] = useState<StaffRow[]>([]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
+  const [glance, setGlance] = useState<Awaited<
+    ReturnType<typeof readDeskGlance>
+  > | null>(null);
 
   async function load() {
     setError("");
     try {
-      const [inbox, people] = await Promise.all([
+      const [inbox, people, desk] = await Promise.all([
         listInquiries({ data: { kind, status } }),
         listStaff(),
+        readDeskGlance(),
       ]);
       setRows(inbox.inquiries);
       setStaff(people.staff.filter((p) => p.active));
+      setGlance(desk);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Could not load the desk.";
       setError(message === "Forbidden" ? "This sign-in is not on the staff list yet." : message);
@@ -72,13 +79,20 @@ function InboxPage() {
 
   return (
     <div>
-      <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
+      <EcosystemDeskCard
+        stats={glance?.stats ?? null}
+        reportingArmed={glance?.reportingArmed ?? false}
+      />
+
+      <p className="mt-10 text-xs font-semibold tracking-[0.18em] text-forest uppercase">
         Super admin
       </p>
       <h1 className="mt-2 text-3xl">Inbox</h1>
       <p className="mt-3 max-w-2xl text-muted">
         Every public form lands here and emails the people routed for that job.
         Assign a pickup so the crew and the manager both know when to show up.
+        Counts also report to the owner dashboard — money, activity, and who is
+        waiting across every app.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">

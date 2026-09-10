@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { SiteShell } from "@/components/site-shell";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { Button } from "@/components/ui/button";
 import { ORG_TYPES } from "@/lib/content";
 
@@ -38,7 +39,7 @@ const HELPS = [
   },
   {
     title: "A people on mission",
-    body: "Hand Live on Mission to your congregation. The apps are doors into ordinary faithfulness: marriage, fatherhood, loneliness, Scripture, a neighbor’s porch.",
+    body: "Hand Live on Mission to your congregation — the original heart of hands. One invitation, one workbench, one testimony. Not a second church. A people who do the work.",
     to: "/mission",
     cta: "Live on Mission",
   },
@@ -68,6 +69,10 @@ function OrganizationsPage() {
             the strength of a town on silos.
           </p>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 pt-10 md:px-8">
+        <SignInNudge about="buying, mission, and the seal" />
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">

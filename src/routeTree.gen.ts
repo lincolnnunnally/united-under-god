@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AssessmentRouteImport } from './routes/assessment'
@@ -29,16 +30,23 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnderstandingTheBibleRouteImport } from './routes/understanding-the-bible'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminMembersRouteImport } from './routes/admin/members'
 import { Route as AdminNotifyRouteImport } from './routes/admin/notify'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
+import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -136,6 +144,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminMembersRoute = AdminMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminNotifyRoute = AdminNotifyRouteImport.update({
   id: '/notify',
   path: '/notify',
@@ -161,6 +174,11 @@ const GiveThanksRoute = GiveThanksRouteImport.update({
   path: '/thanks',
   getParentRoute: () => GiveRoute,
 } as any)
+const ApiAdminStatsRoute = ApiAdminStatsRouteImport.update({
+  id: '/api/admin/stats',
+  path: '/api/admin/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -171,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
+  '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
   '/buying': typeof BuyingRoute
@@ -187,16 +206,19 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
+  '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
   '/buying': typeof BuyingRoute
@@ -213,12 +235,14 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
+  '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -226,6 +250,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
+  '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
   '/buying': typeof BuyingRoute
@@ -242,12 +267,14 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
+  '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -256,6 +283,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/bible'
+    | '/account'
     | '/apps'
     | '/assessment'
     | '/buying'
@@ -272,16 +300,19 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
+    | '/api/admin/stats'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/apps'
     | '/assessment'
     | '/buying'
@@ -298,18 +329,21 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
     | '/give/thanks'
     | '/admin'
     | '/bible'
+    | '/api/admin/stats'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
     | '/admin'
     | '/bible'
+    | '/account'
     | '/apps'
     | '/assessment'
     | '/buying'
@@ -326,12 +360,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
+    | '/api/admin/stats'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -339,6 +375,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BibleRouteRoute: typeof BibleRouteRouteWithChildren
+  AccountRoute: typeof AccountRoute
   AppsRoute: typeof AppsRoute
   AssessmentRoute: typeof AssessmentRoute
   BuyingRoute: typeof BuyingRoute
@@ -355,6 +392,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
+  ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -365,6 +403,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -500,6 +545,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/members': {
+      id: '/admin/members'
+      path: '/members'
+      fullPath: '/admin/members'
+      preLoaderRoute: typeof AdminMembersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/notify': {
       id: '/admin/notify'
       path: '/notify'
@@ -535,6 +587,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GiveThanksRouteImport
       parentRoute: typeof GiveRoute
     }
+    '/api/admin/stats': {
+      id: '/api/admin/stats'
+      path: '/api/admin/stats'
+      fullPath: '/api/admin/stats'
+      preLoaderRoute: typeof ApiAdminStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -546,12 +605,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminMembersRoute: typeof AdminMembersRoute
   AdminNotifyRoute: typeof AdminNotifyRoute
   AdminStaffRoute: typeof AdminStaffRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminMembersRoute: AdminMembersRoute,
   AdminNotifyRoute: AdminNotifyRoute,
   AdminStaffRoute: AdminStaffRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -589,6 +650,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   BibleRouteRoute: BibleRouteRouteWithChildren,
+  AccountRoute: AccountRoute,
   AppsRoute: AppsRoute,
   AssessmentRoute: AssessmentRoute,
   BuyingRoute: BuyingRoute,
@@ -605,6 +667,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
+  ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

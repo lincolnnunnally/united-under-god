@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SealBadge } from "@/components/seal-mark";
+import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { SEAL_STATEMENT } from "@/lib/content";
@@ -53,6 +54,7 @@ function JoinPage() {
               your site, your door, your letterhead. It always links back, so
               it can always be verified.
             </p>
+            <SignInNudge about="the seal" />
           </article>
           <article>
             <h2 className="text-xl">What it costs</h2>

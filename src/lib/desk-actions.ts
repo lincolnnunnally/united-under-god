@@ -3,8 +3,15 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
-import { isWorkspacePreview } from "@/lib/env.server";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
+import {
+  DASHBOARD_ORIGIN,
+  PUBLIC_URL,
+  forwardInquiryToDashboard,
+  readOpsStats,
+  reportingArmed,
+  type OpsStats,
+} from "@/lib/ops-report.server";
 import {
   SUPER_EMAILS,
   coversKind,
@@ -138,9 +145,9 @@ async function requireDeskStaff(userId: string): Promise<DeskMe> {
   }
   const isSuper =
     staffRow?.role === "super" ||
-    (!!email && SUPER_EMAILS.includes(email)) ||
-    isWorkspacePreview();
-  if (!staffRow && !isSuper) {
+    (!!email && SUPER_EMAILS.includes(email));
+  const isStaff = Boolean(staffRow) || isSuper;
+  if (!isStaff) {
     const err = new Error("Forbidden");
     (err as Error & { status?: number }).status = 403;
     throw err;
@@ -235,12 +242,31 @@ export const submitInquiry = createServerFn({ method: "POST" })
       assigned_email: null,
     };
     const mail = await notifyInquiry(inquiry);
+    await forwardInquiryToDashboard(inquiry).catch(() => undefined);
     return { ok: true as const, id, emailed: mail.sent };
   });
 
 export const getDeskMe = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => requireDeskStaff(context.userId));
+
+export const readDeskGlance = createServerFn({ method: "GET" })
+  .middleware([authMiddleware])
+  .handler(async ({ context }) => {
+    await requireDeskStaff(context.userId);
+    const stats = await readOpsStats();
+    return {
+      stats,
+      reportingArmed: reportingArmed(),
+      dashboardUrl: DASHBOARD_ORIGIN,
+      publicUrl: PUBLIC_URL,
+    } satisfies {
+      stats: OpsStats;
+      reportingArmed: boolean;
+      dashboardUrl: string;
+      publicUrl: string;
+    };
+  });
 
 export const listInquiries = createServerFn({ method: "GET" })
   .middleware([authMiddleware])

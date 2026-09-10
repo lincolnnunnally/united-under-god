@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <circle cx="100" cy="100" r="97.2" fill="#F3EEE4" stroke="#2E4A3C" stroke-width="3.1"/>
+  <circle cx="100" cy="100" r="90.6" fill="none" stroke="#2E4A3C" stroke-width="1.05" opacity="0.8"/>
+  <defs>
+    <path id="uug-seal-top" d="M 32 100 A 68 68 0 0 1 168 100" fill="none"/>
+    <path id="uug-seal-bot" d="M 32 100 A 68 68 0 0 0 168 100" fill="none"/>
+  </defs>
+  <text fill="#2E4A3C" font-family="Figtree, Segoe UI, sans-serif" font-size="10.2" font-weight="650" letter-spacing="2.8">
+    <textPath href="#uug-seal-top" startOffset="50%" text-anchor="middle">UNITED UNDER GOD</textPath>
+  </text>
+  <text fill="#2E4A3C" font-family="Figtree, Segoe UI, sans-serif" font-size="8.4" font-weight="550" letter-spacing="1.7">
+    <textPath href="#uug-seal-bot" startOffset="50%" text-anchor="middle">GOD’S KINGDOM · OUR PURPOSE</textPath>
+  </text>
+  <circle cx="100" cy="100" r="56.5" fill="none" stroke="#2E4A3C" stroke-width="1.35"/>
+  <g fill="none" stroke="#2E4A3C" stroke-width="2.05">
+    <circle cx="100" cy="82.2" r="23.6"/>
+    <circle cx="84.4" cy="110.2" r="23.6"/>
+    <circle cx="115.6" cy="110.2" r="23.6"/>
+  </g>
+  <path d="M100 68.2v48.2M84.2 91.2h31.6" fill="none" stroke="#2E4A3C" stroke-width="3.15" stroke-linecap="round"/>
+</svg>

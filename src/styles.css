@@ -9,7 +9,9 @@
   --color-subtle: #8a8276;
   --color-forest: #2e4a3c;
   --color-forest-deep: #243b30;
-  --color-forest-soft: #3d5c4c;
+  --color-mission: #b3251e;
+  --color-mission-deep: #8f1c17;
+  --color-mission-soft: #c4453c;
   --color-rule: #d4cbba;
   --color-bg: #f3eee4;
   --color-fg: #1a1814;
@@ -21,6 +23,7 @@
 
   --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
   --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-mission: "Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   --radius-xs: 4px;

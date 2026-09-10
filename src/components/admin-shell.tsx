@@ -1,12 +1,14 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { Link, Navigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState, type ReactNode } from "react";
 import { SealMark } from "@/components/seal-mark";
 import { RedirectToSignIn, UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { readMyPlace } from "@/lib/member-actions";
 import { cn } from "@/lib/utils";
 
 const ADMIN_NAV = [
   { to: "/admin", label: "Inbox" },
+  { to: "/admin/members", label: "Members" },
   { to: "/admin/staff", label: "People" },
   { to: "/admin/notify", label: "Email routes" },
 ] as const;
@@ -14,8 +16,16 @@ const ADMIN_NAV = [
 export function AdminShell({ children }: { children: ReactNode }) {
   const { user, isPending } = useCurrentUserState();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [staff, setStaff] = useState<boolean | null>(null);
 
-  if (isPending) {
+  useEffect(() => {
+    if (isPending || !user) return;
+    void readMyPlace()
+      .then((place) => setStaff(place.isStaff))
+      .catch(() => setStaff(false));
+  }, [isPending, user]);
+
+  if (isPending || (user && staff === null)) {
     return (
       <div className="min-h-dvh bg-paper">
         <div className="h-16 border-b border-rule bg-cream" />
@@ -26,6 +36,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
     );
   }
   if (!user) return <RedirectToSignIn to="/login" />;
+  if (!staff) return <Navigate to="/account" />;
 
   return (
     <div className="min-h-dvh bg-paper text-ink">
@@ -51,11 +62,25 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
             <Link
+              to="/account"
+              className="min-h-11 rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
+            >
+              My account
+            </Link>
+            <Link
               to="/"
               className="min-h-11 rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
             >
               Public site
             </Link>
+            <a
+              href="https://dashboard.unitedundergod.org"
+              target="_blank"
+              rel="noreferrer"
+              className="min-h-11 rounded-md bg-forest px-3 py-2 text-sm text-paper hover:bg-forest-deep"
+            >
+              Owner desk
+            </a>
           </nav>
           <UserButton />
         </div>

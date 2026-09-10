@@ -18,6 +18,9 @@ export function SiteFooter() {
             in love, and active in the world — so that good work is seen, and
             people praise the Father.
           </p>
+          <p className="mt-4 max-w-sm font-display text-base italic text-ink">
+            When God’s people unite, we show the world what is possible.
+          </p>
         </div>
         <div>
           <p className="text-xs font-semibold tracking-[0.16em] text-subtle uppercase">
@@ -31,6 +34,11 @@ export function SiteFooter() {
                 </Link>
               </li>
             ))}
+            <li>
+              <Link to="/login" className="text-muted hover:text-ink">
+                Sign in
+              </Link>
+            </li>
             <li>
               <Link to="/doctrine" className="text-muted hover:text-ink">
                 Doctrine

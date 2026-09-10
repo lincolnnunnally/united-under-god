@@ -165,7 +165,7 @@ export const INTENT_COPY: Record<
   },
   mission: {
     title: "Live on mission",
-    lead: "Raise your hand. We will help you take a first step this week — not a program to sit through, a neighbor to serve.",
+    lead: "Raise your hand. We will help you take a first step this week — not a program to sit through. Mission is the cure for a comfortable, lonely life.",
     submit: "Count me in",
   },
   hand: {
