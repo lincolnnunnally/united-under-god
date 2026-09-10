@@ -19,10 +19,8 @@ export const Route = createRootRoute({
       { name: "theme-color", content: "#2E4A3C" },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=seal3" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/seal-32.png?v=seal3" },
-      { rel: "icon", href: "/icons/uug-seal.ico?v=seal3", sizes: "any" },
-      { rel: "icon", href: "/favicon.ico?v=seal3", sizes: "48x48" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=seal4" },
+      { rel: "shortcut icon", href: "/favicon.svg?v=seal4" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
