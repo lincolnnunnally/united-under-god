@@ -106,10 +106,14 @@ function GivePage() {
               free.
             </p>
             <p className="mt-6 text-sm text-muted">
-              Grocery stores, restaurants, and farms with unsold food — or anyone
-              with furniture and clothes — have a dedicated path.{" "}
+              Grocery stores, restaurants, and farms with unsold food have a
+              dedicated page.{" "}
+              <Link to="/food-donors" className="text-forest underline-offset-4 hover:underline">
+                Food donor information
+              </Link>
+              . Furniture and clothes can be offered on the{" "}
               <Link to="/donate" className="text-forest underline-offset-4 hover:underline">
-                Donate and schedule pickup
+                donate page
               </Link>
               .
             </p>

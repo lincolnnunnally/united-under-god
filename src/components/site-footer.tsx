@@ -48,7 +48,12 @@ export function SiteFooter() {
             </li>
             <li>
               <Link to="/donate" className="text-muted hover:text-ink">
-                Donate food & goods
+                Donate
+              </Link>
+            </li>
+            <li>
+              <Link to="/food-donors" className="text-muted hover:text-ink">
+                Food donors
               </Link>
             </li>
             <li>

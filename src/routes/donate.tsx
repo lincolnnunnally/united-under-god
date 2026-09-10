@@ -1,116 +1,117 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DonorBenefits } from "@/components/donor-benefits";
 import { DonorForm } from "@/components/donor-form";
-import { ImpactCalculator } from "@/components/impact-calculator";
-import { QrCard } from "@/components/qr-card";
+import { GiveForm } from "@/components/give-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
-import { DONOR_PATHS, DONOR_URL, LEGAL, PLENTY_DONATE, PLENTY_URL } from "@/lib/content";
+import { LEGAL } from "@/lib/content";
 
 export const Route = createFileRoute("/donate")({
   component: DonatePage,
   head: () => ({
-    meta: [{ title: "Donate food and goods — United Under God" }],
+    meta: [{ title: "Donate — United Under God" }],
   }),
 });
 
 function DonatePage() {
   return (
     <SiteShell>
-      <section className="border-b border-rule bg-forest text-paper">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
+      <section className="relative isolate overflow-hidden bg-ink text-paper">
+        <img
+          src="/images/hands.jpg"
+          alt="Hands packing food into bags"
+          className="absolute inset-0 size-full object-cover opacity-50"
+        />
+        <div className="absolute inset-0 bg-ink/55" />
+        <div className="relative mx-auto max-w-6xl px-5 py-20 md:px-8 md:py-28">
           <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
-            For stores, farms, kitchens, and anyone with a surplus
+            Keep this work moving
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl text-paper">
-            You are missing more by throwing it away than by giving it.
+            Give so neighbors eat, churches stay equipped, and the movement
+            stays honest.
           </h1>
           <p className="mt-5 max-w-2xl text-paper/85">
-            A deduction. Two legal shields. A register that does not shrink.
-            Fresher shelves. Neighbors fed. Two doors into the same pantry:
-            this page, or Plenty.
+            Money is how a pantry stays stocked, how shared tools stay in reach
+            of a little church, and how Live on Mission stays a practice. A
+            gift here is not a brand donation. It is the body at work.
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="invert">
-              <a href={PLENTY_DONATE} target="_blank" rel="noreferrer">
-                Give on Plenty
-              </a>
-            </Button>
-            <p className="self-center font-mono text-sm text-paper/70">{DONOR_URL}</p>
-          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-        <DonorBenefits />
-        <p className="mt-8 max-w-3xl text-sm text-muted">
-          {LEGAL.name} is a {LEGAL.status}, EIN {LEGAL.ein}. Plain-language
-          summary, not legal or tax advice. Statutes: IRC §170(e)(3); 42 U.S.C.
-          § 1791; O.C.G.A. § 51-1-31. Speak with your accountant and counsel.
-          Recipients sign a waiver before they take food.
-        </p>
+      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:items-start md:px-8 md:py-20">
+        <div>
+          <h2 className="text-3xl">Your gift becomes action.</h2>
+          <ul className="mt-6 space-y-4 text-muted">
+            <li>
+              <span className="font-medium text-ink">Meals in Vidalia.</span>{" "}
+              Food, fuel, and the people who pack boxes — so a household eats
+              this week, not someday.
+            </li>
+            <li>
+              <span className="font-medium text-ink">Tools churches can actually use.</span>{" "}
+              Shared systems so a congregation is not paying retail for software
+              it barely uses.
+            </li>
+            <li>
+              <span className="font-medium text-ink">People on mission.</span>{" "}
+              Ordinary Christians seeing a need, doing the thing, and telling
+              the story.
+            </li>
+          </ul>
+          <p className="mt-6 text-sm text-muted">
+            {LEGAL.name} is a {LEGAL.status}. EIN {LEGAL.ein}. Gifts are
+            tax-deductible to the extent allowed by law. Nothing on this site
+            is gated behind a gift.
+          </p>
+        </div>
+        <GiveForm />
       </section>
 
       <section className="border-y border-rule bg-cream">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-          <h2 className="max-w-2xl text-3xl">Two doors into Plenty. One pantry.</h2>
-          <p className="mt-4 max-w-2xl text-muted">
-            Grocers can give on{" "}
-            <a
-              href={PLENTY_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="text-forest underline-offset-4 hover:underline"
-            >
-              plenty.unitedundergod.org
-            </a>{" "}
-            or right here. Same pantry. Same meals. Furniture, clothes, and
-            household goods go to Operate.
-          </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {DONOR_PATHS.map((path) => (
-              <article
-                key={path.id}
-                className="rounded-xl bg-paper p-6 shadow-[var(--shadow-border)]"
+        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:items-start md:px-8 md:py-20">
+          <div>
+            <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
+              Furniture, clothes, household goods
+            </p>
+            <h2 className="mt-3 text-3xl">Give what is in the garage.</h2>
+            <p className="mt-4 text-muted">
+              A couch. Children’s clothes. Kitchenware. If it can bless a
+              neighbor, we will pick it up, receive it with care, and put it in
+              someone’s hands.
+            </p>
+            <p className="mt-4 text-sm text-muted">
+              Prefer to give time instead?{" "}
+              <Link
+                to="/give"
+                className="text-forest underline-offset-4 hover:underline"
               >
-                <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
-                  {path.desk}
-                </p>
-                <h3 className="mt-2 font-display text-xl">{path.title}</h3>
-                <p className="mt-2 text-sm text-muted">{path.who}</p>
-                <p className="mt-3 text-sm text-ink">{path.blurb}</p>
-              </article>
-            ))}
+                Offer hours on the Give page
+              </Link>
+              .
+            </p>
           </div>
+          <DonorForm initialKind="goods" lockKind />
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:py-20">
-        <div>
-          <h2 className="text-3xl">See the meals. Then give the food.</h2>
-          <p className="mt-4 text-muted">
-            A grocer who donates is not losing a customer. They are feeding a
-            neighbor who will still buy what the pantry cannot give — and they
-            may deduct what the dumpster would have eaten for free.
-          </p>
-          <div className="mt-8">
-            <ImpactCalculator />
+      <section className="mx-auto max-w-6xl px-5 py-14 md:px-8">
+        <div className="flex flex-col gap-6 rounded-xl bg-forest px-6 py-8 text-paper md:flex-row md:items-center md:justify-between md:px-10">
+          <div className="max-w-xl">
+            <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
+              Grocery stores, restaurants, and farms
+            </p>
+            <h2 className="mt-2 text-2xl text-paper">
+              Unsold food has its own page — and a signup.
+            </h2>
+            <p className="mt-3 text-sm text-paper/80">
+              Tax benefits, legal protection, and a pickup on the dock. That
+              information belongs with the store manager, not at the top of
+              this gift page.
+            </p>
           </div>
-          <p className="mt-6 text-sm text-muted">
-            The Vidalia pantry story, the waiver, and the letter to grocers live
-            on the{" "}
-            <Link to="/pantry" className="text-forest underline-offset-4 hover:underline">
-              pantry page
-            </Link>
-            .
-          </p>
-        </div>
-        <DonorForm />
-      </section>
-
-      <section className="border-t border-rule bg-cream px-5 py-14">
-        <div className="mx-auto max-w-6xl">
-          <QrCard />
+          <Button asChild variant="invert" className="shrink-0">
+            <Link to="/food-donors">Food donor information</Link>
+          </Button>
         </div>
       </section>
     </SiteShell>

@@ -215,7 +215,7 @@ function Home() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <Link to="/donate">For grocery stores</Link>
+              <Link to="/food-donors">For grocery stores</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link to="/pantry">The Vidalia pantry</Link>

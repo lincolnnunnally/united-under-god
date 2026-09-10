@@ -10,7 +10,7 @@ export function QrCard({ className }: { className?: string }) {
     >
       <img
         src="/qr-donate.svg"
-        alt="QR code to unitedundergod.org/donate"
+        alt="QR code to unitedundergod.org/food-donors"
         className="seal-photo size-36 shrink-0 bg-paper"
         width={144}
         height={144}
@@ -21,8 +21,9 @@ export function QrCard({ className }: { className?: string }) {
         </p>
         <p className="mt-2 font-display text-xl italic">Scan. Read. Sign up.</p>
         <p className="mt-2 text-sm text-muted">
-          A manager can scan this and land on the donor page — benefits, then a
-          button to schedule pickup. No app store. No account to create first.
+          A manager can scan this and land on food donor information — the
+          benefits, then a button to schedule pickup. No app store. No account
+          to create first.
         </p>
         <p className="mt-3 font-mono text-sm text-ink">{DONOR_URL}</p>
       </div>

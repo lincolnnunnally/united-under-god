@@ -16,7 +16,7 @@ export function ImpactCalculator() {
   }, [lbs]);
 
   return (
-    <div className="rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7">
+    <div className="min-w-0 rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] sm:p-7">
       <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
         What your unsold food becomes
       </p>
@@ -33,7 +33,7 @@ export function ImpactCalculator() {
       <label className="mt-6 block">
         <span className="flex items-baseline justify-between text-sm">
           <span className="font-medium">Pounds per week</span>
-          <span className="font-display text-2xl tabular-nums text-forest">
+          <span className="font-display text-xl tabular-nums text-forest">
             {lbs}
           </span>
         </span>
@@ -51,7 +51,7 @@ export function ImpactCalculator() {
         />
       </label>
 
-      <dl className="mt-6 grid gap-3 sm:grid-cols-3">
+      <dl className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         <Stat label="Meals this week" value={stats.mealsWeek.toLocaleString()} />
         <Stat
           label="Pantry boxes this week"
@@ -74,9 +74,13 @@ export function ImpactCalculator() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-paper px-4 py-4 shadow-[var(--shadow-border)]">
-      <dt className="text-xs tracking-[0.08em] text-subtle uppercase">{label}</dt>
-      <dd className="mt-1 font-display text-3xl tabular-nums text-ink">{value}</dd>
+    <div className="min-w-0 overflow-hidden rounded-lg bg-paper px-2 py-3 shadow-[var(--shadow-border)] sm:px-3 sm:py-4">
+      <dt className="text-xs leading-snug tracking-[0.06em] text-subtle uppercase">
+        {label}
+      </dt>
+      <dd className="mt-1 font-display text-xl leading-none font-medium tabular-nums text-ink">
+        {value}
+      </dd>
     </div>
   );
 }

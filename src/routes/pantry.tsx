@@ -60,7 +60,7 @@ function PantryPage() {
           </p>
           <div className="mt-8">
             <Button asChild variant="invert">
-              <Link to="/donate">See what you’re missing — then sign up</Link>
+              <Link to="/food-donors">See what you’re missing — then sign up</Link>
             </Button>
           </div>
         </div>
@@ -161,7 +161,7 @@ function PantryPage() {
             .
           </p>
         </div>
-        <DonorForm initialKind="food" />
+        <DonorForm initialKind="food" lockKind />
       </section>
 
       <section className="border-t border-rule bg-forest px-5 py-14 text-paper">

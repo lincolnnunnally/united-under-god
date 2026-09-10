@@ -16,6 +16,7 @@ import { Route as BibleRouteRouteImport } from './routes/bible/route'
 import { Route as BuyingRouteImport } from './routes/buying'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
 import { Route as DonateRouteImport } from './routes/donate'
+import { Route as FoodDonorsRouteImport } from './routes/food-donors'
 import { Route as GiveRouteImport } from './routes/give'
 import { Route as HappeningsRouteImport } from './routes/happenings'
 import { Route as JoinRouteImport } from './routes/join'
@@ -62,6 +63,11 @@ const DoctrineRoute = DoctrineRouteImport.update({
 const DonateRoute = DonateRouteImport.update({
   id: '/donate',
   path: '/donate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FoodDonorsRoute = FoodDonorsRouteImport.update({
+  id: '/food-donors',
+  path: '/food-donors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiveRoute = GiveRouteImport.update({
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
   '/join': typeof JoinRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
   '/join': typeof JoinRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
   '/join': typeof JoinRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/buying'
     | '/doctrine'
     | '/donate'
+    | '/food-donors'
     | '/give'
     | '/happenings'
     | '/join'
@@ -218,6 +228,7 @@ export interface FileRouteTypes {
     | '/buying'
     | '/doctrine'
     | '/donate'
+    | '/food-donors'
     | '/give'
     | '/happenings'
     | '/join'
@@ -239,6 +250,7 @@ export interface FileRouteTypes {
     | '/buying'
     | '/doctrine'
     | '/donate'
+    | '/food-donors'
     | '/give'
     | '/happenings'
     | '/join'
@@ -261,6 +273,7 @@ export interface RootRouteChildren {
   BuyingRoute: typeof BuyingRoute
   DoctrineRoute: typeof DoctrineRoute
   DonateRoute: typeof DonateRoute
+  FoodDonorsRoute: typeof FoodDonorsRoute
   GiveRoute: typeof GiveRouteWithChildren
   HappeningsRoute: typeof HappeningsRoute
   JoinRoute: typeof JoinRoute
@@ -321,6 +334,13 @@ declare module '@tanstack/react-router' {
       path: '/donate'
       fullPath: '/donate'
       preLoaderRoute: typeof DonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/food-donors': {
+      id: '/food-donors'
+      path: '/food-donors'
+      fullPath: '/food-donors'
+      preLoaderRoute: typeof FoodDonorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/give': {
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   BuyingRoute: BuyingRoute,
   DoctrineRoute: DoctrineRoute,
   DonateRoute: DonateRoute,
+  FoodDonorsRoute: FoodDonorsRoute,
   GiveRoute: GiveRouteWithChildren,
   HappeningsRoute: HappeningsRoute,
   JoinRoute: JoinRoute,

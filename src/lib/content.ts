@@ -262,7 +262,7 @@ export const PLENTY_DONATE = "https://plenty.unitedundergod.org/donate";
 export const SPARK_URL = "https://spark.unitedundergod.org";
 export const MISSION_APP = "https://liveonmission.unitedundergod.org";
 
-export const DONOR_URL = "https://unitedundergod.org/donate";
+export const DONOR_URL = "https://unitedundergod.org/food-donors";
 
 export const DONOR_BENEFITS = [
   {

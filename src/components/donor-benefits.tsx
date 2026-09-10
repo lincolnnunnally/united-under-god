@@ -29,7 +29,7 @@ export function DonorBenefits({ compact = false, className }: Props) {
             </p>
           </div>
           <Button asChild variant="invert" className="shrink-0">
-            <Link to="/donate">See what you’re missing</Link>
+            <Link to="/food-donors">See what you’re missing</Link>
           </Button>
         </div>
       ) : (

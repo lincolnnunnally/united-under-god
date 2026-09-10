@@ -22,10 +22,11 @@ const PICKUP_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type Props = {
   initialKind?: DonorKind;
+  lockKind?: boolean;
   className?: string;
 };
 
-export function DonorForm({ initialKind, className }: Props) {
+export function DonorForm({ initialKind, lockKind = false, className }: Props) {
   const [kind, setKind] = useState<DonorKind>(initialKind ?? "food");
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
@@ -106,44 +107,46 @@ export function DonorForm({ initialKind, className }: Props) {
       )}
     >
       <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
-        Sign up and schedule pickup
+        {kind === "food" ? "Sign up and schedule pickup" : "Schedule a goods pickup"}
       </p>
       <p className="mt-2 text-sm text-muted">
-        One form. We put you in the right desk.
+        {lockKind ? path.deskNote : "One form. We put you in the right desk."}
       </p>
 
-      <fieldset className="mt-5 grid gap-2">
-        <legend className="sr-only">What are you giving</legend>
-        {DONOR_PATHS.map((item) => (
-          <label
-            key={item.id}
-            className={cn(
-              "flex cursor-pointer items-start gap-3 rounded-md px-3 py-3 shadow-[var(--shadow-border)]",
-              kind === item.id ? "bg-forest text-paper" : "bg-paper text-ink",
-            )}
-          >
-            <input
-              type="radio"
-              name="kind"
-              value={item.id}
-              checked={kind === item.id}
-              onChange={() => setKind(item.id)}
-              className="mt-1 size-4 accent-forest"
-            />
-            <span>
-              <span className="block font-medium">{item.title}</span>
-              <span
-                className={cn(
-                  "mt-0.5 block text-sm",
-                  kind === item.id ? "text-paper/75" : "text-muted",
-                )}
-              >
-                {item.who}
+      {lockKind ? null : (
+        <fieldset className="mt-5 grid gap-2">
+          <legend className="sr-only">What are you giving</legend>
+          {DONOR_PATHS.map((item) => (
+            <label
+              key={item.id}
+              className={cn(
+                "flex cursor-pointer items-start gap-3 rounded-md px-3 py-3 shadow-[var(--shadow-border)]",
+                kind === item.id ? "bg-forest text-paper" : "bg-paper text-ink",
+              )}
+            >
+              <input
+                type="radio"
+                name="kind"
+                value={item.id}
+                checked={kind === item.id}
+                onChange={() => setKind(item.id)}
+                className="mt-1 size-4 accent-forest"
+              />
+              <span>
+                <span className="block font-medium">{item.title}</span>
+                <span
+                  className={cn(
+                    "mt-0.5 block text-sm",
+                    kind === item.id ? "text-paper/75" : "text-muted",
+                  )}
+                >
+                  {item.who}
+                </span>
               </span>
-            </span>
-          </label>
-        ))}
-      </fieldset>
+            </label>
+          ))}
+        </fieldset>
+      )}
 
       <p className="mt-4 text-sm text-muted">
         Goes to <span className="font-medium text-ink">{path.desk}</span>. {path.deskNote}
