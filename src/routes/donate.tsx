@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { DonorForm } from "@/components/donor-form";
 import { GiveForm } from "@/components/give-form";
+import { GoodsExchange } from "@/components/goods-exchange";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { LEGAL } from "@/lib/content";
@@ -68,29 +68,31 @@ function DonatePage() {
       </section>
 
       <section className="border-y border-rule bg-cream">
-        <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:items-start md:px-8 md:py-20">
-          <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-              Furniture, clothes, household goods
-            </p>
-            <h2 className="mt-3 text-3xl">Give what is in the garage.</h2>
-            <p className="mt-4 text-muted">
-              A couch. Children’s clothes. Kitchenware. If it can bless a
-              neighbor, we will pick it up, receive it with care, and put it in
-              someone’s hands.
-            </p>
-            <p className="mt-4 text-sm text-muted">
-              Prefer to give time instead?{" "}
-              <Link
-                to="/give"
-                className="text-forest underline-offset-4 hover:underline"
-              >
-                Offer hours on the Give page
-              </Link>
-              .
-            </p>
+        <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+          <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
+            Clothes, furniture, household goods
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl">
+            Donate what is in your way.
+          </h2>
+          <p className="mt-4 max-w-2xl text-muted">
+            Share what you no longer need. Someone values it. If a neighbor
+            already asked for a couch, a coat, a crib — we can take yours
+            straight to them and skip the warehouse.
+          </p>
+          <p className="mt-4 max-w-2xl text-sm text-muted">
+            Prefer to give time instead?{" "}
+            <Link
+              to="/give"
+              className="text-forest underline-offset-4 hover:underline"
+            >
+              Offer hours on the Give page
+            </Link>
+            .
+          </p>
+          <div className="mt-10">
+            <GoodsExchange />
           </div>
-          <DonorForm initialKind="goods" lockKind />
         </div>
       </section>
 

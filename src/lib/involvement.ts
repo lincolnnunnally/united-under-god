@@ -3,6 +3,7 @@ export type InvolvementIntent =
   | "time"
   | "money"
   | "goods"
+  | "need"
   | "grocery"
   | "mission"
   | "hand"
@@ -26,6 +27,11 @@ export type InvolvementRecord = {
   pickupWindow: string;
   destination: string;
   createdAt: string;
+  categories?: string;
+  vehicle?: string;
+  helpers?: string;
+  photos?: string[];
+  needItem?: string;
 };
 
 const STORAGE_KEY = "uug-involvement";
@@ -51,8 +57,61 @@ export function saveInvolvement(
     createdAt: new Date().toISOString(),
   };
   const all = [...readInvolvement(), next];
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  } catch {
+    const slim = { ...next, photos: [] as string[] };
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([...readInvolvement(), slim]),
+    );
+    return slim;
+  }
   return next;
+}
+
+export function goodsOffers() {
+  return readInvolvement().filter((item) => item.intent === "goods");
+}
+
+export function goodsNeeds() {
+  return readInvolvement().filter((item) => item.intent === "need");
+}
+
+function haystack(record: InvolvementRecord) {
+  return [
+    record.needItem,
+    record.categories,
+    record.message,
+    record.orgType,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+export function matchingOffers(need: string, categories: string) {
+  const tokens = `${need} ${categories}`
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2);
+  if (!tokens.length) return [] as InvolvementRecord[];
+  return goodsOffers().filter((offer) => {
+    const hay = haystack(offer);
+    return tokens.some((t) => hay.includes(t));
+  });
+}
+
+export function matchingNeeds(offer: string, categories: string) {
+  const tokens = `${offer} ${categories}`
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 2);
+  if (!tokens.length) return [] as InvolvementRecord[];
+  return goodsNeeds().filter((need) => {
+    const hay = haystack(need);
+    return tokens.some((t) => hay.includes(t));
+  });
 }
 
 export const INTENT_COPY: Record<
@@ -76,8 +135,13 @@ export const INTENT_COPY: Record<
   },
   goods: {
     title: "Give goods",
-    lead: "Furniture, clothing, household, overstock — if it can bless a neighbor, tell us what you have. We will arrange a handoff in Operate.",
-    submit: "Offer goods",
+    lead: "Furniture, clothing, household — if a neighbor can use it, tell us what you have. We will come get it.",
+    submit: "Schedule a pickup",
+  },
+  need: {
+    title: "Ask for what you need",
+    lead: "Need a couch, coats, a crib? Tell us. We will look at what has been offered, and if we do not have it, we will ask the body.",
+    submit: "Ask for this",
   },
   grocery: {
     title: "Donate unsold food",
