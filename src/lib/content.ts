@@ -289,7 +289,7 @@ export const DONOR_BENEFITS = [
     kicker: "04",
     title: "You are covered",
     lead: "Two shields, then a waiver.",
-    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation.",
+    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation. If the store already advertises feeding kids, the dock is how that promise happens in Vidalia — department by department, without inventing a new program.",
   },
 ] as const;
 

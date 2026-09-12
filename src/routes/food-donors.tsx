@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { DonorBenefits } from "@/components/donor-benefits";
 import { DonorForm } from "@/components/donor-form";
 import { ImpactCalculator } from "@/components/impact-calculator";
+import { StoreCalculator } from "@/components/store-calculator";
 import { QrCard } from "@/components/qr-card";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -63,13 +64,17 @@ function FoodDonorsPage() {
       >
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:py-20">
           <div className="min-w-0">
-            <h2 className="text-3xl">See the meals. Then give the food.</h2>
+            <h2 className="text-3xl">Punch in one week of what you throw.</h2>
             <p className="mt-4 text-muted">
               A grocer who donates is making a better number. Throw it away and
               you deduct cost. Donate it and you may deduct twice as much — then
               the neighbor who felt that kindness comes back and spends leftover
-              money in your store.
+              money in your store. If your banner already says you feed kids,
+              meat and dairy can match that. Recipients sign. We pick up.
             </p>
+            <div className="mt-8">
+              <StoreCalculator />
+            </div>
             <div className="mt-8">
               <ImpactCalculator />
             </div>
