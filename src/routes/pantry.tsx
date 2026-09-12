@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { DonorBenefits } from "@/components/donor-benefits";
 import { ImpactCalculator } from "@/components/impact-calculator";
 import { DonorForm } from "@/components/donor-form";
 import { SiteShell } from "@/components/site-shell";
@@ -8,7 +9,14 @@ import { PLENTY_URL } from "@/lib/content";
 export const Route = createFileRoute("/pantry")({
   component: PantryPage,
   head: () => ({
-    meta: [{ title: "Vidalia food pantry — United Under God" }],
+    meta: [
+      { title: "Throw it away, deduct the cost. Donate it, you may deduct twice as much — United Under God" },
+      {
+        name: "description",
+        content:
+          "Grocery stores: unsold food in the dumpster is a cost write-off. Donate it to Plenty in Vidalia and you may deduct up to twice what you paid — then neighbors who felt that kindness come back and spend in your store.",
+      },
+    ],
   }),
 });
 
@@ -32,9 +40,9 @@ const PROTECTIONS = [
 ];
 
 const STATS = [
-  { value: "1 in 5", label: "people in the Vidalia-Lyons area live below the poverty line" },
-  { value: "24%", label: "of children in Toombs County face food insecurity" },
-  { value: "30–40%", label: "of the U.S. food supply is lost or wasted — much of it still good" },
+  { value: "Cost only", label: "What you deduct if unsold food goes in the dumpster" },
+  { value: "Up to 2×", label: "What you may deduct if you donate that same food to Plenty" },
+  { value: "They shop", label: "People who felt the kindness spend leftover money in your store" },
 ];
 
 function PantryPage() {
@@ -49,19 +57,22 @@ function PantryPage() {
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-ink/35" />
         <div className="relative mx-auto max-w-6xl px-5 py-24 md:px-8 md:py-32">
           <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
-            Vidalia, Georgia
+            Grocery stores · Vidalia pantry
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl text-paper">
-            The food you cannot sell is dinner in Toombs County.
+            Throw it away, deduct the cost. Donate it, you may deduct twice as much.
           </h1>
           <p className="mt-5 max-w-2xl text-paper/88">
-            We are opening a pantry in Vidalia. If you run a grocery store, a
-            restaurant, or a farm, what walks out your back door can feed a
-            neighbor tonight. You will see how many people ate because of you.
+            A grocery store is a business. This is the better number. Toss
+            unsold food and you write off what you paid — then you pay to haul
+            it. Give it to Plenty and federal tax law may let you deduct the
+            cost plus half the profit you would have made, up to twice the cost
+            of the product. Then people who felt that kindness come back and
+            spend leftover money in your store.
           </p>
           <div className="mt-8">
             <Button asChild variant="invert">
-              <Link to="/food-donors">See what you’re missing — then sign up</Link>
+              <Link to="/food-donors">See the write-off — then sign up</Link>
             </Button>
           </div>
         </div>
@@ -100,32 +111,42 @@ function PantryPage() {
           A letter to grocers
         </p>
         <h2 className="mt-3 max-w-3xl text-3xl">
-          You already know what walks out the back door into a dumpster.
+          If you throw it away, you only deduct the cost.
         </h2>
         <div className="mt-8 grid gap-10 md:grid-cols-2">
           <div className="space-y-4 text-muted">
             <p>
               Bread that did not sell by closing. Produce that is still good
               and no longer pretty. Cans with a dent. Dairy a day from the date.
-              Overstock from a truck that brought too much. That food is not
-              trash. In Toombs County it is dinner.
+              That food is going somewhere. The dumpster lets you write off what
+              you paid — and then charges you to haul it.
             </p>
             <p>
-              Give it. We will pick it up when we can, receive it with care,
-              and put it in the hands of households who came asking. You reduce
-              waste hauling. You may also qualify for a charitable deduction on
-              donated inventory — speak with your accountant. And you will know,
-              in numbers, how many people ate what you could not sell.
+              Donate it to United Under God for Plenty in Vidalia and you may
+              deduct the cost plus half the profit you would have received, up
+              to twice the cost of the product. Example: you paid $200, would
+              have sold it for $600. Trash ≈ $200. Donate ≈ $400. That is twice
+              the financial benefit. Ask your accountant about IRC § 170(e)(3).
+              This is not tax advice.
+            </p>
+            <p>
+              Then people who appreciate the kindness come back. They spend the
+              money they have left — milk, meat, soap, a birthday cake — in your
+              store, not someone else’s. That’s why Publix, Kroger, Walmart, and
+              Costco already do it.
             </p>
             <p className="text-sm">
-              Liability, waivers, and how the pantry is run are below. The short
-              version: federal Good Samaritan law already stands behind a
-              good-faith gift, and every family who receives food signs before
-              they take it.
+              We pick up. You get a receipt. Liability is covered below. And
+              yes — the food becomes dinner in Toombs County. That is the fruit.
+              The decision for a store manager starts with the numbers.
             </p>
           </div>
           <ImpactCalculator />
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
+        <DonorBenefits />
       </section>
 
       <section className="border-y border-rule bg-cream">

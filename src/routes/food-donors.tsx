@@ -10,7 +10,9 @@ import { DONOR_URL, LEGAL, PLENTY_DONATE, PLENTY_URL } from "@/lib/content";
 export const Route = createFileRoute("/food-donors")({
   component: FoodDonorsPage,
   head: () => ({
-    meta: [{ title: "Food donor information — United Under God" }],
+    meta: [
+      { title: "Throw it away, deduct the cost. Donate it, you may deduct twice as much — United Under God" },
+    ],
   }),
 });
 
@@ -23,12 +25,13 @@ function FoodDonorsPage() {
             For grocery stores, farms, and kitchens
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl text-paper">
-            You are missing more by throwing it away than by giving it.
+            Throw it away, deduct the cost. Donate it, you may deduct twice as much.
           </h1>
           <p className="mt-5 max-w-2xl text-paper/85">
-            A deduction. Two legal shields. A register that does not shrink.
-            Fresher shelves. Neighbors fed. Sign up here and we will schedule
-            pickup.
+            A grocery store is a business. Toss unsold food and you write off
+            what you paid. Give it to Plenty and you may write off twice that —
+            then people who felt the kindness come back and spend leftover money
+            in your aisles. Sign up here and we will schedule pickup.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button asChild variant="invert">
@@ -62,9 +65,10 @@ function FoodDonorsPage() {
           <div className="min-w-0">
             <h2 className="text-3xl">See the meals. Then give the food.</h2>
             <p className="mt-4 text-muted">
-              A grocer who donates is not losing a customer. They are feeding a
-              neighbor who will still buy what the pantry cannot give — and they
-              may deduct what the dumpster would have eaten for free.
+              A grocer who donates is making a better number. Throw it away and
+              you deduct cost. Donate it and you may deduct twice as much — then
+              the neighbor who felt that kindness comes back and spends leftover
+              money in your store.
             </p>
             <div className="mt-8">
               <ImpactCalculator />

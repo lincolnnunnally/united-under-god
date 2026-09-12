@@ -269,27 +269,27 @@ export const DONOR_URL = "https://unitedundergod.org/food-donors";
 export const DONOR_BENEFITS = [
   {
     kicker: "01",
-    title: "A deduction the dumpster cannot give you",
-    lead: "Cost plus half the unsold profit.",
-    body: "Federal law (IRC §170(e)(3)) lets businesses deduct more than the cost of apparently wholesome food given to a qualified nonprofit. The enhanced deduction is the lesser of twice your cost, or cost plus half of what you would have made. Caps apply — generally 15% of income from the business. Throwing the same food away deducts nothing. Ask your accountant. This is not tax advice.",
+    title: "Twice the write-off",
+    lead: "Throw it away: deduct cost. Donate it: you may deduct twice as much.",
+    body: "Federal law (IRC §170(e)(3)) lets a business deduct the cost of apparently wholesome food plus half the profit it would have made, capped at twice the cost. Example: you paid $200 and would have sold it for $600. Dumpster write-off ≈ $200. Donate write-off ≈ $400. Caps apply — generally 15% of income from the business. Ask your accountant. This is not tax advice.",
   },
   {
     kicker: "02",
-    title: "Federal law and Georgia law both stand behind you",
-    lead: "Two shields, then a waiver.",
-    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation.",
+    title: "Kindness comes back as sales",
+    lead: "People who feel a store’s kindness reciprocate.",
+    body: "They walk your aisles and often spend leftover money on other items at your store — milk, meat, soap, a birthday cake — not the one down the road. Research on pantry density finds no significant drop in grocer revenue when a pantry is nearby (Kopp & Chenarides). You are feeding a customer who still needs a store.",
   },
   {
     kicker: "03",
-    title: "Your register does not go with the food",
-    lead: "Pantries do not steal grocery sales.",
-    body: "Research on pantry density finds no significant drop in grocer revenue when a pantry is nearby (Kopp & Chenarides). Households who save on staples still shop the store for what a pantry does not carry. You are not funding a competitor. You are feeding a customer who still needs a store.",
+    title: "The dumpster charges you",
+    lead: "Disposal is a fee. Donation is often cheaper.",
+    body: "Pull aging food, donate it, restock. Stores that do this have been shown to earn higher markups — one study found about a third higher after controls (Lowrey et al.). You also stop paying to haul what you cannot sell.",
   },
   {
     kicker: "04",
-    title: "Fresher shelves. Less hauling. Higher markups.",
-    lead: "Donation is operations, not only charity.",
-    body: "Stores that pull aging food, donate it, and restock with fresher inventory have been shown to earn higher markups — one study found about a third higher after controls (Lowrey et al.). You also stop paying to haul what you cannot sell.",
+    title: "You are covered",
+    lead: "Two shields, then a waiver.",
+    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation.",
   },
 ] as const;
 

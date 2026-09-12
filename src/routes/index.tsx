@@ -197,19 +197,19 @@ function Home() {
             Vidalia food pantry
           </p>
           <h2 className="mt-3 text-3xl">
-            The food that will not sell can still feed a family tonight.
+            Throw it away, deduct the cost. Donate it, you may deduct twice as much.
           </h2>
           <p className="mt-5 text-muted">
-            We are opening a pantry in Vidalia. About one in five people in the
-            Vidalia-Lyons area live below the poverty line. In Toombs County,
-            roughly one in four children faces food insecurity. Grocery stores,
-            restaurants, and farms throw away food that is still good — while
-            neighbors go without.
+            A grocery store is a business. Unsold food in the dumpster is a
+            cost write-off — then you pay to haul it. Donate it to Plenty in
+            Vidalia and you may deduct the cost plus half the profit you would
+            have made, up to twice the cost of the product.
           </p>
           <p className="mt-4 text-muted">
-            If you have food you cannot sell, you have a meal someone needs.
-            Give it. We will put it in their hands. You will see the people who
-            ate because of you.
+            Then people who felt that kindness come back and spend leftover
+            money in your store. We pick up. You get a receipt. The food still
+            becomes dinner — that is the fruit. The decision starts with the
+            numbers.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
