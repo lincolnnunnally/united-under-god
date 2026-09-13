@@ -15,7 +15,19 @@ From that desk he **selects an app** and walks through one of two doors:
 - the app’s **own staff dashboard** (the workbench)
 - the app’s **public website**
 
-This website’s staff desk (`/admin`) is for **this app’s work** (seal, pantry donors, pickups). It is not a second owner dashboard. Never invent a parallel “universal dashboard.” Report to the one that already exists.
+This website’s staff desk (`/admin`) is for **this app’s work** (seal, first-time donor capture). It is not a second owner dashboard. Never invent a parallel “universal dashboard.” Report to the one that already exists.
+
+## Locked split with Plenty (owner lock 2026-09-13)
+
+United Under God is the charity and the front door. Plenty is the pantry and the workbench. They share a database. They do not share the same job.
+
+- This site owns the donor of record: name, store, contact, gift type, tax letter, EIN (United Under God, Inc. 81-3554390).
+- Plenty owns the route: pickup window, load, driver, what was received, who was served.
+- First time / “I want to give” / tax records → this site.
+- Store on the list / food is ready / request a pickup → Plenty.
+- This site may invite grocers and capture first interest. This site does **not** schedule pickups. After capture, “Request pickup” always opens Plenty.
+- Receipts always say United Under God, Inc. Plenty is a program, not a second charity.
+- Do not keep two living pickup desks.
 
 ## Every United Under God app we build or touch must
 
@@ -67,5 +79,4 @@ Same rule for photos. Break long reading with real pictures. Do not ship a homep
 - **Public members** (churches, businesses, charities, households) sign in on this site (`/login` → `/account`). They keep the seal, united buying, Live on Mission, and volunteer stands here.
 - **Staff** use the same door; after sign-in they land on `/admin`. The desk is not for public members.
 - **Pantry neighbors** (need food, donate groceries, pantry shifts) sign in on [Plenty](https://plenty.unitedundergod.org), not here.
-
-
+- **Grocery pickup** is requested on Plenty, not here. This site captures the first donor record, then hands them to Plenty.
