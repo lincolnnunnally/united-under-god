@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DONOR_PATHS, PLENTY_DONATE } from "@/lib/content";
+import { DONOR_PATHS, PLENTY_STORES } from "@/lib/content";
 import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
@@ -83,24 +83,19 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         <div className="flex size-11 items-center justify-center rounded-md bg-forest text-paper">
           <Check className="size-5" />
         </div>
-        <h3 className="mt-5 font-display text-2xl">You’re on the list.</h3>
+        <h3 className="mt-5 font-display text-2xl">You’re on the charity’s list.</h3>
         <p className="mt-3 max-w-prose text-muted">
-          This gift is going to <span className="font-medium text-ink">{path.desk}</span>
           {kind === "food"
-            ? " — the pantry. We will add your business, confirm a pickup window, and come get the food."
-            : " — the goods desk. We will confirm pickup or receiving and put what you gave into someone’s hands."}
+            ? "Receipts say United Under God, Inc. Plenty is the pantry program, not a second charity. Next: tell Plenty when food is on the dock."
+            : `This gift is going to ${path.desk}. We will confirm pickup or receiving and put what you gave into someone’s hands.`}
         </p>
         {kind === "food" ? (
-          <p className="mt-3 text-sm">
-            <a
-              href={PLENTY_DONATE}
-              target="_blank"
-              rel="noreferrer"
-              className="text-forest underline-offset-4 hover:underline"
-            >
-              You can also give directly on Plenty
-            </a>
-            .
+          <p className="mt-5">
+            <Button asChild>
+              <a href={PLENTY_STORES} target="_blank" rel="noreferrer">
+                Request a pickup on Plenty
+              </a>
+            </Button>
           </p>
         ) : null}
       </div>
@@ -116,7 +111,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       )}
     >
       <p className="text-xs font-semibold tracking-[0.16em] text-forest uppercase">
-        {kind === "food" ? "Sign up and schedule pickup" : "Schedule a goods pickup"}
+        {kind === "food" ? "Sign up with the charity" : "Schedule a goods pickup"}
       </p>
       <input
         type="text"

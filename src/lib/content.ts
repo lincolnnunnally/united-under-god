@@ -2,6 +2,7 @@ export const NAV = [
   { to: "/", label: "The movement" },
   { to: "/mission", label: "Live on Mission" },
   { to: "/pantry", label: "Vidalia pantry" },
+  { to: "/food-donors", label: "Stores" },
   { to: "/organizations", label: "For organizations" },
   { to: "/bible", label: "Bible" },
   { to: "/give", label: "Give" },
@@ -259,6 +260,7 @@ export const LEGAL = {
 
 export const PLENTY_URL = "https://plenty.unitedundergod.org";
 export const PLENTY_DONATE = "https://plenty.unitedundergod.org/donate";
+export const PLENTY_STORES = "https://plenty.unitedundergod.org/for-stores";
 export const SPARK_URL = "https://spark.unitedundergod.org";
 export const MISSION_APP = "https://liveonmission.unitedundergod.org";
 export const MISSION_PUBLIC = "https://live-on-mission.com";
@@ -306,9 +308,9 @@ export const DONOR_PATHS: {
     id: "food" as const,
     title: "Unsold food",
     who: "Grocery stores, restaurants, farms, distributors",
-    desk: "Plenty",
-    deskNote: "Pantry operations — your gift is received, tracked, and served. You see the meals.",
-    blurb: "Tell us the store, the surplus, and a pickup window. We add you to Plenty and come get the food.",
+    desk: "United Under God, then Plenty",
+    deskNote: "This site keeps the donor record and tax letter. Plenty runs the pickup after you are on the list.",
+    blurb: "Sign up once here. After that, live in Plenty for every pickup. Receipts always say United Under God, Inc.",
   },
   {
     id: "goods" as const,

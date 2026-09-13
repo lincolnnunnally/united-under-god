@@ -20,11 +20,12 @@ export function DonorBenefits({ compact = false, className }: Props) {
               For grocers, restaurants, and farms
             </p>
             <h2 className="mt-3 text-3xl text-paper">
-              Throw it away, deduct the cost. Donate it, you may deduct twice as much.
+              <span className="block min-w-0 max-w-full">Throw it away, deduct the cost.</span>
+              <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
             </h2>
             <p className="mt-4 text-paper/80">
-              Twice the write-off. People who felt the kindness come back and
-              spend leftover money in your store. We pick up. You are covered.
+              Punch in one week of dumpster food. Sign up once with the charity.
+              Plenty picks it up. You are covered.
             </p>
           </div>
           <Button asChild variant="invert" className="shrink-0">

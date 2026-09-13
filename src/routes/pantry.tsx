@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DonorBenefits } from "@/components/donor-benefits";
-import { ImpactCalculator } from "@/components/impact-calculator";
 import { DonorForm } from "@/components/donor-form";
+import { ImpactCalculator } from "@/components/impact-calculator";
+import { StoreCalculator } from "@/components/store-calculator";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { PLENTY_URL } from "@/lib/content";
@@ -60,19 +61,20 @@ function PantryPage() {
             Grocery stores · Vidalia pantry
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl text-paper">
-            Throw it away, deduct the cost. Donate it, you may deduct twice as much.
+            <span className="block min-w-0 max-w-full">Throw it away, deduct the cost.</span>
+            <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-paper/88">
-            A grocery store is a business. This is the better number. Toss
-            unsold food and you write off what you paid — then you pay to haul
-            it. Give it to Plenty and federal tax law may let you deduct the
-            cost plus half the profit you would have made, up to twice the cost
-            of the product. Then people who felt that kindness come back and
-            spend leftover money in your store.
+            United Under God is the charity. Punch in one week of what you
+            throw, then sign up here for the tax record. Plenty is the pantry
+            that picks the food up. Receipts always say United Under God, Inc.
           </p>
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="invert">
-              <Link to="/food-donors">See the write-off — then sign up</Link>
+              <a href="#calculator">See what you are missing</a>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/food-donors">Sign up with the charity</Link>
             </Button>
           </div>
         </div>
@@ -136,11 +138,16 @@ function PantryPage() {
               Costco already do it.
             </p>
             <p className="text-sm">
-              We pick up. You get a receipt. Liability is covered below. And
-              yes — the food becomes dinner in Toombs County. That is the fruit.
-              The decision for a store manager starts with the numbers.
+              Sign up once on this site. Plenty runs the pickup. Liability is
+              covered below. The food still becomes dinner in Toombs County —
+              that is the fruit. The decision starts with the numbers.
             </p>
           </div>
+          <div id="calculator" className="scroll-mt-24">
+            <StoreCalculator />
+          </div>
+        </div>
+        <div className="mt-10">
           <ImpactCalculator />
         </div>
       </section>

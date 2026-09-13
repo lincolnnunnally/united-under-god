@@ -24,7 +24,8 @@ export function StoreCalculator() {
         Your numbers
       </p>
       <h3 className="mt-2 font-display text-2xl">
-        See what throwing it away actually costs you
+        <span className="block min-w-0 max-w-full">See what the dumpster costs.</span>
+        <span className="block min-w-0 max-w-full">See what donating can pay.</span>
       </h3>
       <p className="mt-2 max-w-prose text-sm text-muted">
         Meat and dairy managers can punch in one week of what goes in the

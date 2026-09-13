@@ -157,15 +157,14 @@ function GivePage() {
               free.
             </p>
             <p className="mt-6 text-sm text-muted">
-              Grocery stores: throw unsold food away and you deduct what you
-              paid. Donate it to Plenty and you may deduct up to twice the cost —
-              then neighbors who felt that kindness come back and spend in your
-              store.{" "}
+              Grocery stores, farms, and kitchens: sign up once here for the
+              tax record. Then Plenty runs the pickup. Punch in one week of
+              what you throw and see the write-off.{" "}
               <Link
                 to="/food-donors"
                 className="text-forest underline-offset-4 hover:underline"
               >
-                See the business case
+                See what you are missing
               </Link>
               .
             </p>

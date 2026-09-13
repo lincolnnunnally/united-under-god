@@ -21,8 +21,9 @@ export function QrCard({ className }: { className?: string }) {
         </p>
         <p className="mt-2 font-display text-xl italic">Scan. Read. Sign up.</p>
         <p className="mt-2 text-sm text-muted">
-          A manager can scan this and land on food donor information — the
-          benefits, then a button to schedule pickup. No app store. No account
+          A manager can scan this, punch in one week of dumpster food, and
+          sign up with the charity. Plenty runs the pickup after that. No app
+          store. No account
           to create first.
         </p>
         <p className="mt-3 font-mono text-sm text-ink">{DONOR_URL}</p>

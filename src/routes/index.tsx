@@ -197,23 +197,21 @@ function Home() {
             Vidalia food pantry
           </p>
           <h2 className="mt-3 text-3xl">
-            Throw it away, deduct the cost. Donate it, you may deduct twice as much.
+            <span className="block min-w-0 max-w-full">Throw it away, deduct the cost.</span>
+            <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
           </h2>
           <p className="mt-5 text-muted">
-            A grocery store is a business. Unsold food in the dumpster is a
-            cost write-off — then you pay to haul it. Donate it to Plenty in
-            Vidalia and you may deduct the cost plus half the profit you would
-            have made, up to twice the cost of the product.
+            Sign up once with United Under God, Inc. — the 501(c)(3). Punch in
+            one week of dumpster food and see the write-off. Plenty is the
+            pantry that picks it up after you are on the list.
           </p>
           <p className="mt-4 text-muted">
             Then people who felt that kindness come back and spend leftover
-            money in your store. We pick up. You get a receipt. The food still
-            becomes dinner — that is the fruit. The decision starts with the
-            numbers.
+            money in your store. Receipts always say United Under God, Inc.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <Link to="/food-donors">For grocery stores</Link>
+              <Link to="/food-donors">See what you are missing</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link to="/pantry">The Vidalia pantry</Link>
