@@ -1,10 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { readMyPlace } from "@/lib/member-actions";
+import { listPublishedBook, type PublicBookEntry } from "@/lib/source-actions";
 
-export const Route = createFileRoute("/buying")({
+export const Route = createFileRoute("/buying/")({
+  loader: () => listPublishedBook(),
   component: BuyingPage,
   head: () => ({
     meta: [{ title: "United buying — United Under God" }],
@@ -35,6 +40,8 @@ const CATALOGS = [
 ];
 
 function BuyingPage() {
+  const { entries } = Route.useLoaderData();
+
   return (
     <SiteShell>
       <section className="border-b border-rule bg-cream">
@@ -52,8 +59,11 @@ function BuyingPage() {
             reaches the work.
           </p>
           <SignInNudge about="united buying" />
+          <SourceDeskCta />
         </div>
       </section>
+
+      <BuyingBook entries={entries} />
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
         <div className="grid gap-6 md:grid-cols-3">
@@ -131,5 +141,69 @@ function BuyingPage() {
         </div>
       </section>
     </SiteShell>
+  );
+}
+
+function BuyingBook({ entries }: { entries: PublicBookEntry[] }) {
+  return (
+    <section className="border-b border-rule">
+      <div className="mx-auto max-w-6xl px-5 py-12 md:px-8">
+        <h2 className="text-2xl">Buying book</h2>
+        {entries.length === 0 ? (
+          <p className="mt-3 max-w-2xl text-muted">
+            No shared prices are published yet. When an operator awards a bid,
+            the item, the vendor, and the price show up here. Until then there
+            is no buying catalog on this page.
+          </p>
+        ) : (
+          <ul className="mt-6 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
+            {entries.map((entry) => (
+              <li key={entry.id} className="px-5 py-4">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="font-display text-lg">{entry.title}</h3>
+                  <p className="text-sm font-medium text-forest">
+                    {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
+                    {entry.unit ? ` / ${entry.unit}` : ""}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm text-muted">
+                  {entry.vendorName}
+                  {entry.quantity ? ` · ${entry.quantity}` : ""}
+                  {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
+                </p>
+                {entry.notes ? (
+                  <p className="mt-2 text-sm text-muted">{entry.notes}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SourceDeskCta() {
+  const { user, isPending } = useCurrentUserState();
+  const [staff, setStaff] = useState(false);
+
+  useEffect(() => {
+    if (isPending || !user) return;
+    void readMyPlace()
+      .then((place) => setStaff(place.isStaff))
+      .catch(() => setStaff(false));
+  }, [isPending, user]);
+
+  if (!user || !staff) return null;
+
+  return (
+    <div className="mt-6">
+      <Button asChild>
+        <Link to="/buying/source">Open the SOURCE desk</Link>
+      </Button>
+      <p className="mt-2 text-sm text-muted">
+        Staff record bids, quotes, and awards here. The public page stays the vision.
+      </p>
+    </div>
   );
 }

@@ -15,7 +15,7 @@ import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as BibleRouteRouteImport } from './routes/bible/route'
-import { Route as BuyingRouteImport } from './routes/buying'
+import { Route as BuyingRouteRouteImport } from './routes/buying/route'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as FoodDonorsRouteImport } from './routes/food-donors'
@@ -35,6 +35,8 @@ import { Route as AdminNotifyRouteImport } from './routes/admin/notify'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
+import { Route as BuyingIndexRouteImport } from './routes/buying/index'
+import { Route as BuyingSourceRouteImport } from './routes/buying/source'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -69,7 +71,7 @@ const BibleRouteRoute = BibleRouteRouteImport.update({
   path: '/bible',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BuyingRoute = BuyingRouteImport.update({
+const BuyingRouteRoute = BuyingRouteRouteImport.update({
   id: '/buying',
   path: '/buying',
   getParentRoute: () => rootRouteImport,
@@ -169,6 +171,16 @@ const BibleSlugRoute = BibleSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BibleRouteRoute,
 } as any)
+const BuyingIndexRoute = BuyingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
+const BuyingSourceRoute = BuyingSourceRouteImport.update({
+  id: '/source',
+  path: '/source',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const GiveThanksRoute = GiveThanksRouteImport.update({
   id: '/thanks',
   path: '/thanks',
@@ -189,10 +201,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
+  '/buying': typeof BuyingRouteRouteWithChildren
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -210,9 +222,11 @@ export interface FileRoutesByFullPath {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/source': typeof BuyingSourceRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
+  '/buying/': typeof BuyingIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -221,7 +235,6 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -239,9 +252,11 @@ export interface FileRoutesByTo {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/source': typeof BuyingSourceRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
+  '/buying': typeof BuyingIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -250,10 +265,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
+  '/buying': typeof BuyingRouteRouteWithChildren
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/buying': typeof BuyingRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -271,9 +286,11 @@ export interface FileRoutesById {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/source': typeof BuyingSourceRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
+  '/buying/': typeof BuyingIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -283,10 +300,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/bible'
+    | '/buying'
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/buying'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -304,9 +321,11 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/source'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
+    | '/buying/'
     | '/api/admin/stats'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -315,7 +334,6 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/buying'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -333,9 +351,11 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/source'
     | '/give/thanks'
     | '/admin'
     | '/bible'
+    | '/buying'
     | '/api/admin/stats'
     | '/api/auth/$'
   id:
@@ -343,10 +363,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/bible'
+    | '/buying'
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/buying'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -364,9 +384,11 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/source'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
+    | '/buying/'
     | '/api/admin/stats'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -375,10 +397,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BibleRouteRoute: typeof BibleRouteRouteWithChildren
+  BuyingRouteRoute: typeof BuyingRouteRouteWithChildren
   AccountRoute: typeof AccountRoute
   AppsRoute: typeof AppsRoute
   AssessmentRoute: typeof AssessmentRoute
-  BuyingRoute: typeof BuyingRoute
   DoctrineRoute: typeof DoctrineRoute
   DonateRoute: typeof DonateRoute
   FoodDonorsRoute: typeof FoodDonorsRoute
@@ -444,7 +466,7 @@ declare module '@tanstack/react-router' {
       id: '/buying'
       path: '/buying'
       fullPath: '/buying'
-      preLoaderRoute: typeof BuyingRouteImport
+      preLoaderRoute: typeof BuyingRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctrine': {
@@ -580,6 +602,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BibleSlugRouteImport
       parentRoute: typeof BibleRouteRoute
     }
+    '/buying/': {
+      id: '/buying/'
+      path: '/'
+      fullPath: '/buying/'
+      preLoaderRoute: typeof BuyingIndexRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
+    '/buying/source': {
+      id: '/buying/source'
+      path: '/source'
+      fullPath: '/buying/source'
+      preLoaderRoute: typeof BuyingSourceRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/give/thanks': {
       id: '/give/thanks'
       path: '/thanks'
@@ -636,6 +672,20 @@ const BibleRouteRouteWithChildren = BibleRouteRoute._addFileChildren(
   BibleRouteRouteChildren,
 )
 
+interface BuyingRouteRouteChildren {
+  BuyingSourceRoute: typeof BuyingSourceRoute
+  BuyingIndexRoute: typeof BuyingIndexRoute
+}
+
+const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
+  BuyingSourceRoute: BuyingSourceRoute,
+  BuyingIndexRoute: BuyingIndexRoute,
+}
+
+const BuyingRouteRouteWithChildren = BuyingRouteRoute._addFileChildren(
+  BuyingRouteRouteChildren,
+)
+
 interface GiveRouteChildren {
   GiveThanksRoute: typeof GiveThanksRoute
 }
@@ -650,10 +700,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   BibleRouteRoute: BibleRouteRouteWithChildren,
+  BuyingRouteRoute: BuyingRouteRouteWithChildren,
   AccountRoute: AccountRoute,
   AppsRoute: AppsRoute,
   AssessmentRoute: AssessmentRoute,
-  BuyingRoute: BuyingRoute,
   DoctrineRoute: DoctrineRoute,
   DonateRoute: DonateRoute,
   FoodDonorsRoute: FoodDonorsRoute,
