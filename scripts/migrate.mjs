@@ -3,25 +3,29 @@
  * Deploy-time database migrator (node-postgres, `pg`).
  *
  * Runs during `npm run build` — on every Vercel deploy — applying pending files
- * in ../migrations to DATABASE_URL. Each file is applied in one transaction and
- * recorded in a `_migrations` table, so it runs once and is safe to re-run.
+ * in ../migrations to the Supabase Life Produces Life Postgres URL. Each file
+ * is applied in one transaction and recorded in a `_migrations` table, so it
+ * runs once and is safe to re-run.
  *
  * The read is non-recursive, so the opt-in auth schema under migrations/auth/
  * is not applied to an app that never asked for sign-in.
  *
- * No DATABASE_URL (local / preview builds) -> skip; the PGLite fallback applies
- * the same files at startup instead (see src/lib/db.ts).
+ * No connection string (local / preview builds) -> skip; the PGLite fallback
+ * applies the same files at startup instead (see src/lib/db.ts). Set Supabase
+ * LPL DATABASE_URL (same Life Produces Life DB as sister LPL apps). If that is
+ * unset, `SUPABASE_DB_URL` then `SUPABASE_DIRECT_CONNECTION_STRING` are used.
  */
 import { readdir, readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import pg from "pg";
 import { pendingMigrations } from "./migration-plan.mjs";
+import { resolvePostgresConnectionString } from "./postgres-url.mjs";
 
-const databaseUrl = process.env.DATABASE_URL;
+const databaseUrl = resolvePostgresConnectionString();
 if (!databaseUrl) {
   console.log(
-    "[migrate] DATABASE_URL not set — skipping (the PGLite fallback migrates itself).",
+    "[migrate] no Supabase LPL DATABASE_URL (or SUPABASE_DB_URL / SUPABASE_DIRECT_CONNECTION_STRING) — skipping (the PGLite fallback migrates itself).",
   );
   process.exit(0);
 }

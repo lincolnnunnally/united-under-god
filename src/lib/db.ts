@@ -1,8 +1,9 @@
 import { pendingMigrations } from "../../scripts/migration-plan.mjs";
+import { resolvePostgresConnectionString } from "../../scripts/postgres-url.mjs";
 import { pgliteBootstrapAllowed } from "./db-runtime.ts";
 
 /** Which database backend is active. */
-export type DbSource = "neon" | "pglite";
+export type DbSource = "postgres" | "pglite";
 
 /** Shared failure when Postgres is unset and PGLite cannot run on this host. */
 export const DB_UNAVAILABLE_MESSAGE = "The database is not available.";
@@ -19,22 +20,26 @@ export class DbUnavailableError extends Error {
   }
 }
 
-// An empty/whitespace DATABASE_URL (an easy misconfig in deploy UIs) must mean
-// "unset" — otherwise production would silently run on the PGLite fallback.
-const rawDatabaseUrl = typeof process !== "undefined" ? process.env.DATABASE_URL : undefined;
-const databaseUrl = rawDatabaseUrl && rawDatabaseUrl.trim() ? rawDatabaseUrl : undefined;
+// An empty/whitespace connection string (an easy misconfig in deploy UIs) must
+// mean "unset" — otherwise production would silently run on the PGLite fallback.
+// Prefer DATABASE_URL, then sister aliases SUPABASE_DB_URL and
+// SUPABASE_DIRECT_CONNECTION_STRING. Set Supabase LPL DATABASE_URL (same Life
+// Produces Life DB as sister LPL apps).
+const databaseUrl =
+  typeof process !== "undefined" ? resolvePostgresConnectionString() : undefined;
 
 /**
- * Active backend: real Postgres (`pg`, including Neon) when `DATABASE_URL` is
- * set. Otherwise a local embedded **PGLite** so dev and live preview work with
- * nothing configured. Vercel serverless cannot open PGLite's data file, so that
- * fallback is refused there (`DbUnavailableError`) instead of crashing the
- * isolate. Set `DATABASE_URL` to use Postgres; no other stack is involved.
+ * Active backend: Supabase Life Produces Life Postgres (`pg` Pool) when a
+ * connection string is set. Otherwise a local embedded **PGLite** so dev and
+ * live preview work with nothing configured. Vercel serverless cannot open
+ * PGLite's data file, so that fallback is refused there (`DbUnavailableError`)
+ * instead of crashing the isolate. Set Supabase LPL DATABASE_URL (same Life
+ * Produces Life DB as sister LPL apps) to use Postgres; no other stack is involved.
  */
-export const dbSource: DbSource = databaseUrl ? "neon" : "pglite";
+export const dbSource: DbSource = databaseUrl ? "postgres" : "pglite";
 
 /**
- * Minimal shared SQL surface, satisfied by both Neon and PGLite. Both the
+ * Minimal shared SQL surface, satisfied by both Postgres and PGLite. Both the
  * tagged-template and `.query()` forms resolve to an array of row objects:
  *
  *   const sql = await getSql();
@@ -94,10 +99,10 @@ function toSql(run: Run): Sql {
   return sql;
 }
 
-function createNeonSql(): Promise<Sql> {
+function createPostgresSql(): Promise<Sql> {
   globalRef.__pgSqlPromise__ ??= (async () => {
-    // Regular Postgres driver: node-postgres (`pg`) — works directly with Neon's
-    // pooled endpoint. One pool per process; warm serverless instances reuse it.
+    // node-postgres (`pg`) Pool against Supabase Life Produces Life (any
+    // Postgres URL). One pool per process; warm serverless instances reuse it.
     const { Pool, types } = await import("pg");
     types.setTypeParser(OID_INT8, Number);
     types.setTypeParser(OID_DATE, identity);
@@ -115,7 +120,7 @@ function createNeonSql(): Promise<Sql> {
 }
 
 async function createPgliteSql(): Promise<Sql> {
-  // Embedded Postgres, imported on demand so it never loads on the Neon path.
+  // Embedded Postgres, imported on demand so it never loads on the Postgres path.
   // One in-memory instance per process, shared across HMR module instances, so
   // data survives source edits (it resets on dev-server restart).
   globalRef.__pgliteInstance__ ??= (async () => {
@@ -183,16 +188,19 @@ async function createSql(): Promise<Sql> {
         "or a server route loader, never from client code.",
     );
   }
-  if (dbSource === "neon") return createNeonSql();
+  if (dbSource === "postgres") return createPostgresSql();
   if (!pgliteBootstrapAllowed()) throw new DbUnavailableError();
   return createPgliteSql();
 }
 
 /**
- * Get the shared, **server-only** SQL client. Neon when `DATABASE_URL` is set,
- * otherwise the local PGLite fallback where that bootstrap is allowed.
- * On Vercel/Lambda without `DATABASE_URL`, this rejects with `DbUnavailableError`
- * and does not open PGLite. Memoized — safe to call per request.
+ * Get the shared, **server-only** SQL client. Supabase LPL Postgres (`pg` Pool)
+ * when `DATABASE_URL` (or `SUPABASE_DB_URL`, then
+ * `SUPABASE_DIRECT_CONNECTION_STRING`) is set, otherwise the local PGLite
+ * fallback where that bootstrap is allowed. On Vercel/Lambda with no usable
+ * connection string, this rejects with `DbUnavailableError` and does not open
+ * PGLite. Memoized — safe to call per request. Set Supabase LPL DATABASE_URL
+ * (same Life Produces Life DB as sister LPL apps).
  *
  * Schema comes from `migrations/*.sql`, auto-applied before the first query on
  * both backends — define tables there, never inline in server functions.
@@ -208,12 +216,14 @@ export function getSql(): Promise<Sql> {
 /**
  * The shared PGLite instance (preview only), with `migrations/*.sql` applied.
  * Lets Better Auth persist to the SAME embedded DB as app data in preview (via a
- * Kysely dialect). Throws when `DATABASE_URL` is set (that path uses Neon),
- * and when PGLite cannot run on this host.
+ * Kysely dialect). Throws when a Postgres connection string is set (that path
+ * uses the Supabase LPL `pg` Pool), and when PGLite cannot run on this host.
  */
 export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite> {
   if (dbSource !== "pglite") {
-    throw new Error("getPglite() is only available on the PGLite fallback (no DATABASE_URL)");
+    throw new Error(
+      "getPglite() is only available on the PGLite fallback (no Supabase LPL DATABASE_URL)",
+    );
   }
   await getSql();
   const pg = await globalRef.__pgliteInstance__;
@@ -224,12 +234,14 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
 /**
  * Finish DB bootstrap before the server handles traffic.
  *
- * - **PGLite** (preview / no `DATABASE_URL`, and not Vercel/Lambda): open the
+ * - **PGLite** (preview / no connection string, and not Vercel/Lambda): open the
  *   in-memory DB and apply `migrations/*.sql`. Idempotent — concurrent callers
  *   share one promise.
- * - **Neon**: no-op (pool is created lazily on first query).
- * - **Serverless without `DATABASE_URL`**: no-op. Do not open PGLite. The public
- *   buying book treats `DbUnavailableError` as an empty read; desk writes throw.
+ * - **Supabase LPL Postgres**: no-op (pool is created lazily on first query).
+ * - **Serverless with no usable connection string**: no-op. Do not open PGLite.
+ *   The public buying book treats `DbUnavailableError` as an empty read; desk
+ *   writes throw. Set Supabase LPL DATABASE_URL (same Life Produces Life DB as
+ *   sister LPL apps).
  *
  * Vite `configureServer` awaits this at dev startup. On hosts where PGLite can
  * run, importing this module kicks bootstrap immediately (see bottom of file).

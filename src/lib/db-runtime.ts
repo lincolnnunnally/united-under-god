@@ -2,7 +2,8 @@
  * PGLite looks for a bundled data file at `/var/task/_libs/pglite.data` inside
  * the Vercel/Lambda filesystem. That file is not there, and opening it rejects
  * the isolate (`ENOENT` → unhandled rejection, exit 128). Dev and local preview
- * still use the embedded database when `DATABASE_URL` is unset.
+ * still use the embedded database when no Supabase LPL connection string is set
+ * (`DATABASE_URL`, else `SUPABASE_DB_URL`, else `SUPABASE_DIRECT_CONNECTION_STRING`).
  */
 type Env = Record<string, string | undefined>;
 
