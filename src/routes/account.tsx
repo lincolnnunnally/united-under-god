@@ -155,9 +155,14 @@ function AccountPage() {
         <section className="border-b border-rule">
           <div className="mx-auto flex max-w-3xl flex-col gap-3 px-5 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
             <p className="text-sm text-muted">You also run the staff desk.</p>
-            <Button asChild>
-              <Link to="/admin">Open the desk</Link>
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild>
+                <Link to="/admin">Open the desk</Link>
+              </Button>
+              <Button asChild variant="secondary">
+                <Link to="/buying/desk">SOURCE buying</Link>
+              </Button>
+            </div>
           </div>
         </section>
       ) : null}

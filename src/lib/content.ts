@@ -222,6 +222,11 @@ export const APPS = {
       blurb: "Free printer monitoring and a buying group for supplies.",
     },
     {
+      name: "SOURCE buying",
+      href: "/buying/desk",
+      blurb: "Staff desk for group bids, quotes, multi-winner awards, and the buying book.",
+    },
+    {
       name: "Toner Management",
       href: "https://toner.management",
       blurb: "We watch your printers and get toner to the right desk before anyone runs out.",
