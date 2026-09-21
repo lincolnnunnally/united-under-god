@@ -3,10 +3,12 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
+import { pgliteBootstrapAllowed } from "./db-runtime.ts";
 import {
   addQuote,
   createBid,
   listBook,
+  listBuyingBook,
   publishAward,
   readDesk,
   setItemWinners,
@@ -35,9 +37,46 @@ function toSql(pg: PGlite): Sql {
 async function fresh() {
   const pg = new PGlite();
   await pg.waitReady;
-  await pg.exec(readFileSync(new URL("../../migrations/0004_source_buying.sql", import.meta.url), "utf8"));
+  await pg.exec(
+    readFileSync(new URL("../../migrations/0004_source_buying.sql", import.meta.url), "utf8"),
+  );
   return toSql(pg);
 }
+
+test("listBuyingBook returns [] when db unavailable", async () => {
+  const missingDataFile = await listBuyingBook(async () => {
+    throw Object.assign(
+      new Error("ENOENT: no such file or directory, open '/var/task/_libs/pglite.data'"),
+      { code: "ENOENT" },
+    );
+  });
+  assert.deepEqual(missingDataFile, []);
+
+  const refused = new Error("The database is not available, so this was not saved.");
+  refused.name = "DbUnavailableError";
+  const named = await listBuyingBook(async () => {
+    throw refused;
+  });
+  assert.deepEqual(named, []);
+});
+
+test("listBuyingBook still throws when the failure is not a missing database", async () => {
+  await assert.rejects(
+    () =>
+      listBuyingBook(async () => {
+        throw new Error("query failed: column does not exist");
+      }),
+    /column does not exist/,
+  );
+});
+
+test("PGLite bootstrap stays off on the Vercel task filesystem", () => {
+  assert.equal(pgliteBootstrapAllowed({ VERCEL: "1" }, "/var/task"), false);
+  assert.equal(pgliteBootstrapAllowed({ VERCEL_ENV: "production" }, "/var/task"), false);
+  assert.equal(pgliteBootstrapAllowed({ AWS_LAMBDA_FUNCTION_NAME: "fn" }, "/var/task"), false);
+  assert.equal(pgliteBootstrapAllowed({}, "/var/task"), false);
+  assert.equal(pgliteBootstrapAllowed({ NODE_ENV: "production" }, "/workspace"), true);
+});
 
 test("empty buying book is empty", async () => {
   const sql = await fresh();

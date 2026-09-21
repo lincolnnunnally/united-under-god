@@ -1,13 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { getSql } from "@/lib/db";
+import { DbUnavailableError, getSql } from "@/lib/db";
 import { SUPER_EMAILS } from "@/lib/desk";
 import {
   addQuote,
   createBid,
-  listBook,
+  isBuyingDbUnavailable,
   publishAward,
+  readBuyingBook,
   readDesk,
   setBidStatus,
   setItemWinners,
@@ -64,9 +65,19 @@ const publishInput = z.object({
   awardId: z.string(),
 });
 
+/** Desk reads and writes. A missing database throws; it never looks like a saved desk. */
+async function deskSql() {
+  try {
+    return await getSql();
+  } catch (err) {
+    if (!isBuyingDbUnavailable(err)) throw err;
+    throw new DbUnavailableError("The database is not available, so this was not saved.");
+  }
+}
+
 async function assertStaff(userId: string) {
   const { getSessionUser } = await import("@/lib/auth/verify.server");
-  const sql = await getSql();
+  const sql = await deskSql();
   const users = await sql<{ email: string }>`select email from "user" where id = ${userId}`;
   const session = await getSessionUser();
   const email = (users[0]?.email || session?.email || "").trim().toLowerCase();
@@ -86,14 +97,13 @@ async function assertStaff(userId: string) {
 
 async function deskFor(userId: string): Promise<SourceDesk> {
   await assertStaff(userId);
-  const sql = await getSql();
+  const sql = await deskSql();
   return readDesk(sql);
 }
 
 export const listPublishedBook = createServerFn({ method: "GET" }).handler(
-  async (): Promise<{ entries: PublicBookEntry[] }> => {
-    const sql = await getSql();
-    return { entries: await listBook(sql) };
+  async (): Promise<{ entries: PublicBookEntry[]; unavailable: boolean }> => {
+    return readBuyingBook(() => getSql());
   },
 );
 
@@ -106,7 +116,7 @@ export const createSourceBid = createServerFn({ method: "POST" })
   .validator(createBidInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await createBid(sql, data, context.userId);
     return readDesk(sql);
   });
@@ -116,7 +126,7 @@ export const setSourceBidStatus = createServerFn({ method: "POST" })
   .validator(bidStatusInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await setBidStatus(sql, data.bidId, data.status);
     return readDesk(sql);
   });
@@ -126,7 +136,7 @@ export const addSourceQuote = createServerFn({ method: "POST" })
   .validator(addQuoteInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await addQuote(sql, data, context.userId);
     return readDesk(sql);
   });
@@ -136,7 +146,7 @@ export const setSourceQuoteStatus = createServerFn({ method: "POST" })
   .validator(quoteStatusInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await setQuoteStatus(sql, data.quoteId, data.status);
     return readDesk(sql);
   });
@@ -146,7 +156,7 @@ export const setSourceWinners = createServerFn({ method: "POST" })
   .validator(winnersInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await setItemWinners(sql, data.itemId, data.quoteIds, context.userId);
     return readDesk(sql);
   });
@@ -156,7 +166,7 @@ export const publishSourceAward = createServerFn({ method: "POST" })
   .validator(publishInput)
   .handler(async ({ data, context }) => {
     await assertStaff(context.userId);
-    const sql = await getSql();
+    const sql = await deskSql();
     await publishAward(sql, data.awardId, context.userId);
     return readDesk(sql);
   });

@@ -40,7 +40,7 @@ const CATALOGS = [
 ];
 
 function BuyingPage() {
-  const { entries } = Route.useLoaderData();
+  const { entries, unavailable } = Route.useLoaderData();
 
   return (
     <SiteShell>
@@ -53,17 +53,16 @@ function BuyingPage() {
             One little church buying one toner at retail is a habit, not a plan.
           </h1>
           <p className="mt-5 max-w-2xl text-muted">
-            Georgia’s offices do not each call a salesman. They compile a bid.
-            Kingdom organizations can do the same: shared catalogs, each body
-            buying what it needs, everyone paying less — so more of the money
-            reaches the work.
+            Georgia’s offices do not each call a salesman. They compile a bid. Kingdom organizations
+            can do the same: shared catalogs, each body buying what it needs, everyone paying less —
+            so more of the money reaches the work.
           </p>
           <SignInNudge about="united buying" />
           <SourceDeskCta />
         </div>
       </section>
 
-      <BuyingBook entries={entries} />
+      <BuyingBook entries={entries} unavailable={unavailable} />
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
         <div className="grid gap-6 md:grid-cols-3">
@@ -99,11 +98,10 @@ function BuyingPage() {
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
           <h2 className="max-w-2xl text-3xl">Church office, without a full-time staff</h2>
           <p className="mt-4 max-w-2xl text-muted">
-            Most churches do the same work every week: bulletins, bills, phones,
-            the same announcements. ChurchConnect already carries a large part
-            of that. Centralized office help can carry the rest — and the future
-            we are working toward includes meaningful part-time remote work
-            doing it, maybe for the very people who came asking for help.
+            Most churches do the same work every week: bulletins, bills, phones, the same
+            announcements. ChurchConnect already carries a large part of that. Centralized office
+            help can carry the rest — and the future we are working toward includes meaningful
+            part-time remote work doing it, maybe for the very people who came asking for help.
           </p>
           <p className="mt-6">
             <Link to="/assessment" className="text-forest underline-offset-4 hover:underline">
@@ -119,18 +117,16 @@ function BuyingPage() {
             <h2 className="text-3xl">Who this is for</h2>
             <ul className="mt-6 space-y-4 text-muted">
               <li>
-                <span className="font-medium text-ink">Churches</span> that
-                should not be paying office-supply retail for the privilege of
-                printing a bulletin.
+                <span className="font-medium text-ink">Churches</span> that should not be paying
+                office-supply retail for the privilege of printing a bulletin.
               </li>
               <li>
-                <span className="font-medium text-ink">Charities</span> that
-                need the same paper, the same toner, the same hosting — and
-                should stand in the same bid.
+                <span className="font-medium text-ink">Charities</span> that need the same paper,
+                the same toner, the same hosting — and should stand in the same bid.
               </li>
               <li>
-                <span className="font-medium text-ink">Christian-led shops</span>{" "}
-                that want to sell into the body, fairly, and to buy from it too.
+                <span className="font-medium text-ink">Christian-led shops</span> that want to sell
+                into the body, fairly, and to buy from it too.
               </li>
             </ul>
             <Button asChild className="mt-8" variant="secondary">
@@ -144,16 +140,26 @@ function BuyingPage() {
   );
 }
 
-function BuyingBook({ entries }: { entries: PublicBookEntry[] }) {
+function BuyingBook({
+  entries,
+  unavailable,
+}: {
+  entries: PublicBookEntry[];
+  unavailable: boolean;
+}) {
   return (
     <section className="border-b border-rule">
       <div className="mx-auto max-w-6xl px-5 py-12 md:px-8">
         <h2 className="text-2xl">Buying book</h2>
-        {entries.length === 0 ? (
+        {unavailable ? (
           <p className="mt-3 max-w-2xl text-muted">
-            No shared prices are published yet. When an operator awards a bid,
-            the item, the vendor, and the price show up here. Until then there
-            is no buying catalog on this page.
+            The buying book could not be opened just now. No prices are listed until the database
+            can be read.
+          </p>
+        ) : entries.length === 0 ? (
+          <p className="mt-3 max-w-2xl text-muted">
+            No shared prices are published yet. When an operator awards a bid, the item, the vendor,
+            and the price show up here. Until then there is no buying catalog on this page.
           </p>
         ) : (
           <ul className="mt-6 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
@@ -171,9 +177,7 @@ function BuyingBook({ entries }: { entries: PublicBookEntry[] }) {
                   {entry.quantity ? ` · ${entry.quantity}` : ""}
                   {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
                 </p>
-                {entry.notes ? (
-                  <p className="mt-2 text-sm text-muted">{entry.notes}</p>
-                ) : null}
+                {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
               </li>
             ))}
           </ul>

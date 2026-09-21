@@ -130,11 +130,7 @@ function requireText(value: string, message: string, max = 240) {
   return trimmed;
 }
 
-export async function createBid(
-  sql: Sql,
-  input: CreateBidInput,
-  userId: string,
-) {
+export async function createBid(sql: Sql, input: CreateBidInput, userId: string) {
   const title = requireText(input.title, "Name the bid.", 160);
   const summary = (input.summary ?? "").trim().slice(0, 2000);
   const neededBy = (input.neededBy ?? "").trim().slice(0, 40);
@@ -273,12 +269,7 @@ export async function setQuoteStatus(sql: Sql, quoteId: string, status: string) 
   }
 }
 
-export async function setItemWinners(
-  sql: Sql,
-  itemId: string,
-  quoteIds: string[],
-  userId: string,
-) {
+export async function setItemWinners(sql: Sql, itemId: string, quoteIds: string[], userId: string) {
   const uniqueIds = [...new Set(quoteIds.map((id) => id.trim()).filter(Boolean))];
   if (uniqueIds.length > 40) throw new Error("Too many winners on one item.");
 
@@ -462,8 +453,7 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
         awards: awards
           .filter((row) =>
             items.some(
-              (item) =>
-                text(item.bid_id) === bidId && text(item.id) === text(row.item_id),
+              (item) => text(item.bid_id) === bidId && text(item.id) === text(row.item_id),
             ),
           )
           .map((row) => ({
@@ -494,4 +484,66 @@ export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
     notes: text(row.notes),
     publishedAt: iso(row.published_at),
   }));
+}
+
+const DB_DOWN =
+  /pglite\.data|PGLite bootstrap|PGLite instance|database is not available|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|Connection terminated|password authentication failed|timeout expired|the database system is (?:starting|shutting)/i;
+
+const DB_DOWN_CODES = new Set([
+  "DB_UNAVAILABLE",
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ETIMEDOUT",
+  "ECONNRESET",
+  "57P01",
+  "57P02",
+  "57P03",
+  "08000",
+  "08001",
+  "08003",
+  "08004",
+  "08006",
+  "53300",
+  "42P01",
+  "3D000",
+]);
+
+/** True when the buying book cannot be read because Postgres/PGLite is unusable. */
+export function isBuyingDbUnavailable(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const name = "name" in err ? String((err as { name?: unknown }).name ?? "") : "";
+  if (name === "DbUnavailableError") return true;
+  const code = "code" in err ? String((err as { code?: unknown }).code ?? "") : "";
+  if (code === "ENOENT") {
+    const message = err instanceof Error ? err.message : "";
+    return message.includes("pglite.data");
+  }
+  if (DB_DOWN_CODES.has(code)) return true;
+  const message = err instanceof Error ? err.message : "";
+  return DB_DOWN.test(message);
+}
+
+export type BuyingBookRead = {
+  entries: PublicBookEntry[];
+  unavailable: boolean;
+};
+
+/**
+ * Public SOURCE book read. A missing or broken database is an empty book, not
+ * a thrown error — the vision page stays up. Unrelated failures still throw.
+ */
+export async function readBuyingBook(open: () => Promise<Sql>): Promise<BuyingBookRead> {
+  try {
+    return { entries: await listBook(await open()), unavailable: false };
+  } catch (err) {
+    if (!isBuyingDbUnavailable(err)) throw err;
+    console.error("[source] buying book unavailable:", err);
+    return { entries: [], unavailable: true };
+  }
+}
+
+/** Same read as {@link readBuyingBook}, returning only the entries. */
+export async function listBuyingBook(open: () => Promise<Sql>): Promise<PublicBookEntry[]> {
+  return (await readBuyingBook(open)).entries;
 }
