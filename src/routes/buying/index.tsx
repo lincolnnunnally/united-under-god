@@ -199,7 +199,7 @@ function SourceDeskCta() {
   return (
     <div className="mt-6">
       <Button asChild>
-        <Link to="/buying/source">Open the SOURCE desk</Link>
+        <Link to="/buying/desk">Open the SOURCE desk</Link>
       </Button>
       <p className="mt-2 text-sm text-muted">
         Staff record bids, quotes, and awards here. The public page stays the vision.

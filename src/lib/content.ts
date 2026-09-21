@@ -223,7 +223,7 @@ export const APPS = {
     },
     {
       name: "SOURCE buying",
-      href: "/buying/source",
+      href: "/buying/desk",
       blurb: "Staff desk for group bids, quotes, multi-winner awards, and the buying book.",
     },
     {

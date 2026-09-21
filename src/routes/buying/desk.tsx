@@ -18,7 +18,7 @@ import {
 } from "@/lib/source-actions";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/buying/source")({
+export const Route = createFileRoute("/buying/desk")({
   component: SourcePage,
   head: () => ({
     meta: [{ title: "SOURCE buying — Desk" }],

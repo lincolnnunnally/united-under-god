@@ -36,7 +36,7 @@ import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
-import { Route as BuyingSourceRouteImport } from './routes/buying/source'
+import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -176,9 +176,9 @@ const BuyingIndexRoute = BuyingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
-const BuyingSourceRoute = BuyingSourceRouteImport.update({
-  id: '/source',
-  path: '/source',
+const BuyingDeskRoute = BuyingDeskRouteImport.update({
+  id: '/desk',
+  path: '/desk',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
 const GiveThanksRoute = GiveThanksRouteImport.update({
@@ -222,7 +222,7 @@ export interface FileRoutesByFullPath {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
-  '/buying/source': typeof BuyingSourceRoute
+  '/buying/desk': typeof BuyingDeskRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
@@ -252,7 +252,7 @@ export interface FileRoutesByTo {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
-  '/buying/source': typeof BuyingSourceRoute
+  '/buying/desk': typeof BuyingDeskRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
@@ -286,7 +286,7 @@ export interface FileRoutesById {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
-  '/buying/source': typeof BuyingSourceRoute
+  '/buying/desk': typeof BuyingDeskRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
@@ -321,7 +321,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
-    | '/buying/source'
+    | '/buying/desk'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
@@ -351,7 +351,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
-    | '/buying/source'
+    | '/buying/desk'
     | '/give/thanks'
     | '/admin'
     | '/bible'
@@ -384,7 +384,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
-    | '/buying/source'
+    | '/buying/desk'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
@@ -609,11 +609,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingIndexRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
-    '/buying/source': {
-      id: '/buying/source'
-      path: '/source'
-      fullPath: '/buying/source'
-      preLoaderRoute: typeof BuyingSourceRouteImport
+    '/buying/desk': {
+      id: '/buying/desk'
+      path: '/desk'
+      fullPath: '/buying/desk'
+      preLoaderRoute: typeof BuyingDeskRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
     '/give/thanks': {
@@ -673,12 +673,12 @@ const BibleRouteRouteWithChildren = BibleRouteRoute._addFileChildren(
 )
 
 interface BuyingRouteRouteChildren {
-  BuyingSourceRoute: typeof BuyingSourceRoute
+  BuyingDeskRoute: typeof BuyingDeskRoute
   BuyingIndexRoute: typeof BuyingIndexRoute
 }
 
 const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
-  BuyingSourceRoute: BuyingSourceRoute,
+  BuyingDeskRoute: BuyingDeskRoute,
   BuyingIndexRoute: BuyingIndexRoute,
 }
 

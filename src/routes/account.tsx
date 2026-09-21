@@ -160,7 +160,7 @@ function AccountPage() {
                 <Link to="/admin">Open the desk</Link>
               </Button>
               <Button asChild variant="secondary">
-                <Link to="/buying/source">SOURCE buying</Link>
+                <Link to="/buying/desk">SOURCE buying</Link>
               </Button>
             </div>
           </div>
