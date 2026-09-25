@@ -169,8 +169,13 @@ export const APPS = {
     },
     {
       name: "Sandlot",
-      href: "https://swaparound.vercel.app",
+      href: "https://sandlot.unitedundergod.org",
       blurb: "Kids meetups, toy exchange, and supervised playdates — free, parent-run.",
+    },
+    {
+      name: "Rally",
+      href: "https://rally.unitedundergod.org",
+      blurb: "Tennis and pickleball — find a hitting partner, book a lesson, start a league.",
     },
   ],
   church: [
