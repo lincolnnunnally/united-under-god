@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/db";
+import { sendResendText } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -9,28 +10,12 @@ type SendArgs = {
 
 async function sendOne(to: string, subject: string, text: string): Promise<{ status: string; error: string }> {
   const key = process.env.RESEND_API_KEY?.trim();
-  const from =
-    process.env.RESEND_FROM?.trim() || "United Under God <lincoln@unitedundergod.org>";
 
   if (key) {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        text,
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      return { status: "failed", error: body.slice(0, 400) };
-    }
-    return { status: "sent", error: "" };
+    const result = await sendResendText({ to, subject, text, apiKey: key });
+    return result.ok
+      ? { status: "sent", error: "" }
+      : { status: "failed", error: result.error };
   }
 
   const res = await fetch(
@@ -73,17 +58,21 @@ export async function sendDeskEmails(args: SendArgs) {
     } catch (err) {
       error = err instanceof Error ? err.message : "send failed";
     }
-    await sql`
-      insert into email_log (id, inquiry_id, to_email, subject, status, error)
-      values (
-        ${crypto.randomUUID()},
-        ${args.inquiryId},
-        ${to},
-        ${args.subject},
-        ${status},
-        ${error}
-      )
-    `;
+    try {
+      await sql`
+        insert into email_log (id, inquiry_id, to_email, subject, status, error)
+        values (
+          ${crypto.randomUUID()},
+          ${args.inquiryId},
+          ${to},
+          ${args.subject},
+          ${status},
+          ${error}
+        )
+      `;
+    } catch {
+      console.error(`[desk-mail] email log failed inquiry=${args.inquiryId}`);
+    }
   }
   return { sent, attempted: unique.length };
 }

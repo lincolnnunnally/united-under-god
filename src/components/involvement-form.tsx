@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Check } from "lucide-react";
+import { InquiryDone } from "@/components/inquiry-done";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import {
   INTENT_COPY,
   type InvolvementIntent,
 } from "@/lib/involvement";
+import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ type Props = {
 export function InvolvementForm({ intent, className }: Props) {
   const copy = INTENT_COPY[intent];
   const needsOrg = intent === "seal" || intent === "grocery" || intent === "buying";
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
   const [error, setError] = useState("");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -63,30 +64,22 @@ export function InvolvementForm({ intent, className }: Props) {
       },
     });
     if (!result.ok) {
-      setError(result.error || "We could not receive that. Try again.");
+      setError(result.error || INQUIRY_UNREACHABLE);
       return;
     }
-    setDone(true);
+    setDone({ saved: result.saved, emailed: result.emailed });
   }
 
   if (done) {
     return (
-      <div
-        className={cn(
-          "rounded-xl bg-cream px-6 py-8 shadow-[var(--shadow-border)]",
-          className,
-        )}
-      >
-        <div className="flex size-11 items-center justify-center rounded-md bg-forest text-paper">
-          <Check className="size-5" />
-        </div>
+      <InquiryDone saved={done.saved} emailed={done.emailed} className={className}>
         <h3 className="mt-5 font-display text-2xl">Received. Thank you.</h3>
         <p className="mt-3 max-w-prose text-muted">
           Someone from United Under God will be in touch. In the meantime, do
           not wait on us to start — a neighbor, a pantry shift, a first gift of
           food is already a step on mission.
         </p>
-      </div>
+      </InquiryDone>
     );
   }
 

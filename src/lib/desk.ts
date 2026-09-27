@@ -37,6 +37,16 @@ export const SUPER_EMAILS = [
   "lincoln.nunnally@gmail.com",
 ];
 
+/** Owner inbox. A literal address, never an environment variable. */
+export const OWNER_EMAIL = "lincoln@unitedundergod.org";
+
+export const INQUIRY_FOLLOWUP = "We received it and will follow up.";
+
+export const INQUIRY_UNREACHABLE =
+  "We could not take that in. Email lincoln@unitedundergod.org or call, and we will take it from there.";
+
+export const DESK_URL = "https://unitedundergod.org/admin";
+
 export type InquiryInput = {
   intent: string;
   name: string;
@@ -178,7 +188,142 @@ export function inquiryBody(row: {
     row.assigned_name ? `Assigned to: ${row.assigned_name}` : "",
     row.message ? `Notes: ${row.message}` : "",
     "",
-    "Open the desk: https://unitedundergod.org/admin",
+    `Open the desk: ${DESK_URL}`,
   ];
   return lines.filter((line, i) => line !== "" || i === lines.length - 2).join("\n");
+}
+
+export type InquiryNoticeRow = {
+  kind: string;
+  kinds: string;
+  name: string;
+  email: string;
+  phone: string;
+  organization: string;
+  city: string;
+  address: string;
+  message: string;
+  details: string;
+  scheduled_for?: string;
+  assigned_name?: string;
+  created_at?: string;
+};
+
+/**
+ * Goods pickups are accepted on this site (`/give` → goods). Food pickup
+ * scheduling belongs to Plenty, so a food donor record is not an arrival.
+ */
+export function isArrivalRequest(kind: string) {
+  return kind.startsWith("goods-");
+}
+
+export function pickupAttentionSubject(name: string) {
+  return `Pickup request needs your attention: ${name}`;
+}
+
+function detailMap(details: string) {
+  try {
+    const value = JSON.parse(details || "{}") as Record<string, string>;
+    return value && typeof value === "object" ? value : {};
+  } catch {
+    return {} as Record<string, string>;
+  }
+}
+
+export function pickupAttentionBody(row: InquiryNoticeRow) {
+  const details = detailMap(row.details);
+  const when =
+    [details.pickupDay, details.pickupWindow, row.scheduled_for]
+      .map((part) => (part ?? "").trim())
+      .filter(Boolean)
+      .join(" · ") || "(no day or window given)";
+  const where =
+    [row.address, row.city]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(", ") || "(no address given)";
+  const what =
+    [details.categories, details.vehicle, details.helpers, row.message]
+      .map((part) => (part ?? "").trim())
+      .filter(Boolean)
+      .join(" · ") || "(no items given)";
+  const lines = [
+    `When: ${when}`,
+    `Where: ${where}`,
+    `What: ${what}`,
+    `Organization: ${row.organization.trim() || "(none given)"}`,
+    `Contact: ${row.name}`,
+    `Email: ${row.email.trim() || "(none given)"}`,
+    `Phone: ${row.phone.trim() || "(none given)"}`,
+    row.created_at ? `Submitted: ${row.created_at}` : "",
+    "",
+    `Review it: ${DESK_URL}`,
+  ];
+  return lines.filter((line, i) => line !== "" || i === lines.length - 2).join("\n");
+}
+
+export function buildInquiryNotice(args: {
+  inquiry: InquiryNoticeRow;
+  routes: { email: string; kinds: string; role: string }[];
+  staff: { email: string; kinds: string; role: string; pickup: boolean; active: boolean }[];
+  extra?: string[];
+}): { to: string[]; subject: string; text: string } {
+  const kinds = args.inquiry.kinds
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const to = routeRecipients({
+    kinds,
+    routes: args.routes,
+    staff: args.staff,
+    assignedEmail: args.extra?.[0],
+  });
+  for (const email of args.extra ?? []) to.push(email);
+  // OWNER_EMAIL is the literal lincoln@unitedundergod.org. Not an env var.
+  if (isArrivalRequest(args.inquiry.kind)) to.push(OWNER_EMAIL);
+  const unique = [
+    ...new Set(to.map((email) => email.trim().toLowerCase()).filter(Boolean)),
+  ];
+  if (!isArrivalRequest(args.inquiry.kind)) {
+    return {
+      to: unique,
+      subject: inquirySubject(args.inquiry.kind, args.inquiry.name),
+      text: inquiryBody(args.inquiry),
+    };
+  }
+  return {
+    to: unique,
+    subject: pickupAttentionSubject(args.inquiry.name),
+    text: pickupAttentionBody(args.inquiry),
+  };
+}
+
+/** Saved, but notify_routes could not be read. One hardcoded owner, no route list. */
+export function ownerFallbackNotice(inquiry: InquiryNoticeRow) {
+  const routed = buildInquiryNotice({
+    inquiry,
+    routes: [],
+    staff: [],
+  });
+  return {
+    to: [OWNER_EMAIL],
+    subject: routed.subject,
+    text: routed.text,
+  };
+}
+
+/** Database write failed. The email is the only copy, and it goes only to the owner. */
+export function unsavedOwnerNotice(inquiry: InquiryNoticeRow) {
+  const headline = isArrivalRequest(inquiry.kind)
+    ? pickupAttentionSubject(inquiry.name)
+    : inquirySubject(inquiry.kind, inquiry.name);
+  return {
+    to: [OWNER_EMAIL],
+    subject: `NOT SAVED — ${headline}`,
+    text: [
+      "NOT SAVED. The database write failed. This email is the only copy.",
+      "",
+      inquiryBody(inquiry),
+    ].join("\n"),
+  };
 }

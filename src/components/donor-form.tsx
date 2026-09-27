@@ -1,10 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { InquiryDone } from "@/components/inquiry-done";
 import { DONOR_PATHS, PLENTY_STORES } from "@/lib/content";
+import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ type Props = {
 
 export function DonorForm({ initialKind, lockKind = false, className }: Props) {
   const [kind, setKind] = useState<DonorKind>(initialKind ?? "food");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
   const [error, setError] = useState("");
   const path = DONOR_PATHS.find((item) => item.id === kind) ?? DONOR_PATHS[0];
 
@@ -66,27 +67,28 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       },
     });
     if (!result.ok) {
-      setError(result.error || "We could not receive that. Try again.");
+      setError(result.error || INQUIRY_UNREACHABLE);
       return;
     }
-    setDone(true);
+    setDone({ saved: result.saved, emailed: result.emailed });
   }
 
   if (done) {
     return (
-      <div
-        className={cn(
-          "rounded-xl bg-cream px-6 py-8 shadow-[var(--shadow-border)]",
-          className,
-        )}
+      <InquiryDone
+        saved={done.saved}
+        emailed={done.emailed}
+        showDetails={kind === "food"}
+        className={className}
       >
-        <div className="flex size-11 items-center justify-center rounded-md bg-forest text-paper">
-          <Check className="size-5" />
-        </div>
-        <h3 className="mt-5 font-display text-2xl">You’re on the charity’s list.</h3>
+        <h3 className="mt-5 font-display text-2xl">
+          {kind === "food"
+            ? "We’ll contact you to confirm a day and time."
+            : "You’re on the charity’s list."}
+        </h3>
         <p className="mt-3 max-w-prose text-muted">
           {kind === "food"
-            ? "Receipts say United Under God, Inc. Plenty is the pantry program, not a second charity. Next: tell Plenty when food is on the dock."
+            ? "To book a specific pickup, use Request a pickup on Plenty."
             : `This gift is going to ${path.desk}. We will confirm pickup or receiving and put what you gave into someone’s hands.`}
         </p>
         {kind === "food" ? (
@@ -98,7 +100,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
             </Button>
           </p>
         ) : null}
-      </div>
+      </InquiryDone>
     );
   }
 
@@ -121,9 +123,9 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         className="absolute -left-[9999px] h-px w-px opacity-0"
         aria-hidden="true"
       />
-      <p className="mt-2 text-sm text-muted">
-        {lockKind ? path.deskNote : "One form. We put you in the right desk."}
-      </p>
+      {lockKind ? null : (
+        <p className="mt-2 text-sm text-muted">One form. We put you in the right desk.</p>
+      )}
 
       {lockKind ? null : (
         <fieldset className="mt-5 grid gap-2">
@@ -297,10 +299,14 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         </Field>
       </div>
 
-      {error ? <p className="mt-4 text-sm text-ink">{error}</p> : null}
+      {error ? (
+        <p className="mt-4 text-sm text-ink" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <Button type="submit" className="mt-6 w-full sm:w-auto">
-        {kind === "food" ? "Schedule food pickup" : "Offer this gift"}
+        {kind === "food" ? "Sign up for food pickup" : "Offer this gift"}
       </Button>
     </form>
   );

@@ -208,6 +208,12 @@ function InquiryCard({
         </p>
       </div>
       <dl className="mt-4 grid gap-2 text-sm text-muted sm:grid-cols-2">
+        {row.organization ? (
+          <div>
+            <dt className="font-medium text-ink">Organization</dt>
+            <dd>{row.organization}</dd>
+          </div>
+        ) : null}
         {row.address ? (
           <div>
             <dt className="font-medium text-ink">Address</dt>
