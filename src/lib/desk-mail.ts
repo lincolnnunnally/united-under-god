@@ -4,9 +4,36 @@ import { OWNER_EMAIL } from "./desk.ts";
 export const DEFAULT_DESK_FROM =
   "United Under God <no-reply@emails.unitedundergod.org>";
 
+/** Replies land in Lincoln's inbox. The From address stays on the verified subdomain. */
+export const DESK_REPLY_TO = OWNER_EMAIL;
+
+/** email_log stores the provider body, clipped so a Cloudflare HTML page cannot fill the row. */
+export const RESEND_ERROR_LIMIT = 500;
+
 export function deskFromAddress(env: { RESEND_FROM?: string } = process.env) {
   const override = env.RESEND_FROM?.trim();
   return override || DEFAULT_DESK_FROM;
+}
+
+export function clipResendError(body: string): string {
+  return body.slice(0, RESEND_ERROR_LIMIT);
+}
+
+/** One Resend body for every send in this app. Callers do not set From or reply_to themselves. */
+export function resendMessage(args: {
+  to: string;
+  subject: string;
+  text: string;
+  from?: string;
+}) {
+  const from = args.from?.trim() || deskFromAddress();
+  return {
+    from,
+    to: [args.to],
+    reply_to: DESK_REPLY_TO,
+    subject: args.subject,
+    text: args.text,
+  };
 }
 
 /**
@@ -18,11 +45,11 @@ export async function sendResendText(args: {
   subject: string;
   text: string;
   apiKey?: string;
-  from: string;
+  from?: string;
   fetchImpl?: typeof fetch;
-}): Promise<{ ok: boolean }> {
+}): Promise<{ ok: boolean; error: string }> {
   const key = args.apiKey?.trim();
-  if (!key) return { ok: false };
+  if (!key) return { ok: false, error: "" };
   try {
     const res = await (args.fetchImpl ?? fetch)("https://api.resend.com/emails", {
       method: "POST",
@@ -30,16 +57,22 @@ export async function sendResendText(args: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        from: args.from,
-        to: [args.to],
-        subject: args.subject,
-        text: args.text,
-      }),
+      body: JSON.stringify(
+        resendMessage({
+          to: args.to,
+          subject: args.subject,
+          text: args.text,
+          from: args.from,
+        }),
+      ),
     });
-    return { ok: res.ok };
+    if (!res.ok) {
+      const error = clipResendError(await res.text());
+      return { ok: false, error: error || "resend rejected" };
+    }
+    return { ok: true, error: "" };
   } catch {
-    return { ok: false };
+    return { ok: false, error: "resend request failed" };
   }
 }
 

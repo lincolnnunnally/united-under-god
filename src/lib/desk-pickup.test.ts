@@ -7,7 +7,14 @@ import {
   isArrivalRequest,
   type InquiryNoticeRow,
 } from "./desk.ts";
-import { DEFAULT_DESK_FROM, deskFromAddress, finishDeskSend } from "./desk-mail.ts";
+import {
+  DEFAULT_DESK_FROM,
+  DESK_REPLY_TO,
+  RESEND_ERROR_LIMIT,
+  deskFromAddress,
+  finishDeskSend,
+  sendResendText,
+} from "./desk-mail.ts";
 
 const emptyDesk = { routes: [], staff: [] as const };
 
@@ -79,11 +86,85 @@ describe("goods pickup owner notice", () => {
 
 describe("desk mail fail-safe", () => {
   it("uses the verified sending domain unless RESEND_FROM is set", () => {
-    assert.match(DEFAULT_DESK_FROM, /@emails\.unitedundergod\.org>/);
+    assert.equal(
+      DEFAULT_DESK_FROM,
+      "United Under God <no-reply@emails.unitedundergod.org>",
+    );
+    assert.equal(DESK_REPLY_TO, "lincoln@unitedundergod.org");
     assert.equal(deskFromAddress({}), DEFAULT_DESK_FROM);
     assert.equal(
       deskFromAddress({ RESEND_FROM: "United Under God <desk@emails.unitedundergod.org>" }),
       "United Under God <desk@emails.unitedundergod.org>",
+    );
+  });
+
+  it("sends from the verified address and replies to Lincoln", async () => {
+    const calls: { body: string }[] = [];
+    const result = await sendResendText({
+      to: "desk@example.org",
+      subject: "United Under God — Food / grocery from Ada Pastor",
+      text: "hello",
+      apiKey: "re_test_key",
+      fetchImpl: (async (_url: string, init?: RequestInit) => {
+        calls.push({ body: String(init?.body ?? "") });
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.ok, true);
+    const payload = JSON.parse(calls[0].body) as {
+      from: string;
+      reply_to: string;
+      to: string[];
+    };
+    assert.equal(payload.from, DEFAULT_DESK_FROM);
+    assert.equal(payload.reply_to, DESK_REPLY_TO);
+    assert.deepEqual(payload.to, ["desk@example.org"]);
+  });
+
+  it("keeps an override From and still replies to Lincoln", async () => {
+    const calls: { body: string }[] = [];
+    await sendResendText({
+      to: OWNER_EMAIL,
+      subject: "s",
+      text: "t",
+      apiKey: "re_test_key",
+      from: "United Under God <desk@emails.unitedundergod.org>",
+      fetchImpl: (async (_url: string, init?: RequestInit) => {
+        calls.push({ body: String(init?.body ?? "") });
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    const payload = JSON.parse(calls[0].body) as { from: string; reply_to: string };
+    assert.equal(payload.from, "United Under God <desk@emails.unitedundergod.org>");
+    assert.equal(payload.reply_to, "lincoln@unitedundergod.org");
+  });
+
+  it("clips a Resend error body to 500 characters", async () => {
+    const html = `<!DOCTYPE html><html>${"cloudflare ".repeat(80)}</html>`;
+    const result = await sendResendText({
+      to: OWNER_EMAIL,
+      subject: "s",
+      text: "t",
+      apiKey: "re_test_key",
+      fetchImpl: (async () => new Response(html, { status: 403 })) as typeof fetch,
+    });
+    assert.equal(result.ok, false);
+    assert.equal(result.error.length, RESEND_ERROR_LIMIT);
+    assert.equal(result.error, html.slice(0, RESEND_ERROR_LIMIT));
+
+    const short = await sendResendText({
+      to: OWNER_EMAIL,
+      subject: "s",
+      text: "t",
+      apiKey: "re_test_key",
+      fetchImpl: (async () =>
+        new Response('{"message":"The unitedundergod.org domain is not verified."}', {
+          status: 403,
+        })) as typeof fetch,
+    });
+    assert.equal(
+      short.error,
+      '{"message":"The unitedundergod.org domain is not verified."}',
     );
   });
 

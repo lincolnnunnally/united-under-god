@@ -1,5 +1,5 @@
 import { getSql } from "@/lib/db";
-import { deskFromAddress, sendResendText } from "@/lib/desk-mail";
+import { sendResendText } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -10,13 +10,12 @@ type SendArgs = {
 
 async function sendOne(to: string, subject: string, text: string): Promise<{ status: string; error: string }> {
   const key = process.env.RESEND_API_KEY?.trim();
-  const from = deskFromAddress();
 
   if (key) {
-    const result = await sendResendText({ to, subject, text, apiKey: key, from });
+    const result = await sendResendText({ to, subject, text, apiKey: key });
     return result.ok
       ? { status: "sent", error: "" }
-      : { status: "failed", error: "resend rejected" };
+      : { status: "failed", error: result.error };
   }
 
   const res = await fetch(

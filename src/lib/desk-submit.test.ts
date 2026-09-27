@@ -177,8 +177,15 @@ describe("hardcoded owner Resend send", () => {
     });
     assert.equal(result.sent, 1);
     assert.match(calls[0].url, /^https:\/\/api\.resend\.com\/emails$/);
-    const payload = JSON.parse(calls[0].body) as { to: string[]; subject: string };
+    const payload = JSON.parse(calls[0].body) as {
+      to: string[];
+      subject: string;
+      from: string;
+      reply_to: string;
+    };
     assert.deepEqual(payload.to, ["lincoln@unitedundergod.org"]);
+    assert.equal(payload.from, "United Under God <no-reply@emails.unitedundergod.org>");
+    assert.equal(payload.reply_to, "lincoln@unitedundergod.org");
     assert.match(payload.subject, /NOT SAVED/);
   });
 

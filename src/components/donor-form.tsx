@@ -123,9 +123,9 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         className="absolute -left-[9999px] h-px w-px opacity-0"
         aria-hidden="true"
       />
-      <p className="mt-2 text-sm text-muted">
-        {lockKind ? path.deskNote : "One form. We put you in the right desk."}
-      </p>
+      {lockKind ? null : (
+        <p className="mt-2 text-sm text-muted">One form. We put you in the right desk.</p>
+      )}
 
       {lockKind ? null : (
         <fieldset className="mt-5 grid gap-2">
