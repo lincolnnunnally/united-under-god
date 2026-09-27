@@ -63,7 +63,7 @@ export function GiveGoodsForm({ className }: { className?: string }) {
         name,
         email,
         phone,
-        organization: "",
+        organization: String(data.get("organization") ?? "").trim(),
         orgType: "Giving",
         city: String(data.get("city") ?? "").trim(),
         address: String(data.get("address") ?? "").trim(),
@@ -214,6 +214,14 @@ export function GiveGoodsForm({ className }: { className?: string }) {
         </Field>
         <Field label="Your name" htmlFor="goods-name">
           <Input id="goods-name" name="name" autoComplete="name" required />
+        </Field>
+        <Field label="Organization (optional)" htmlFor="goods-org">
+          <Input
+            id="goods-org"
+            name="organization"
+            autoComplete="organization"
+            placeholder="Church, store, or charity"
+          />
         </Field>
         <Field label="Pickup address" htmlFor="goods-address">
           <Input

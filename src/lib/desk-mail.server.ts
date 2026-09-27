@@ -1,4 +1,5 @@
 import { getSql } from "@/lib/db";
+import { deskFromAddress } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -9,8 +10,7 @@ type SendArgs = {
 
 async function sendOne(to: string, subject: string, text: string): Promise<{ status: string; error: string }> {
   const key = process.env.RESEND_API_KEY?.trim();
-  const from =
-    process.env.RESEND_FROM?.trim() || "United Under God <lincoln@unitedundergod.org>";
+  const from = deskFromAddress();
 
   if (key) {
     const res = await fetch("https://api.resend.com/emails", {

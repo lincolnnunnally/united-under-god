@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
+import { finishDeskSend } from "@/lib/desk-mail";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
 import {
   DASHBOARD_ORIGIN,
@@ -14,11 +15,9 @@ import {
 } from "@/lib/ops-report.server";
 import {
   SUPER_EMAILS,
+  buildInquiryNotice,
   coversKind,
-  inquiryBody,
-  inquirySubject,
   kindsFromSubmission,
-  routeRecipients,
   type InquiryInput,
 } from "@/lib/desk";
 
@@ -161,23 +160,23 @@ async function requireDeskStaff(userId: string): Promise<DeskMe> {
 }
 
 async function notifyInquiry(inquiry: InquiryRow, extra?: string[]) {
-  const { staff, routes } = await loadDesk();
-  const kinds = inquiry.kinds.split(",").map((s) => s.trim()).filter(Boolean);
-  const to = routeRecipients({
-    kinds,
-    routes,
-    staff,
-    assignedEmail: extra?.[0] ? extra[0] : inquiry.assigned_email || undefined,
-  });
-  for (const email of extra ?? []) to.push(email);
-  return sendDeskEmails({
-    inquiryId: inquiry.id,
-    to,
-    subject: inquirySubject(inquiry.kind, inquiry.name),
-    text: inquiryBody({
-      ...inquiry,
-      assigned_name: inquiry.assigned_name ?? undefined,
-    }),
+  return finishDeskSend({ id: inquiry.id, kind: inquiry.kind }, async () => {
+    const { staff, routes } = await loadDesk();
+    const notice = buildInquiryNotice({
+      inquiry: {
+        ...inquiry,
+        assigned_name: inquiry.assigned_name ?? undefined,
+      },
+      routes,
+      staff,
+      extra: extra ?? (inquiry.assigned_email ? [inquiry.assigned_email] : []),
+    });
+    return sendDeskEmails({
+      inquiryId: inquiry.id,
+      to: notice.to,
+      subject: notice.subject,
+      text: notice.text,
+    });
   });
 }
 
