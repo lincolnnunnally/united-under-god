@@ -274,6 +274,7 @@ export function buildInquiryNotice(args: {
     assignedEmail: args.extra?.[0],
   });
   for (const email of args.extra ?? []) to.push(email);
+  // OWNER_EMAIL is the literal lincoln@unitedundergod.org. Not an env var.
   if (isArrivalRequest(args.inquiry.kind)) to.push(OWNER_EMAIL);
   const unique = [
     ...new Set(to.map((email) => email.trim().toLowerCase()).filter(Boolean)),

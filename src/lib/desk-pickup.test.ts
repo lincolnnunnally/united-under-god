@@ -41,7 +41,8 @@ describe("goods pickup owner notice", () => {
       ...emptyDesk,
     });
     assert.equal(isArrivalRequest("goods-furniture"), true);
-    assert.deepEqual(notice.to, [OWNER_EMAIL]);
+    assert.equal(OWNER_EMAIL, "lincoln@unitedundergod.org");
+    assert.deepEqual(notice.to, ["lincoln@unitedundergod.org"]);
     assert.equal(notice.subject, "Pickup request needs your attention: Ada Pastor");
     assert.match(notice.text, /When: Sat · 10am/);
     assert.match(notice.text, /Where: 12 Dock Street, Vidalia/);
@@ -72,7 +73,7 @@ describe("goods pickup owner notice", () => {
       routes: [{ email: OWNER_EMAIL, kinds: "all", role: "always" }],
       staff: [],
     });
-    assert.deepEqual(notice.to, [OWNER_EMAIL]);
+    assert.deepEqual(notice.to, ["lincoln@unitedundergod.org"]);
   });
 });
 
