@@ -37,8 +37,13 @@ export const SUPER_EMAILS = [
   "lincoln.nunnally@gmail.com",
 ];
 
-/** Owner inbox for a request that asks someone to show up. Not an env var. */
+/** Owner inbox. A literal address, never an environment variable. */
 export const OWNER_EMAIL = "lincoln@unitedundergod.org";
+
+export const INQUIRY_FOLLOWUP = "We received it and will follow up.";
+
+export const INQUIRY_UNREACHABLE =
+  "We could not take that in. Email lincoln@unitedundergod.org or call, and we will take it from there.";
 
 export const DESK_URL = "https://unitedundergod.org/admin";
 
@@ -290,5 +295,35 @@ export function buildInquiryNotice(args: {
     to: unique,
     subject: pickupAttentionSubject(args.inquiry.name),
     text: pickupAttentionBody(args.inquiry),
+  };
+}
+
+/** Saved, but notify_routes could not be read. One hardcoded owner, no route list. */
+export function ownerFallbackNotice(inquiry: InquiryNoticeRow) {
+  const routed = buildInquiryNotice({
+    inquiry,
+    routes: [],
+    staff: [],
+  });
+  return {
+    to: [OWNER_EMAIL],
+    subject: routed.subject,
+    text: routed.text,
+  };
+}
+
+/** Database write failed. The email is the only copy, and it goes only to the owner. */
+export function unsavedOwnerNotice(inquiry: InquiryNoticeRow) {
+  const headline = isArrivalRequest(inquiry.kind)
+    ? pickupAttentionSubject(inquiry.name)
+    : inquirySubject(inquiry.kind, inquiry.name);
+  return {
+    to: [OWNER_EMAIL],
+    subject: `NOT SAVED — ${headline}`,
+    text: [
+      "NOT SAVED. The database write failed. This email is the only copy.",
+      "",
+      inquiryBody(inquiry),
+    ].join("\n"),
   };
 }

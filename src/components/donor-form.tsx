@@ -1,10 +1,11 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { InquiryDone } from "@/components/inquiry-done";
 import { DONOR_PATHS, PLENTY_STORES } from "@/lib/content";
+import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitInquiry } from "@/lib/desk-actions";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ type Props = {
 
 export function DonorForm({ initialKind, lockKind = false, className }: Props) {
   const [kind, setKind] = useState<DonorKind>(initialKind ?? "food");
-  const [done, setDone] = useState(false);
+  const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
   const [error, setError] = useState("");
   const path = DONOR_PATHS.find((item) => item.id === kind) ?? DONOR_PATHS[0];
 
@@ -66,23 +67,15 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       },
     });
     if (!result.ok) {
-      setError(result.error || "We could not receive that. Try again.");
+      setError(result.error || INQUIRY_UNREACHABLE);
       return;
     }
-    setDone(true);
+    setDone({ saved: result.saved, emailed: result.emailed });
   }
 
   if (done) {
     return (
-      <div
-        className={cn(
-          "rounded-xl bg-cream px-6 py-8 shadow-[var(--shadow-border)]",
-          className,
-        )}
-      >
-        <div className="flex size-11 items-center justify-center rounded-md bg-forest text-paper">
-          <Check className="size-5" />
-        </div>
+      <InquiryDone saved={done.saved} emailed={done.emailed} className={className}>
         <h3 className="mt-5 font-display text-2xl">You’re on the charity’s list.</h3>
         <p className="mt-3 max-w-prose text-muted">
           {kind === "food"
@@ -98,7 +91,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
             </Button>
           </p>
         ) : null}
-      </div>
+      </InquiryDone>
     );
   }
 
@@ -297,7 +290,11 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         </Field>
       </div>
 
-      {error ? <p className="mt-4 text-sm text-ink">{error}</p> : null}
+      {error ? (
+        <p className="mt-4 text-sm text-ink" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       <Button type="submit" className="mt-6 w-full sm:w-auto">
         {kind === "food" ? "Schedule food pickup" : "Offer this gift"}

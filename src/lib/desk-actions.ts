@@ -3,8 +3,9 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
-import { finishDeskSend } from "@/lib/desk-mail";
+import { sendHardcodedOwnerEmail } from "@/lib/desk-mail";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
+import { notifySavedInquiry, settleInquirySubmit } from "@/lib/desk-submit";
 import {
   DASHBOARD_ORIGIN,
   PUBLIC_URL,
@@ -15,7 +16,6 @@ import {
 } from "@/lib/ops-report.server";
 import {
   SUPER_EMAILS,
-  buildInquiryNotice,
   coversKind,
   kindsFromSubmission,
   type InquiryInput,
@@ -159,31 +159,48 @@ async function requireDeskStaff(userId: string): Promise<DeskMe> {
   };
 }
 
+function mailOwner(
+  inquiry: InquiryRow,
+  notice: { subject: string; text: string },
+  logLabel: "unsaved" | "routes",
+) {
+  return sendHardcodedOwnerEmail({
+    subject: notice.subject,
+    text: notice.text,
+    apiKey: process.env.RESEND_API_KEY,
+    logKind: inquiry.kind,
+    logLabel,
+  });
+}
+
 async function notifyInquiry(inquiry: InquiryRow, extra?: string[]) {
-  return finishDeskSend({ id: inquiry.id, kind: inquiry.kind }, async () => {
-    const { staff, routes } = await loadDesk();
-    const notice = buildInquiryNotice({
-      inquiry: {
-        ...inquiry,
-        assigned_name: inquiry.assigned_name ?? undefined,
-      },
-      routes,
-      staff,
-      extra: extra ?? (inquiry.assigned_email ? [inquiry.assigned_email] : []),
-    });
-    return sendDeskEmails({
-      inquiryId: inquiry.id,
-      to: notice.to,
-      subject: notice.subject,
-      text: notice.text,
-    });
+  return notifySavedInquiry({
+    inquiry: {
+      ...inquiry,
+      assigned_name: inquiry.assigned_name ?? undefined,
+    },
+    extra: extra ?? (inquiry.assigned_email ? [inquiry.assigned_email] : []),
+    loadRoutes: async () => {
+      const desk = await loadDesk();
+      return { routes: desk.routes, staff: desk.staff };
+    },
+    sendDesk: (notice) =>
+      sendDeskEmails({
+        inquiryId: inquiry.id,
+        to: notice.to,
+        subject: notice.subject,
+        text: notice.text,
+      }),
+    sendOwner: (notice) => mailOwner(inquiry, notice, "routes"),
   });
 }
 
 export const submitInquiry = createServerFn({ method: "POST" })
   .validator(inquiryInput)
   .handler(async ({ data, context }) => {
-    if (data.hp) return { ok: true as const, id: "ignored" };
+    if (data.hp) {
+      return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
+    }
     const name = data.name.trim();
     const email = data.email.trim();
     if (!name) return { ok: false as const, error: "A name lets us follow up." };
@@ -203,24 +220,6 @@ export const submitInquiry = createServerFn({ method: "POST" })
       vehicle: data.vehicle ?? "",
       helpers: data.helpers ?? "",
     });
-    const sql = await getSql();
-    await sql`
-      insert into inquiries (
-        id, kind, kinds, name, email, phone, organization, city, address, message, details
-      ) values (
-        ${id},
-        ${kind},
-        ${kinds.join(", ")},
-        ${name},
-        ${email},
-        ${(data.phone ?? "").trim()},
-        ${(data.organization ?? "").trim()},
-        ${(data.city ?? "").trim()},
-        ${(data.address ?? "").trim()},
-        ${(data.message ?? "").trim()},
-        ${details}
-      )
-    `;
     const inquiry: InquiryRow = {
       id,
       kind,
@@ -240,9 +239,48 @@ export const submitInquiry = createServerFn({ method: "POST" })
       assigned_name: null,
       assigned_email: null,
     };
-    const mail = await notifyInquiry(inquiry);
-    await forwardInquiryToDashboard(inquiry).catch(() => undefined);
-    return { ok: true as const, id, emailed: mail.sent };
+    const settled = await settleInquirySubmit({
+      inquiry,
+      write: async () => {
+        const sql = await getSql();
+        await sql`
+          insert into inquiries (
+            id, kind, kinds, name, email, phone, organization, city, address, message, details
+          ) values (
+            ${id},
+            ${kind},
+            ${kinds.join(", ")},
+            ${name},
+            ${email},
+            ${(data.phone ?? "").trim()},
+            ${(data.organization ?? "").trim()},
+            ${(data.city ?? "").trim()},
+            ${(data.address ?? "").trim()},
+            ${(data.message ?? "").trim()},
+            ${details}
+          )
+        `;
+      },
+      notifySaved: (row) => notifyInquiry(row as InquiryRow),
+      sendUnsaved: (notice) => mailOwner(inquiry, notice, "unsaved"),
+    });
+    if (settled.saved) {
+      await forwardInquiryToDashboard(inquiry).catch(() => undefined);
+    }
+    if (!settled.ok) {
+      return {
+        ok: false as const,
+        saved: false as const,
+        emailed: false as const,
+        error: settled.error,
+      };
+    }
+    return {
+      ok: true as const,
+      id,
+      saved: settled.saved,
+      emailed: settled.emailed,
+    };
   });
 
 export const getDeskMe = createServerFn({ method: "GET" })

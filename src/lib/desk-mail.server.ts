@@ -1,5 +1,5 @@
 import { getSql } from "@/lib/db";
-import { deskFromAddress } from "@/lib/desk-mail";
+import { deskFromAddress, sendResendText } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -13,24 +13,10 @@ async function sendOne(to: string, subject: string, text: string): Promise<{ sta
   const from = deskFromAddress();
 
   if (key) {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        subject,
-        text,
-      }),
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      return { status: "failed", error: body.slice(0, 400) };
-    }
-    return { status: "sent", error: "" };
+    const result = await sendResendText({ to, subject, text, apiKey: key, from });
+    return result.ok
+      ? { status: "sent", error: "" }
+      : { status: "failed", error: "resend rejected" };
   }
 
   const res = await fetch(
@@ -73,17 +59,21 @@ export async function sendDeskEmails(args: SendArgs) {
     } catch (err) {
       error = err instanceof Error ? err.message : "send failed";
     }
-    await sql`
-      insert into email_log (id, inquiry_id, to_email, subject, status, error)
-      values (
-        ${crypto.randomUUID()},
-        ${args.inquiryId},
-        ${to},
-        ${args.subject},
-        ${status},
-        ${error}
-      )
-    `;
+    try {
+      await sql`
+        insert into email_log (id, inquiry_id, to_email, subject, status, error)
+        values (
+          ${crypto.randomUUID()},
+          ${args.inquiryId},
+          ${to},
+          ${args.subject},
+          ${status},
+          ${error}
+        )
+      `;
+    } catch {
+      console.error(`[desk-mail] email log failed inquiry=${args.inquiryId}`);
+    }
   }
   return { sent, attempted: unique.length };
 }
