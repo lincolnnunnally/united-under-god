@@ -82,11 +82,13 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         className={className}
       >
         <h3 className="mt-5 font-display text-2xl">
-          {kind === "food" ? "We’ll contact you to set a time." : "You’re on the charity’s list."}
+          {kind === "food"
+            ? "We’ll contact you to confirm a day and time."
+            : "You’re on the charity’s list."}
         </h3>
         <p className="mt-3 max-w-prose text-muted">
           {kind === "food"
-            ? "We have your pickup details. We’ll be in touch to set a time. To book a specific pickup, use Request a pickup on Plenty."
+            ? "To book a specific pickup, use Request a pickup on Plenty."
             : `This gift is going to ${path.desk}. We will confirm pickup or receiving and put what you gave into someone’s hands.`}
         </p>
         {kind === "food" ? (
@@ -304,7 +306,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       ) : null}
 
       <Button type="submit" className="mt-6 w-full sm:w-auto">
-        {kind === "food" ? "Send my pickup details" : "Offer this gift"}
+        {kind === "food" ? "Sign up for food pickup" : "Offer this gift"}
       </Button>
     </form>
   );
