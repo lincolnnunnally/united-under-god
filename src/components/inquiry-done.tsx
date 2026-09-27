@@ -7,11 +7,14 @@ export function InquiryDone({
   saved,
   emailed,
   className,
+  showDetails,
   children,
 }: {
   saved: boolean;
   emailed: boolean;
   className?: string;
+  /** Food donors explain the Plenty booking even when the row was not stored. */
+  showDetails?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -28,7 +31,7 @@ export function InquiryDone({
         <>
           <h3 className="mt-5 font-display text-2xl">We received it.</h3>
           <p className="mt-3 max-w-prose text-muted">{INQUIRY_FOLLOWUP}</p>
-          {saved ? <div className="mt-6">{children}</div> : null}
+          {saved || showDetails ? <div className="mt-6">{children}</div> : null}
         </>
       ) : (
         children

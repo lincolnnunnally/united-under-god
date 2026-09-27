@@ -75,11 +75,18 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
 
   if (done) {
     return (
-      <InquiryDone saved={done.saved} emailed={done.emailed} className={className}>
-        <h3 className="mt-5 font-display text-2xl">You’re on the charity’s list.</h3>
+      <InquiryDone
+        saved={done.saved}
+        emailed={done.emailed}
+        showDetails={kind === "food"}
+        className={className}
+      >
+        <h3 className="mt-5 font-display text-2xl">
+          {kind === "food" ? "We’ll contact you to set a time." : "You’re on the charity’s list."}
+        </h3>
         <p className="mt-3 max-w-prose text-muted">
           {kind === "food"
-            ? "Receipts say United Under God, Inc. Plenty is the pantry program, not a second charity. Next: tell Plenty when food is on the dock."
+            ? "We have your pickup details. We’ll be in touch to set a time. To book a specific pickup, use Request a pickup on Plenty."
             : `This gift is going to ${path.desk}. We will confirm pickup or receiving and put what you gave into someone’s hands.`}
         </p>
         {kind === "food" ? (
@@ -297,7 +304,7 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
       ) : null}
 
       <Button type="submit" className="mt-6 w-full sm:w-auto">
-        {kind === "food" ? "Schedule food pickup" : "Offer this gift"}
+        {kind === "food" ? "Send my pickup details" : "Offer this gift"}
       </Button>
     </form>
   );
