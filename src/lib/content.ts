@@ -195,6 +195,11 @@ export const APPS = {
       blurb: "Local pastors, standing together — not competing for a town that belongs to God.",
     },
     {
+      name: "Outreach",
+      href: "https://live-on-mission.com/outreach",
+      blurb: "Meet the neighbors around your church — a Gift Drop, a Block Party, or the Vidalia Serve Day. We plan it with you.",
+    },
+    {
       name: "Neighborly",
       href: "https://neighborly.unitedundergod.org",
       blurb: "Neighbors helping neighbors, locally.",
