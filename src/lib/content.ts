@@ -227,6 +227,11 @@ export const APPS = {
       blurb: "Domains, hosting, and websites without the tech overwhelm.",
     },
     {
+      name: "AI Website Design",
+      href: "https://ai-website.design",
+      blurb: "A finished website for your business or ministry, built with your own photos and logo. Change anything by clicking it.",
+    },
+    {
       name: "Porchlight",
       href: "https://porchlight.unitedundergod.org",
       blurb: "Off-market houses in Vidalia and Toombs — buy, repair, live, rent, or sell.",
