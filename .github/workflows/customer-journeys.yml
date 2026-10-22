@@ -4,9 +4,7 @@ name: customer-journeys
 # payment (see journeys/run.mjs). Screenshots and REPORT.md are pushed to the
 # branch claude/customer-journeys-results.
 on:
-  push:
-    branches: [claude/customer-journeys]
-    paths: [journeys/**, .github/workflows/customer-journeys.yml]
+  # Dispatch only: every full run signs up real test accounts on the live apps.
   workflow_dispatch:
     inputs:
       invite_slugs:
@@ -15,6 +13,10 @@ on:
         default: ""
       journeys:
         description: Which journeys (space separated, blank = all)
+        required: false
+        default: ""
+      asset_sites:
+        description: For site-assets, slug=https://site pairs (comma separated)
         required: false
         default: ""
 
@@ -46,6 +48,7 @@ jobs:
         timeout-minutes: 30
         env:
           INVITE_SLUGS: ${{ github.event.inputs.invite_slugs || vars.INVITE_SLUGS || '' }}
+          ASSET_SITES: ${{ github.event.inputs.asset_sites || '' }}
           OUT: ${{ github.workspace }}/journey-out
           NODE_PATH: /tmp/j/node_modules
         run: |

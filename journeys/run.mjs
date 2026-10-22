@@ -461,6 +461,45 @@ async function uug(page, step) {
   }
 }
 
+// ---------------------------------------------------------------- Site assets
+// Collect a church's logo and colors from its own website (for Laser catalog
+// pages). Env ASSET_SITES="slug=https://site,slug2=https://site2".
+async function siteAssets(page, step) {
+  const sites = (process.env.ASSET_SITES || "").split(",").map((p) => p.split("=")).filter((p) => p[0] && p[1]);
+  for (const [slug, url] of sites) {
+    await step(`${slug}: open ${url}`, async () => {
+      await page.goto(url, { waitUntil: "networkidle", timeout: 45000 }).catch(() => page.goto(url, { waitUntil: "domcontentloaded" }));
+      await page.waitForTimeout(2500);
+      return await page.title();
+    });
+    await step(`${slug}: logo and colors`, async () => {
+      const found = await page.evaluate(() => {
+        const abs = (u) => { try { return new URL(u, location.href).href; } catch { return ""; } };
+        const imgs = [...document.querySelectorAll("header img, nav img, a[href='/'] img, img[alt*='logo' i], img[src*='logo' i], img[class*='logo' i]")]
+          .map((i) => ({ src: abs(i.currentSrc || i.src), alt: i.alt || "", w: i.naturalWidth, h: i.naturalHeight }))
+          .filter((i) => i.src && !i.src.startsWith("data:"));
+        const meta = (n) => document.querySelector(`meta[property='${n}'],meta[name='${n}']`)?.getAttribute("content") || "";
+        const icons = [...document.querySelectorAll("link[rel*='icon']")].map((l) => abs(l.href));
+        const bg = (sel) => { const el = document.querySelector(sel); return el ? getComputedStyle(el).backgroundColor : ""; };
+        const btn = document.querySelector("a.sqs-block-button-element, .btn, button, a[class*='button']");
+        return {
+          logos: imgs.slice(0, 8), og_image: abs(meta("og:image")), theme_color: meta("theme-color"), icons: icons.slice(0, 4),
+          header_bg: bg("header"), button_bg: btn ? getComputedStyle(btn).backgroundColor : "",
+        };
+      });
+      fs.writeFileSync(path.join(OUT, `asset-${slug}.json`), JSON.stringify(found, null, 2));
+      let n = 0;
+      for (const u of [...found.logos.map((l) => l.src), ...found.icons].slice(0, 8)) {
+        const r = await page.request.get(u).catch(() => null);
+        if (!r || !r.ok()) continue;
+        const ext = (u.split("?")[0].match(/\.(png|jpe?g|webp|svg|gif)$/i) || [, "png"])[1].toLowerCase();
+        fs.writeFileSync(path.join(OUT, `asset-${slug}-${++n}.${ext}`), await r.body());
+      }
+      return `${found.logos.length} logo candidates, ${n} downloaded; header ${found.header_bg}; button ${found.button_bg}`;
+    });
+  }
+}
+
 // ---------------------------------------------------------------- run
 
 const ALL = {
@@ -472,9 +511,11 @@ const ALL = {
   operate: (a) => operate(a.page, a.step),
   laser: (a) => laser(a.page, a.step),
   "united-under-god": (a) => uug(a.page, a.step),
+  "site-assets": (a) => siteAssets(a.page, a.step),
 };
 
-const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ALL);
+// site-assets only runs when asked for by name.
+const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ALL).filter((k) => k !== "site-assets");
 const browser = await chromium.launch();
 await Promise.all(wanted.map((name) => journey(name, browser, ALL[name])));
 await browser.close();
