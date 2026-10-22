@@ -149,35 +149,52 @@ async function easyPeazy(page, step, { host, app, business }) {
   }, { shot: false });
   await step("build a free draft website (several minutes)", async () => {
     const t0 = Date.now();
-    const r = await call("POST", "/client/websites", {
+    // The build call holds the request open for minutes and a long idle
+    // connection can drop on the runner; the build carries on server-side, so
+    // watch the website's status on the dashboard instead of trusting one socket.
+    const build = call("POST", "/client/websites", {
       site_name: business,
       business_type: app === "uug" ? "nonprofit" : "bakery",
       business_description: `${business} is a small family business in Vidalia, Georgia. Open Tuesday to Saturday.`,
       contact_phone: "(912) 555-0142",
-    });
-    const secs = Math.round((Date.now() - t0) / 1000);
-    if (r.status !== 200 || r.body?.success === false) throw new Error(`build ${r.status} after ${secs}s: ${JSON.stringify(r.body).slice(0, 300)}`);
-    return `draft built in ${secs}s`;
-  }, { shot: false });
-  await step("portal shows the draft", async () => {
-    await page.goto(`https://${host}/portal`, { waitUntil: "networkidle" });
-    await page.locator('[data-testid^="website-card-"]').first().waitFor({ timeout: 30000 });
-    const publish = await page.locator('[data-testid^="publish-btn-"]').count();
-    return `draft card shown; publish button present: ${publish > 0} (not clicked: it opens payment)`;
-  });
-  await step("draft preview opens", async () => {
-    const btn = page.locator('[data-testid^="preview-draft-btn-"]').first();
-    if (!(await btn.count())) return "no preview button";
-    const [popup] = await Promise.all([page.context().waitForEvent("page", { timeout: 15000 }).catch(() => null), btn.click()]);
-    if (popup) {
-      await popup.waitForLoadState("domcontentloaded");
-      await popup.screenshot({ path: path.join(OUT, `${app}-draft-preview.png`) });
-      const u = popup.url();
-      await popup.close();
-      return `preview at ${u}`;
+    }).catch((e) => ({ status: 0, body: String(e?.message || e) }));
+    let status = "";
+    while (Date.now() - t0 < 480000) {
+      await page.waitForTimeout(10000);
+      const d = await call("GET", "/client/dashboard").catch(() => null);
+      const site = (d?.body?.websites || []).find((w) => w.site_name === business);
+      status = site?.status || "";
+      if (status && !["provisioning", "building", "pending"].includes(status)) break;
     }
-    await page.waitForTimeout(3000);
-    return "preview opened in page";
+    const r = await Promise.race([build, new Promise((res) => setTimeout(() => res(null), 1000))]);
+    const secs = Math.round((Date.now() - t0) / 1000);
+    if (!["draft", "active", "ready"].includes(status)) {
+      throw new Error(`status "${status || "none"}" after ${secs}s; build call: ${r ? `${r.status} ${JSON.stringify(r.body).slice(0, 200)}` : "still open"}`);
+    }
+    return `website status "${status}" after ${secs}s`;
+  }, { shot: false });
+  await step("dashboard shows the draft is ready", async () => {
+    await page.goto(`https://${host}/portal`, { waitUntil: "networkidle" });
+    await page.getByText(/your draft is ready/i).first().waitFor({ timeout: 30000 });
+    return "\"Your draft is ready\" with See my draft";
+  });
+  await step("See my draft opens the draft", async () => {
+    const btn = page.getByRole("button", { name: /see my draft/i }).or(page.getByRole("link", { name: /see my draft/i })).first();
+    const [popup] = await Promise.all([page.context().waitForEvent("page", { timeout: 15000 }).catch(() => null), btn.click()]);
+    const view = popup || page;
+    await view.waitForLoadState("domcontentloaded");
+    await view.waitForTimeout(4000);
+    await view.screenshot({ path: path.join(OUT, `${app}-draft-preview.png`) });
+    const u = view.url();
+    if (popup) await popup.close();
+    return `opened ${u.split("?")[0]} [${app}-draft-preview.png]`;
+  });
+  await step("My Websites: publish needs payment (not clicked)", async () => {
+    await page.goto(`https://${host}/portal?tab=websites`, { waitUntil: "networkidle" }).catch(() => {});
+    await page.getByRole("button", { name: /my websites/i }).or(page.getByRole("link", { name: /my websites/i })).first().click().catch(() => {});
+    await page.waitForTimeout(2500);
+    const publish = await page.locator('[data-testid^="publish-btn-"]').first().innerText().catch(() => "");
+    return publish ? `button "${publish.trim()}"` : "no publish button found";
   });
 }
 
@@ -253,6 +270,14 @@ async function churchConnect(page, step) {
     await page.getByRole("button", { name: "Create Account" }).click();
     await page.waitForURL(/\/app|\/signin|verify/, { timeout: 60000 });
     return page.url().includes("/app") ? "signed in and on the app" : `went to ${page.url()} (email verification?)`;
+  });
+  await step("after sign-up: mobile number prompt (skipped with Remind me later)", async () => {
+    const later = page.getByText(/remind me later/i).first();
+    if (await later.isVisible({ timeout: 8000 }).catch(() => false)) {
+      await later.click();
+      return "prompt shown, dismissed";
+    }
+    return "no prompt";
   });
   await step("first-run setup checklist", async () => {
     if (!page.url().includes("/app")) return "not signed in, skipped";
@@ -397,7 +422,8 @@ async function laser(page, step) {
     const pay = await page.getByTestId("checkout-submit-btn").innerText().catch(() => "?");
     return `total ${total.trim()}; button "${pay.trim()}" (not clicked)`;
   });
-  const who = email("laser");
+  // Laser rejects reserved endings like .test, so this one uses a throwaway inbox.
+  const who = `qa-journey-laser-${STAMP}${RAND}@mailinator.com`;
   report.accounts.push({ app: "Laser engraving", email: who });
   await step("buyer account sign up", async () => {
     await page.goto(`${BASE}/signin`, { waitUntil: "domcontentloaded" });
