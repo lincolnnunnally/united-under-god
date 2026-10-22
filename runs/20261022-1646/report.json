@@ -1,0 +1,55 @@
+{
+  "started": "2026-10-22T16:44:43.909Z",
+  "accounts": [
+    {
+      "app": "Laser engraving",
+      "email": "qa-journey-laser-202610221644mbjs@mailinator.com"
+    }
+  ],
+  "journeys": {
+    "laser": [
+      {
+        "step": "church page /ccvidalia",
+        "ok": true,
+        "note": "Connection Church Vidalia: \"Your church's logo, on gifts people keep.\" · 3 pieces",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-01.png"
+      },
+      {
+        "step": "/connection goes to the Connection page",
+        "ok": true,
+        "note": "https://laser.engrave.market/connection → 307",
+        "url": "https://laser.engrave.market/ccvidalia"
+      },
+      {
+        "step": "/fbcv page",
+        "ok": true,
+        "note": "not created yet (shows 'That page isn't here')",
+        "url": "https://laser.engrave.market/fbcv",
+        "shot": "laser-03.png"
+      },
+      {
+        "step": "'Save this page' form is there (not submitted)",
+        "ok": true,
+        "note": "form shown",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-04.png"
+      },
+      {
+        "step": "order a piece → checkout (stopped before Pay)",
+        "ok": true,
+        "note": "total $32.00; button \"Pay $32.00\" (not clicked)",
+        "url": "https://laser.engrave.market/checkout?place=ccvidalia&from=ccvidalia&name=Connection+Church+Vidalia",
+        "shot": "laser-05.png"
+      },
+      {
+        "step": "buyer account sign up",
+        "ok": true,
+        "note": "https://laser.engrave.market/account",
+        "url": "https://laser.engrave.market/account",
+        "shot": "laser-06.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T16:46:12.610Z"
+}
