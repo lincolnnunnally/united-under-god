@@ -1,41 +1,43 @@
-# Customer onboarding run 2026-10-22T16:21:16.033Z
+# Customer onboarding run 2026-10-22T16:37:56.422Z
 
 Stops at payment on every app. Test accounts:
 
-- Easy Peazy (easypeazy.unitedundergod.org): qa-journey-uug-202610221621ae13@appengine.test
-- Easy Peazy (easypeazy.site): qa-journey-ep-202610221621ae13@appengine.test
-- AI Website Design: qa-journey-awd-202610221621ae13@appengine.test
-- ChurchConnect: qa-journey-cc-202610221621ae13@appengine.test
-- Operate: qa-journey-operate-202610221621ae13@appengine.test
-- Laser engraving: qa-journey-laser-202610221621ae13@appengine.test
+- Easy Peazy (easypeazy.site): qa-journey-ep-2026102216378ue8@appengine.test
+- AI Website Design: qa-journey-awd-2026102216378ue8@appengine.test
+- ChurchConnect: qa-journey-cc-2026102216378ue8@appengine.test
+- Operate: qa-journey-operate-2026102216378ue8@appengine.test
+- Easy Peazy (easypeazy.unitedundergod.org): qa-journey-uug-2026102216378ue8@appengine.test
+- Laser engraving: qa-journey-laser-2026102216378ue8@mailinator.com
 
 ## easypeazy
 
 - PASS open easypeazy.site — EasyPeazy - We Design Your Church or Business Website [easypeazy-01.png]
 - PASS sign up — landed on the portal [easypeazy-02.png]
 - PASS web address choices offered — easypeazy.site (free)
-- PASS check an address is free — {"label":"qa-journey-221621ae13","host":"qa-journey-221621ae13.easypeazy.site","available":true,"message":null,"base":"easypeazy.site"}
+- PASS check an address is free — {"label":"qa-journey-2216378ue8","host":"qa-journey-2216378ue8.easypeazy.site","available":true,"message":null,"base":"easypeazy.site"}
 - PASS claiming an address before paying is refused (402) — Choose your plan first — then we'll build your website.
-- FAIL build a free draft website (several minutes) — apiRequestContext.fetch: read ETIMEDOUT
-- FAIL portal shows the draft — locator.waitFor: Timeout 30000ms exceeded. [easypeazy-07.png]
-- PASS draft preview opens — no preview button [easypeazy-08.png]
+- PASS build a free draft website (several minutes) — website status "draft" after 155s
+- PASS dashboard shows the draft is ready — "Your draft is ready" with See my draft [easypeazy-07.png]
+- PASS See my draft opens the draft — opened https://easypeazy.site/portal [ep-draft-preview.png] [easypeazy-08.png]
+- PASS My Websites: publish needs payment (not clicked) — button "Pay $12 to publish" [easypeazy-09.png]
 
 ## easypeazy-uug
 
 - PASS open easypeazy.unitedundergod.org — EasyPeazy - We Design Your Church or Business Website [easypeazy-uug-01.png]
 - PASS sign up — landed on the portal [easypeazy-uug-02.png]
 - PASS web address choices offered — easypeazy.site (free)
-- PASS check an address is free — {"label":"qa-journey-221621ae13","host":"qa-journey-221621ae13.easypeazy.site","available":true,"message":null,"base":"easypeazy.site"}
+- PASS check an address is free — {"label":"qa-journey-2216378ue8","host":"qa-journey-2216378ue8.easypeazy.site","available":true,"message":null,"base":"easypeazy.site"}
 - PASS claiming an address before paying is refused (402) — Choose your plan first — then we'll build your website.
-- PASS build a free draft website (several minutes) — draft built in 164s
-- FAIL portal shows the draft — locator.waitFor: Timeout 30000ms exceeded. [easypeazy-uug-07.png]
-- PASS draft preview opens — no preview button [easypeazy-uug-08.png]
+- PASS build a free draft website (several minutes) — website status "draft" after 134s
+- PASS dashboard shows the draft is ready — "Your draft is ready" with See my draft [easypeazy-uug-07.png]
+- PASS See my draft opens the draft — opened https://easypeazy.unitedundergod.org/portal [uug-draft-preview.png] [easypeazy-uug-08.png]
+- PASS My Websites: publish needs payment (not clicked) — button "Pay $12 to publish" [easypeazy-uug-09.png]
 
 ## ai-website-design
 
 - PASS open ai-website.design — AI Website Design — Describe it. We design it. It goes live. [ai-website-design-01.png]
 - PASS sign up — https://ai-website.design/dashboard [ai-website-design-02.png]
-- PASS describe the business and generate a site — editor for site 9dc5fe7d-fe08-4e81-8127-74259828986c [ai-website-design-03.png]
+- PASS describe the business and generate a site — editor for site 3441577a-079b-44be-a8f0-25fb4ee3fe23 [ai-website-design-03.png]
 - PASS editor: Go live and web address choice — Go live — $50 + $19/mo (not clicked: opens payment); address choices: free address only (no shared domains listed yet) [ai-website-design-04.png]
 - PASS publishing before paying is refused (402) — 402 payment required
 - PASS clean up the test site — delete → 200
@@ -44,7 +46,8 @@ Stops at payment on every app. Test accounts:
 
 - PASS open churchconnect.cloud — ChurchConnect — church software for people, events, and Sunday communication [churchconnect-01.png]
 - PASS church sign up — signed in and on the app [churchconnect-02.png]
-- PASS first-run setup checklist — no setup checklist text found [churchconnect-03.png]
+- PASS after sign-up: mobile number prompt (skipped with Remind me later) — no prompt [churchconnect-03.png]
+- PASS first-run setup checklist — no setup checklist text found [churchconnect-04.png]
 - PASS church invite /for/{slug} — skipped: no invite link given yet (needs a super-admin to prepare one)
 
 ## operate
@@ -66,7 +69,7 @@ Stops at payment on every app. Test accounts:
 - PASS /fbcv page — not created yet (shows 'That page isn't here') [laser-03.png]
 - PASS 'Save this page' form is there (not submitted) — form shown [laser-04.png]
 - PASS order a piece → checkout (stopped before Pay) — total $32.00; button "Pay $32.00" (not clicked) [laser-05.png]
-- PASS buyer account sign up — https://laser.engrave.market/signin [laser-06.png]
+- PASS buyer account sign up — https://laser.engrave.market/account [laser-06.png]
 
 ## united-under-god
 
