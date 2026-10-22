@@ -488,6 +488,13 @@ async function siteAssets(page, step) {
         };
       });
       fs.writeFileSync(path.join(OUT, `asset-${slug}.json`), JSON.stringify(found, null, 2));
+      // The raw page and its stylesheets, for tuning how we read a site's look.
+      const raw = await page.request.get(url).then((r) => r.text()).catch(() => "");
+      fs.writeFileSync(path.join(OUT, `asset-${slug}.html`), raw);
+      const sheets = await page.evaluate(() => [...document.querySelectorAll("link[rel=stylesheet]")].map((l) => l.href));
+      let css = "";
+      for (const href of sheets.slice(0, 6)) css += `\n/* ${href} */\n` + (await page.request.get(href).then((r) => r.text()).catch(() => ""));
+      fs.writeFileSync(path.join(OUT, `asset-${slug}.css`), css);
       let n = 0;
       for (const u of [...found.logos.map((l) => l.src), ...found.icons].slice(0, 8)) {
         const r = await page.request.get(u).catch(() => null);
