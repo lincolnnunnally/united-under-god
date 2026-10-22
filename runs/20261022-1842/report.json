@@ -1,0 +1,51 @@
+{
+  "started": "2026-10-22T18:42:04.380Z",
+  "accounts": [
+    {
+      "app": "Operate (Kevin Huddleston, sample)",
+      "email": "kevin-sample-bv2q@mailinator.com"
+    }
+  ],
+  "journeys": {
+    "operate-pros": [
+      {
+        "step": "Kevin Huddleston: sign up on Operate",
+        "ok": true,
+        "note": "on the desk",
+        "url": "https://operate.unitedundergod.org/desk",
+        "shot": "operate-pros-01.png"
+      },
+      {
+        "step": "Kevin Huddleston: public page details (mock contact)",
+        "ok": true,
+        "note": "slug kevin-huddleston-handyman",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Kevin Huddleston: services, each with its own page",
+        "ok": true,
+        "note": "Plumbing repairs, Electrical fixes, Flooring, Painting, Insulation, Carpentry",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Kevin Huddleston: Local Leads on for their trades and towns",
+        "ok": true,
+        "note": "handyman, painting, flooring, finish-carpentry · vidalia, lyons, santa-claus, mount-vernon, ailey, uvalda, soperton, reidsville",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Kevin Huddleston: public page live",
+        "ok": true,
+        "note": "https://operate.unitedundergod.org/site/kevin-huddleston-handyman — \"Kevin Huddleston Handyman Services\" · 6 service links",
+        "url": "https://operate.unitedundergod.org/site/kevin-huddleston-handyman",
+        "shot": "operate-pros-05.png"
+      },
+      {
+        "step": "journey crashed",
+        "ok": false,
+        "error": "ctx is not defined"
+      }
+    ]
+  },
+  "finished": "2026-10-22T18:42:12.722Z"
+}
