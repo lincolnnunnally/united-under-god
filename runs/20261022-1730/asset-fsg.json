@@ -1,0 +1,11 @@
+{
+  "logos": [],
+  "og_image": "https://s3.amazonaws.com/mychurchwebsite/images/c4082/hss_20241206_kxdjlm.jpg",
+  "theme_color": "",
+  "icons": [
+    "https://files.mychurchwebsite.net/lib/common/favicon.png",
+    "https://files.mychurchwebsite.net/lib/common/apple-touch-icon.png"
+  ],
+  "header_bg": "rgba(0, 0, 0, 0)",
+  "button_bg": ""
+}

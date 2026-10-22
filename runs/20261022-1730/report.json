@@ -1,0 +1,85 @@
+{
+  "started": "2026-10-22T17:28:45.598Z",
+  "accounts": [
+    {
+      "app": "Laser engraving",
+      "email": "qa-journey-laser-2026102217284ek6@mailinator.com"
+    }
+  ],
+  "journeys": {
+    "site-assets": [
+      {
+        "step": "fsg: open https://shadygroveconyers.org/",
+        "ok": true,
+        "note": "Shady Grove Baptist Church Conyers Ga Where Love Makes a Difference",
+        "url": "https://shadygroveconyers.org/",
+        "shot": "site-assets-01.png"
+      },
+      {
+        "step": "fsg: logo and colors",
+        "ok": true,
+        "note": "0 logo candidates, 2 downloaded; header rgba(0, 0, 0, 0); button ",
+        "url": "https://shadygroveconyers.org/",
+        "shot": "site-assets-02.png"
+      },
+      {
+        "step": "milstead: open https://www.milsteadbaptist.org/",
+        "ok": false,
+        "error": "page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.milsteadbaptist.org/",
+        "url": "chrome-error://chromewebdata/",
+        "shot": "site-assets-03.png"
+      },
+      {
+        "step": "milstead: logo and colors",
+        "ok": true,
+        "note": "0 logo candidates, 0 downloaded; header ; button ",
+        "url": "chrome-error://chromewebdata/",
+        "shot": "site-assets-04.png"
+      }
+    ],
+    "laser": [
+      {
+        "step": "church page /ccvidalia",
+        "ok": true,
+        "note": "Connection Church Vidalia: \"Your church's logo, on gifts people keep.\" · 3 pieces",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-01.png"
+      },
+      {
+        "step": "/connection goes to the Connection page",
+        "ok": true,
+        "note": "https://laser.engrave.market/connection → 307",
+        "url": "https://laser.engrave.market/ccvidalia"
+      },
+      {
+        "step": "/fbcv page",
+        "ok": true,
+        "note": "live: FBC Vidalia",
+        "url": "https://laser.engrave.market/fbcv",
+        "shot": "laser-03.png"
+      },
+      {
+        "step": "'Save this page' form is there (not submitted)",
+        "ok": true,
+        "note": "form shown",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-04.png"
+      },
+      {
+        "step": "order a piece → checkout (stopped before Pay)",
+        "ok": true,
+        "note": "total $32.00; button \"Pay $32.00\" (not clicked)",
+        "url": "https://laser.engrave.market/checkout?place=ccvidalia&from=ccvidalia&name=Connection+Church+Vidalia",
+        "shot": "laser-05.png"
+      },
+      {
+        "step": "buyer account sign up",
+        "ok": true,
+        "note": "https://laser.engrave.market/account",
+        "url": "https://laser.engrave.market/account",
+        "shot": "laser-06.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T17:30:05.882Z"
+}
