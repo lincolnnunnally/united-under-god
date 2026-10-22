@@ -1,0 +1,358 @@
+{
+  "started": "2026-10-22T17:24:47.854Z",
+  "accounts": [
+    {
+      "app": "Easy Peazy (easypeazy.site)",
+      "email": "qa-journey-ep-202610221724ahkq@appengine.test"
+    },
+    {
+      "app": "AI Website Design",
+      "email": "qa-journey-awd-202610221724ahkq@appengine.test"
+    },
+    {
+      "app": "Easy Peazy (easypeazy.unitedundergod.org)",
+      "email": "qa-journey-uug-202610221724ahkq@appengine.test"
+    },
+    {
+      "app": "Operate",
+      "email": "qa-journey-operate-202610221724ahkq@appengine.test"
+    },
+    {
+      "app": "ChurchConnect",
+      "email": "qa-journey-cc-202610221724ahkq@appengine.test"
+    },
+    {
+      "app": "Laser engraving",
+      "email": "qa-journey-laser-202610221724ahkq@mailinator.com"
+    }
+  ],
+  "journeys": {
+    "easypeazy": [
+      {
+        "step": "open easypeazy.site",
+        "ok": true,
+        "note": "EasyPeazy - We Design Your Church or Business Website",
+        "url": "https://easypeazy.site/",
+        "shot": "easypeazy-01.png"
+      },
+      {
+        "step": "sign up",
+        "ok": true,
+        "note": "landed on the portal",
+        "url": "https://easypeazy.site/portal",
+        "shot": "easypeazy-02.png"
+      },
+      {
+        "step": "web address choices offered",
+        "ok": true,
+        "note": "easypeazy.site (free)",
+        "url": "https://easypeazy.site/portal"
+      },
+      {
+        "step": "check an address is free",
+        "ok": true,
+        "note": "{\"label\":\"qa-journey-221724ahkq\",\"host\":\"qa-journey-221724ahkq.easypeazy.site\",\"available\":true,\"message\":null,\"base\":\"easypeazy.site\"}",
+        "url": "https://easypeazy.site/portal"
+      },
+      {
+        "step": "claiming an address before paying is refused (402)",
+        "ok": true,
+        "note": "Choose your plan first — then we'll build your website.",
+        "url": "https://easypeazy.site/portal"
+      },
+      {
+        "step": "build a free draft website (several minutes)",
+        "ok": true,
+        "note": "website status \"draft\" after 103s",
+        "url": "https://easypeazy.site/portal"
+      },
+      {
+        "step": "dashboard shows the draft is ready",
+        "ok": true,
+        "note": "\"Your draft is ready\" with See my draft",
+        "url": "https://easypeazy.site/portal",
+        "shot": "easypeazy-07.png"
+      },
+      {
+        "step": "See my draft opens the draft",
+        "ok": true,
+        "note": "opened https://easypeazy.site/portal [ep-draft-preview.png]",
+        "url": "https://easypeazy.site/portal",
+        "shot": "easypeazy-08.png"
+      },
+      {
+        "step": "My Websites: publish needs payment (not clicked)",
+        "ok": true,
+        "note": "button \"Pay $12 to publish\"",
+        "url": "https://easypeazy.site/portal?tab=websites",
+        "shot": "easypeazy-09.png"
+      }
+    ],
+    "easypeazy-uug": [
+      {
+        "step": "open easypeazy.unitedundergod.org",
+        "ok": true,
+        "note": "EasyPeazy - We Design Your Church or Business Website",
+        "url": "https://easypeazy.unitedundergod.org/",
+        "shot": "easypeazy-uug-01.png"
+      },
+      {
+        "step": "sign up",
+        "ok": true,
+        "note": "landed on the portal",
+        "url": "https://easypeazy.unitedundergod.org/portal",
+        "shot": "easypeazy-uug-02.png"
+      },
+      {
+        "step": "web address choices offered",
+        "ok": true,
+        "note": "easypeazy.site (free)",
+        "url": "https://easypeazy.unitedundergod.org/portal"
+      },
+      {
+        "step": "check an address is free",
+        "ok": true,
+        "note": "{\"label\":\"qa-journey-221724ahkq\",\"host\":\"qa-journey-221724ahkq.easypeazy.site\",\"available\":true,\"message\":null,\"base\":\"easypeazy.site\"}",
+        "url": "https://easypeazy.unitedundergod.org/portal"
+      },
+      {
+        "step": "claiming an address before paying is refused (402)",
+        "ok": true,
+        "note": "Choose your plan first — then we'll build your website.",
+        "url": "https://easypeazy.unitedundergod.org/portal"
+      },
+      {
+        "step": "build a free draft website (several minutes)",
+        "ok": true,
+        "note": "website status \"draft\" after 164s",
+        "url": "https://easypeazy.unitedundergod.org/portal"
+      },
+      {
+        "step": "dashboard shows the draft is ready",
+        "ok": true,
+        "note": "\"Your draft is ready\" with See my draft",
+        "url": "https://easypeazy.unitedundergod.org/portal",
+        "shot": "easypeazy-uug-07.png"
+      },
+      {
+        "step": "See my draft opens the draft",
+        "ok": true,
+        "note": "opened https://easypeazy.unitedundergod.org/portal [uug-draft-preview.png]",
+        "url": "https://easypeazy.unitedundergod.org/portal",
+        "shot": "easypeazy-uug-08.png"
+      },
+      {
+        "step": "My Websites: publish needs payment (not clicked)",
+        "ok": true,
+        "note": "button \"Pay $12 to publish\"",
+        "url": "https://easypeazy.unitedundergod.org/portal?tab=websites",
+        "shot": "easypeazy-uug-09.png"
+      }
+    ],
+    "ai-website-design": [
+      {
+        "step": "open ai-website.design",
+        "ok": true,
+        "note": "AI Website Design — Describe it. We design it. It goes live.",
+        "url": "https://ai-website.design/",
+        "shot": "ai-website-design-01.png"
+      },
+      {
+        "step": "sign up",
+        "ok": true,
+        "note": "https://ai-website.design/dashboard",
+        "url": "https://ai-website.design/dashboard",
+        "shot": "ai-website-design-02.png"
+      },
+      {
+        "step": "describe the business and generate a site",
+        "ok": true,
+        "note": "editor for site e957fd85-89f5-41ae-871c-9399b1f426ad",
+        "url": "https://ai-website.design/edit/e957fd85-89f5-41ae-871c-9399b1f426ad",
+        "shot": "ai-website-design-03.png"
+      },
+      {
+        "step": "editor: Go live and web address choice",
+        "ok": true,
+        "note": "Go live — $50 + $19/mo (not clicked: opens payment); address choices: free address only (no shared domains listed yet)",
+        "url": "https://ai-website.design/edit/e957fd85-89f5-41ae-871c-9399b1f426ad",
+        "shot": "ai-website-design-04.png"
+      },
+      {
+        "step": "publishing before paying is refused (402)",
+        "ok": true,
+        "note": "402 payment required",
+        "url": "https://ai-website.design/edit/e957fd85-89f5-41ae-871c-9399b1f426ad"
+      },
+      {
+        "step": "clean up the test site",
+        "ok": true,
+        "note": "delete → 200",
+        "url": "https://ai-website.design/edit/e957fd85-89f5-41ae-871c-9399b1f426ad"
+      }
+    ],
+    "churchconnect": [
+      {
+        "step": "open churchconnect.cloud",
+        "ok": true,
+        "note": "ChurchConnect — church software for people, events, and Sunday communication",
+        "url": "https://www.churchconnect.cloud/",
+        "shot": "churchconnect-01.png"
+      },
+      {
+        "step": "church sign up",
+        "ok": true,
+        "note": "signed in and on the app",
+        "url": "https://www.churchconnect.cloud/app",
+        "shot": "churchconnect-02.png"
+      },
+      {
+        "step": "after sign-up: mobile number prompt (skipped with Remind me later)",
+        "ok": true,
+        "note": "no prompt",
+        "url": "https://www.churchconnect.cloud/app",
+        "shot": "churchconnect-03.png"
+      },
+      {
+        "step": "first-run setup checklist",
+        "ok": true,
+        "note": "no setup checklist text found",
+        "url": "https://www.churchconnect.cloud/app",
+        "shot": "churchconnect-04.png"
+      },
+      {
+        "step": "church invite /for/{slug}",
+        "ok": true,
+        "note": "skipped: no invite link given yet (needs a super-admin to prepare one)"
+      }
+    ],
+    "churchconnect-invite": [
+      {
+        "step": "church invite /for/{slug}",
+        "ok": true,
+        "note": "skipped: no invite link given yet (needs a super-admin to prepare one)"
+      }
+    ],
+    "operate": [
+      {
+        "step": "open Operate",
+        "ok": true,
+        "note": "Operate — see the week. Run the shop. Keep more of what you earn.",
+        "url": "https://operate.unitedundergod.org/",
+        "shot": "operate-01.png"
+      },
+      {
+        "step": "new shop sign up",
+        "ok": true,
+        "note": "on the desk",
+        "url": "https://operate.unitedundergod.org/desk",
+        "shot": "operate-02.png"
+      },
+      {
+        "step": "desk first-run cards",
+        "ok": true,
+        "note": "Add your first person: true, Record the first dollar: true, recovery code: true",
+        "url": "https://operate.unitedundergod.org/desk",
+        "shot": "operate-03.png"
+      },
+      {
+        "step": "Get More Work messages",
+        "ok": true,
+        "note": "1. Go to business.google.com and search for QA Journey Lawn Care in Vidalia. Claim it, or add it if it is not there.\n2. Add 5 to 10 clear photos of your work, your shop or your team.\n3. List what you ",
+        "url": "https://operate.unitedundergod.org/get-more-work",
+        "shot": "operate-04.png"
+      },
+      {
+        "step": "website page",
+        "ok": true,
+        "note": "Build my website offered",
+        "url": "https://operate.unitedundergod.org/website",
+        "shot": "operate-05.png"
+      },
+      {
+        "step": "Build my website → Easy Peazy sign-in hop",
+        "ok": true,
+        "note": "arrived at https://easypeazy.site/portal",
+        "url": "https://easypeazy.site/portal",
+        "shot": "operate-06.png"
+      },
+      {
+        "step": "Operate shop sees its web address choices on Easy Peazy",
+        "ok": true,
+        "note": "easypeazy.site",
+        "url": "https://easypeazy.site/portal"
+      }
+    ],
+    "laser": [
+      {
+        "step": "church page /ccvidalia",
+        "ok": true,
+        "note": "Connection Church Vidalia: \"Your church's logo, on gifts people keep.\" · 3 pieces",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-01.png"
+      },
+      {
+        "step": "/connection goes to the Connection page",
+        "ok": true,
+        "note": "https://laser.engrave.market/connection → 307",
+        "url": "https://laser.engrave.market/ccvidalia"
+      },
+      {
+        "step": "/fbcv page",
+        "ok": true,
+        "note": "not created yet (shows 'That page isn't here')",
+        "url": "https://laser.engrave.market/fbcv",
+        "shot": "laser-03.png"
+      },
+      {
+        "step": "'Save this page' form is there (not submitted)",
+        "ok": true,
+        "note": "form shown",
+        "url": "https://laser.engrave.market/ccvidalia",
+        "shot": "laser-04.png"
+      },
+      {
+        "step": "order a piece → checkout (stopped before Pay)",
+        "ok": true,
+        "note": "total $32.00; button \"Pay $32.00\" (not clicked)",
+        "url": "https://laser.engrave.market/checkout?place=ccvidalia&from=ccvidalia&name=Connection+Church+Vidalia",
+        "shot": "laser-05.png"
+      },
+      {
+        "step": "buyer account sign up",
+        "ok": true,
+        "note": "https://laser.engrave.market/account",
+        "url": "https://laser.engrave.market/account",
+        "shot": "laser-06.png"
+      }
+    ],
+    "united-under-god": [
+      {
+        "step": "apps page lists the web services",
+        "ok": true,
+        "note": "EasyPeazy: true, AI Website Design: true, Operate: true",
+        "url": "https://www.unitedundergod.org/apps",
+        "shot": "united-under-god-01.png"
+      },
+      {
+        "step": "link answers: https://easypeazy.unitedundergod.org/",
+        "ok": true,
+        "note": "https://easypeazy.unitedundergod.org/ → 200",
+        "url": "https://www.unitedundergod.org/apps"
+      },
+      {
+        "step": "link answers: https://ai-website.design/",
+        "ok": true,
+        "note": "https://ai-website.design/ → 200",
+        "url": "https://www.unitedundergod.org/apps"
+      },
+      {
+        "step": "link answers: https://operate.unitedundergod.org/",
+        "ok": true,
+        "note": "https://operate.unitedundergod.org/ → 200",
+        "url": "https://www.unitedundergod.org/apps"
+      }
+    ]
+  },
+  "finished": "2026-10-22T17:28:06.872Z"
+}
