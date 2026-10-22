@@ -1,0 +1,23 @@
+{
+  "started": "2026-10-22T17:19:01.438Z",
+  "accounts": [],
+  "journeys": {
+    "site-assets": [
+      {
+        "step": "fsg: open https://shadygroveconyers.org/",
+        "ok": true,
+        "note": "Shady Grove Baptist Church Conyers Ga Where Love Makes a Difference",
+        "url": "https://shadygroveconyers.org/",
+        "shot": "site-assets-01.png"
+      },
+      {
+        "step": "fsg: logo and colors",
+        "ok": true,
+        "note": "0 logo candidates, 2 downloaded; header rgba(0, 0, 0, 0); button ",
+        "url": "https://shadygroveconyers.org/",
+        "shot": "site-assets-02.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T17:19:07.700Z"
+}
