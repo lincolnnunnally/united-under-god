@@ -72,7 +72,7 @@ const DOORS = [
   {
     kicker: "The call",
     title: "This page",
-    body: "Why we live this way. Raise a hand. Keep your place on your account. United Under God is the movement. Live on Mission is the walk.",
+    body: "Why serving changes you. Raise your hand and we will help you find your first step.",
     href: "#raise-hand",
     label: "Raise your hand",
     external: false,
@@ -80,7 +80,7 @@ const DOORS = [
   {
     kicker: "The work this week",
     title: "The Live on Mission app",
-    body: "Browse a real need. RSVP. Show up. live-on-mission.com and liveonmission.unitedundergod.org are the same door — the tool, not a second movement.",
+    body: "Browse real needs near you. Sign up. Show up. It takes about a minute.",
     href: MISSION_APP,
     label: "Find a need this week",
     external: true,
@@ -88,7 +88,7 @@ const DOORS = [
   {
     kicker: "The story",
     title: "Spark of Hope",
-    body: "After you do the thing, tell what God did. That is not branding. It is how courage travels.",
+    body: "After you serve, share what God did. Your story gives someone else the courage to start.",
     href: SPARK_URL,
     label: "Tell the story",
     external: true,
@@ -109,10 +109,10 @@ function MissionPage() {
               Your life is purposeful when you use it for a purpose.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-pretty text-muted">
-              People are lonely and miserable because they made life
-              comfortable. The soul is crying out for something more. Live on
-              Mission is the cure: unite around work that God can be praised
-              for — and come alive in it.
+              Many people feel lonely and stuck, even with a comfortable life.
+              The soul is crying out for something more. Live on Mission gives
+              you simple, real ways to serve the people around you — and come
+              alive doing it.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Button asChild variant="mission" size="lg">
@@ -248,9 +248,8 @@ function MissionPage() {
             ))}
           </div>
           <p className="mt-12 max-w-2xl text-sm text-paper/65">
-            If your church already runs a trip or a serving team, that desk
-            stays in ChurchConnect. It is the church’s operations — not where
-            a person goes to start living on mission.
+            Leading a church serving team or mission trip? Organize it in
+            ChurchConnect, and point your people here to find their first step.
           </p>
         </div>
       </section>

@@ -28,8 +28,8 @@ export function StoreCalculator() {
         <span className="block min-w-0 max-w-full">See what donating can pay.</span>
       </h3>
       <p className="mt-2 max-w-prose text-sm text-muted">
-        Meat and dairy managers can punch in one week of what goes in the
-        dumpster. The tax line is cost plus half the profit you would have
+        Enter one typical week of food that goes in the dumpster. Donated
+        food may be deductible at cost plus half the profit you would have
         made, up to twice the cost.
       </p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">

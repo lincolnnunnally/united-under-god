@@ -33,12 +33,12 @@ const SIDE: Record<
         body: "Food, fuel, and the people who pack boxes — so a household eats this week.",
       },
       {
-        lead: "It becomes unity.",
-        body: "Money keeps shared tools in reach of churches that cannot afford another software bill.",
+        lead: "It equips churches.",
+        body: "Your gift keeps helpful tools within reach of small churches that cannot afford another software bill.",
       },
       {
-        lead: "It becomes a life.",
-        body: "Time and goods are the other two doors. Money is how the work stays standing.",
+        lead: "It keeps the work going.",
+        body: "Volunteers and donated goods do a lot. Financial gifts cover the trucks, fuel, and supplies that make it possible.",
       },
     ],
   },
@@ -55,7 +55,7 @@ const SIDE: Record<
       },
       {
         lead: "Live on Mission.",
-        body: "Time is how unity is worked out in action — not a poster on a wall.",
+        body: "Serving alongside others is how strangers become friends — and how faith comes alive.",
       },
     ],
   },
@@ -100,9 +100,9 @@ function GivePage() {
             action.
           </h1>
           <p className="mt-5 max-w-2xl text-paper/85">
-            Donors are not spectators who fund a brand. You are part of the
-            body. What you give feeds a family in Vidalia, funds tools churches
-            actually use, and puts ordinary Christians on mission.
+            What you give feeds families in Vidalia, keeps helpful tools within
+            reach of small churches, and helps ordinary people find ways to
+            serve their neighbors.
           </p>
         </div>
       </section>
@@ -152,14 +152,13 @@ function GivePage() {
             </ul>
             <p className="mt-6 text-sm text-muted">
               {LEGAL.name} is a {LEGAL.status}. EIN {LEGAL.ein}. Gifts are
-              tax-deductible to the extent allowed by law. Nothing here is
-              behind this ask — the seal, the assessment, and the apps stay
-              free.
+              tax-deductible to the extent allowed by law. The seal and the
+              assessment stay free whether or not you give.
             </p>
             <p className="mt-6 text-sm text-muted">
-              Grocery stores, farms, and kitchens: sign up once here for the
-              tax record. Then Plenty runs the pickup. Punch in one week of
-              what you throw and see the write-off.{" "}
+              Grocery stores, farms, and kitchens: donating unsold food may be
+              worth up to twice the write-off of throwing it away, and we pick
+              it up.{" "}
               <Link
                 to="/food-donors"
                 className="text-forest underline-offset-4 hover:underline"

@@ -20,23 +20,20 @@ function HappeningsPage() {
             What’s on
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl">
-            Enter once. The right people hear it. The right desk runs it.
+            Ways to serve, events, and where to find help.
           </h1>
           <p className="mt-5 max-w-2xl text-muted">
-            We do not need another mega-app. We need one operations habit:
-            put the event, the volunteer need, or the surplus in the desk that
-            owns it. ChurchConnect is that habit for gatherings. Plenty is that
-            habit for food. Operate is that habit for goods. This website is the
-            front door.
+            Here is what is happening now and where to go for each kind of
+            help — events and volunteering, food, and donated goods.
           </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-        <h2 className="text-3xl">The desks</h2>
+        <h2 className="text-3xl">Where to go</h2>
         <p className="mt-3 max-w-2xl text-muted">
-          Simplicity is not “one login for the universe.” Simplicity is knowing
-          which door to open — and never entering the same fact twice.
+          Each of these is built for one job, so you can get what you need
+          quickly.
         </p>
         <ol className="mt-10 grid gap-6 md:grid-cols-2">
           {DESKS.map((desk, index) => (
@@ -74,9 +71,8 @@ function HappeningsPage() {
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
           <h2 className="text-3xl">Needs right now</h2>
           <p className="mt-3 max-w-2xl text-muted">
-            This list is the public face. The source of truth for events and
-            volunteer shifts is ChurchConnect — so a pantry Saturday and a
-            Sunday gathering are not typed in two places.
+            These are the places we could use help right now. Pick one and
+            tell us when you are free.
           </p>
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {HAPPENINGS.map((item) => (
@@ -114,8 +110,8 @@ function HappeningsPage() {
         <div>
           <h2 className="text-3xl">I can help with what’s on.</h2>
           <p className="mt-4 text-muted">
-            Tell us a name, a skill, a Saturday. We will not add you to a fog of
-            email. We will put you on a shift, a route, or a porch.
+            Tell us your name, a skill, and when you are free. We won’t bury
+            you in email — we will match you with a real shift or need.
           </p>
         </div>
         <InvolvementForm intent="time" />

@@ -12,29 +12,43 @@ export const Route = createFileRoute("/buying/")({
   loader: () => listPublishedBook(),
   component: BuyingPage,
   head: () => ({
-    meta: [{ title: "United buying — United Under God" }],
+    meta: [
+      { title: "Group buying for churches and charities — United Under God" },
+      {
+        name: "description",
+        content:
+          "Churches, charities, and Christian-owned businesses pool their orders for toner, supplies, and services so everyone pays less and more money goes to ministry.",
+      },
+    ],
   }),
 });
 
 const CATALOGS = [
   {
     title: "Toner and printers",
-    body: "Toner Connect watches the printer so a little church is not surprised by an empty cartridge — and buys with the group, not at retail.",
+    body: "Free printer monitoring tells you before toner runs out, then orders it at the group price — no more emergency trips to the office store.",
     href: "https://tonerconnect.unitedundergod.org",
     cta: "Open Toner Connect",
   },
   {
-    title: "Shared tools, not duplicate bills",
-    body: "ChurchConnect, Operate, Plenty, EasyPeazy. One body should not pay twelve times for twelve half-used systems.",
+    title: "Software you don’t pay for twice",
+    body: "Church management, websites, and outreach tools built to work together, so you aren’t paying for five systems that each do a piece of the job.",
     href: "/apps",
     cta: "See the tools",
     internal: true,
   },
   {
     title: "Surplus that becomes supply",
-    body: "What one shop cannot sell, another ministry can use. Donate through the movement. Receive through Operate or the pantry.",
+    body: "Furniture, food, or inventory you can’t use can meet a real need for another ministry — and may qualify as a tax-deductible gift.",
     href: "/donate",
     cta: "Give surplus",
+    internal: true,
+  },
+  {
+    title: "Sound, livestream & lighting",
+    body: "Clear sound, a steady livestream, and lighting that works — planned and installed for your sanctuary, with your volunteers trained.",
+    href: "/church-av",
+    cta: "Talk with us",
     internal: true,
   },
 ];
@@ -47,17 +61,26 @@ function BuyingPage() {
       <section className="border-b border-rule bg-cream">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
           <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-            United buying
+            Group buying
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl">
-            One little church buying one toner at retail is a habit, not a plan.
+            Pay less for what your church already buys.
           </h1>
           <p className="mt-5 max-w-2xl text-muted">
-            Georgia’s offices do not each call a salesman. They compile a bid. Kingdom organizations
-            can do the same: shared catalogs, each body buying what it needs, everyone paying less —
-            so more of the money reaches the work.
+            A small church ordering one toner cartridge at a time pays full retail. Large
+            organizations don’t — they pool their orders and get better prices. We help churches,
+            charities, and Christian-owned businesses do the same, so more of every dollar goes to
+            ministry instead of overhead.
           </p>
-          <SignInNudge about="united buying" />
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Button asChild>
+              <a href="#join">Join group buying</a>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link to="/assessment">Find your savings</Link>
+            </Button>
+          </div>
+          <SignInNudge about="group buying" />
           <SourceDeskCta />
         </div>
       </section>
@@ -65,7 +88,8 @@ function BuyingPage() {
       <BuyingBook entries={entries} unavailable={unavailable} />
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-        <div className="grid gap-6 md:grid-cols-3">
+        <h2 className="max-w-2xl text-3xl">Where churches save first</h2>
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
           {CATALOGS.map((item) =>
             item.internal ? (
               <Link
@@ -96,16 +120,16 @@ function BuyingPage() {
 
       <section className="border-t border-rule bg-cream">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-          <h2 className="max-w-2xl text-3xl">Church office, without a full-time staff</h2>
+          <h2 className="max-w-2xl text-3xl">Church office help, without hiring full-time staff</h2>
           <p className="mt-4 max-w-2xl text-muted">
-            Most churches do the same work every week: bulletins, bills, phones, the same
-            announcements. ChurchConnect already carries a large part of that. Centralized office
-            help can carry the rest — and the future we are working toward includes meaningful
-            part-time remote work doing it, maybe for the very people who came asking for help.
+            Bulletins, bills, phone calls, the same weekly announcements — every church does this
+            work, and it usually lands on the pastor. ChurchConnect handles much of it for you, and
+            shared office help can cover the rest, so your week goes to people instead of
+            paperwork.
           </p>
           <p className="mt-6">
             <Link to="/assessment" className="text-forest underline-offset-4 hover:underline">
-              Take the organizational health assessment
+              See where your church could save time and money
             </Link>
           </p>
         </div>
@@ -117,23 +141,26 @@ function BuyingPage() {
             <h2 className="text-3xl">Who this is for</h2>
             <ul className="mt-6 space-y-4 text-muted">
               <li>
-                <span className="font-medium text-ink">Churches</span> that should not be paying
-                office-supply retail for the privilege of printing a bulletin.
+                <span className="font-medium text-ink">Churches</span> tired of paying retail
+                prices for toner, paper, and supplies.
               </li>
               <li>
-                <span className="font-medium text-ink">Charities</span> that need the same paper,
-                the same toner, the same hosting — and should stand in the same bid.
+                <span className="font-medium text-ink">Charities and ministries</span> that buy
+                the same things and can get a better price ordering together.
               </li>
               <li>
-                <span className="font-medium text-ink">Christian-led shops</span> that want to sell
-                into the body, fairly, and to buy from it too.
+                <span className="font-medium text-ink">Christian-owned businesses</span> that want
+                to save on supplies — or offer fair prices to churches and ministries.
               </li>
             </ul>
-            <Button asChild className="mt-8" variant="secondary">
-              <Link to="/join">Take the seal first</Link>
-            </Button>
+            <p className="mt-6 text-sm text-muted">
+              Joining is free, and there is no minimum order. Tell us what you buy and we will show
+              you where you can save.
+            </p>
           </div>
-          <InvolvementForm intent="buying" />
+          <div id="join" className="scroll-mt-24">
+            <InvolvementForm intent="buying" />
+          </div>
         </div>
       </section>
     </SiteShell>
@@ -150,16 +177,16 @@ function BuyingBook({
   return (
     <section className="border-b border-rule">
       <div className="mx-auto max-w-6xl px-5 py-12 md:px-8">
-        <h2 className="text-2xl">Buying book</h2>
+        <h2 className="text-2xl">Group prices</h2>
         {unavailable ? (
           <p className="mt-3 max-w-2xl text-muted">
-            The buying book could not be opened just now. No prices are listed until the database
-            can be read.
+            Group prices could not be loaded just now. Please check back shortly.
           </p>
         ) : entries.length === 0 ? (
           <p className="mt-3 max-w-2xl text-muted">
-            No shared prices are published yet. When an operator awards a bid, the item, the vendor,
-            and the price show up here. Until then there is no buying catalog on this page.
+            We are gathering our first group orders now. As prices are secured, they will be listed
+            here for members. Join below and we will let you know as soon as savings are available
+            for the things you buy.
           </p>
         ) : (
           <ul className="mt-6 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
@@ -206,7 +233,7 @@ function SourceDeskCta() {
         <Link to="/buying/desk">Open the SOURCE desk</Link>
       </Button>
       <p className="mt-2 text-sm text-muted">
-        Staff record bids, quotes, and awards here. The public page stays the vision.
+        Staff only: record bids, quotes, and awarded prices.
       </p>
     </div>
   );

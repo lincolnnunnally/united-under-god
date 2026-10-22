@@ -13,15 +13,15 @@ export const Route = createFileRoute("/assessment")({
 const WINS = [
   {
     title: "Toner and print",
-    body: "One little church buying one cartridge at retail is a habit. We show you what the group price would have been.",
+    body: "See what you pay for toner and paper today, and what you would pay buying with other churches.",
   },
   {
     title: "Internet and tools",
-    body: "Duplicate software bills. A website that costs more than it should. Tools the body already shares.",
+    body: "Overlapping software bills, a website that costs more than it should, and simpler tools that do the same job.",
   },
   {
     title: "Office time",
-    body: "Bulletins, bills, the same weekly announcements. Hours you cannot see from the inside, with a next step for each.",
+    body: "Bulletins, bills, weekly announcements — we show you where the hours go and how to get some back.",
   },
 ];
 
@@ -34,14 +34,13 @@ function AssessmentPage() {
             Organizational health
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl">
-            A lot of organizations don’t know what they don’t know.
+            Find the money and time your organization is losing.
           </h1>
           <p className="mt-5 max-w-2xl text-muted">
-            Whether you are really operating efficiently, or where the easy wins
-            are hiding. In a short sitting it shows you, in real dollars and
-            hours, what’s hard to see from the inside — toner, internet, office
-            time, the basics — each with an encouraging next step. Not a grade.
-            A way forward.
+            In one short conversation, we look at the basics — toner, internet,
+            software, office time — and show you, in real dollars and hours,
+            where you could save. Each finding comes with a simple next step.
+            It’s free, and it’s not a grade.
           </p>
         </div>
       </section>
@@ -62,12 +61,12 @@ function AssessmentPage() {
           <div>
             <h2 className="text-3xl">Ask us to walk through it with you.</h2>
             <p className="mt-4 text-muted">
-              Keep your denomination. Keep your associations. We are not
-              competing with you. We are here to help you operate at your best
-              on God’s principles — and to put the easy wins in front of you.
+              Keep your denomination and your associations — we are not here
+              to replace anyone. We are here to help you spend less on
+              overhead and more on ministry.
             </p>
             <Button asChild className="mt-8" variant="secondary">
-              <Link to="/buying">See united buying</Link>
+              <Link to="/buying">See group buying</Link>
             </Button>
           </div>
           <InvolvementForm intent="buying" />

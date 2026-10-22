@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { SignedIn, SignedOut } from "@/lib/auth/gates";
-import { PLENTY_URL } from "@/lib/content";
 
 export function SignInNudge({ about }: { about: string }) {
   return (
@@ -9,23 +8,14 @@ export function SignInNudge({ about }: { about: string }) {
         <Link to="/login" className="text-forest underline-offset-4 hover:underline">
           Create an account
         </Link>{" "}
-        to keep your place in {about}. Need food from the pantry? Sign in on{" "}
-        <a
-          href={PLENTY_URL}
-          className="text-forest underline-offset-4 hover:underline"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Plenty
-        </a>
-        .
+        to save your spot and get updates on {about}. It’s free.
       </SignedOut>
       <SignedIn>
-        This lives on{" "}
+        You’re signed in. Manage this from{" "}
         <Link to="/account" className="text-forest underline-offset-4 hover:underline">
           your account
         </Link>
-        — you can join it there.
+        .
       </SignedIn>
     </p>
   );

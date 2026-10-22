@@ -38,8 +38,8 @@ const STANDS = [
   },
   {
     key: "wantsBuying" as const,
-    title: "United buying",
-    body: "Shared catalogs so a little church is not paying retail for toner, supplies, and tools.",
+    title: "Group buying",
+    body: "Pool orders with other churches and ministries and pay less for toner, supplies, and tools.",
   },
   {
     key: "wantsMission" as const,
@@ -143,8 +143,8 @@ function AccountPage() {
             <h1 className="mt-3 text-4xl">Stand with the movement.</h1>
             <p className="mt-4 max-w-prose text-muted">
               This account is for churches, businesses, charities, and
-              households. Keep the seal, the buying fellowship, and Live on
-              Mission in one place.
+              households. Manage the seal, group buying, and Live on Mission in
+              one place.
             </p>
           </div>
           <UserButton />
