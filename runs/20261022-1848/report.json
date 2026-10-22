@@ -1,0 +1,52 @@
+{
+  "started": "2026-10-22T18:47:59.420Z",
+  "accounts": [
+    {
+      "app": "Operate (Lee Brown, sample)",
+      "email": "lee-sample-pinb@mailinator.com"
+    }
+  ],
+  "journeys": {
+    "operate-pros": [
+      {
+        "step": "Kevin Huddleston: already set up",
+        "ok": true,
+        "note": "https://operate.unitedundergod.org/site/kevin-huddleston-handyman",
+        "url": "about:blank"
+      },
+      {
+        "step": "Lee Brown: sign up on Operate",
+        "ok": true,
+        "note": "on the desk",
+        "url": "https://operate.unitedundergod.org/desk",
+        "shot": "operate-pros-02.png"
+      },
+      {
+        "step": "Lee Brown: public page details (mock contact)",
+        "ok": true,
+        "note": "slug lee-brown-home-services",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Lee Brown: services, each with its own page",
+        "ok": true,
+        "note": "Carpentry, Painting, Flooring, Cabinetry, Home repairs",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Lee Brown: Local Leads on for their trades and towns",
+        "ok": true,
+        "note": "handyman, painting, flooring, finish-carpentry · loganville, snellville, grayson, monroe, conyers, lawrenceville",
+        "url": "https://operate.unitedundergod.org/desk"
+      },
+      {
+        "step": "Lee Brown: public page live",
+        "ok": true,
+        "note": "https://operate.unitedundergod.org/site/lee-brown-home-services — \"Lee Brown Home Services\" · 5 service links",
+        "url": "https://operate.unitedundergod.org/site/lee-brown-home-services",
+        "shot": "operate-pros-06.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T18:48:06.027Z"
+}
