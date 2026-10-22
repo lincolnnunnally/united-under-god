@@ -567,6 +567,12 @@ async function operatePros(page, step) {
     // One browser page (so screenshots and the payment block apply), signed out between pros.
     const p = page;
     await p.context().clearCookies();
+    // Already set up on an earlier run: leave it, don't make a second shop.
+    const existing = await p.request.get(`${BASE}/site/${pro.slug}`).catch(() => null);
+    if (existing && existing.ok() && (await existing.text()).includes(pro.business)) {
+      await step(`${pro.owner}: already set up`, async () => `${BASE}/site/${pro.slug}`, { shot: false });
+      continue;
+    }
     const who = `${pro.key}-sample-${RAND}@mailinator.com`;
     report.accounts.push({ app: `Operate (${pro.owner}, sample)`, email: who });
     const desk = (body) =>
@@ -619,7 +625,6 @@ async function operatePros(page, step) {
       const services = await p.locator("a[href*='/site/" + pro.slug + "/']").count();
       return `${url} — "${h1}" · ${services} service links`;
     });
-    await ctx.close();
   }
 }
 
