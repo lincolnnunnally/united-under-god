@@ -16,16 +16,15 @@ function AppsPage() {
       <section className="border-b border-rule bg-cream">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
           <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-            Tools for a people on mission
+            Tools and services
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl">
-            Apps are doors. They are not the movement.
+            Practical help for churches, families, and businesses.
           </h1>
           <p className="mt-5 max-w-2xl text-muted">
-            United Under God is the vision: united, loving, active. These tools
-            exist so churches, households, and shops can practice that in
-            ordinary life — some faith-forward, some simply useful. Start
-            anywhere. Come back to the seal.
+            Tools that take busywork off your plate and services that help
+            you serve your community — some faith-focused, some simply useful.
+            Pick the one that fits what you need today.
           </p>
         </div>
       </section>
@@ -37,20 +36,20 @@ function AppsPage() {
       />
       <AppGroup
         title="Church and community"
-        lead="For gathering people, and for running the work without drowning in it."
+        lead="For running your church and serving your town, without drowning in admin."
         items={APPS.church}
       />
       <AppGroup
         title="Practical tools"
-        lead="The unglamorous things that free a church or a shop to do the actual ministry."
+        lead="Everyday tools that save money and time, so more of it goes to ministry."
         items={APPS.practical}
       />
 
       <section className="border-t border-rule bg-cream px-5 py-12 text-center">
         <p className="text-muted">
-          The movement home is here.{" "}
-          <Link to="/" className="text-forest underline-offset-4 hover:underline">
-            Return to United Under God
+          Not sure where to start?{" "}
+          <Link to="/organizations" className="text-forest underline-offset-4 hover:underline">
+            See what we offer organizations
           </Link>
           .
         </p>

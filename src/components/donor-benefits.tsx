@@ -24,8 +24,8 @@ export function DonorBenefits({ compact = false, className }: Props) {
               <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
             </h2>
             <p className="mt-4 text-paper/80">
-              Punch in one week of dumpster food. Sign up once with the charity.
-              Plenty picks it up. You are covered.
+              Enter a typical week of unsold food and see the difference. Sign
+              up once, we pick it up, and you are protected by law.
             </p>
           </div>
           <Button asChild variant="invert" className="shrink-0">

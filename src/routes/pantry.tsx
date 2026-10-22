@@ -65,16 +65,17 @@ function PantryPage() {
             <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-paper/88">
-            United Under God is the charity. Punch in one week of what you
-            throw, then sign up here for the tax record. Plenty is the pantry
-            that picks the food up. Receipts always say United Under God, Inc.
+            Enter a typical week of unsold food and see the difference. Sign
+            up once with United Under God, a 501(c)(3) nonprofit, and our
+            Vidalia food pantry, Plenty, picks it up. You get a tax receipt
+            for every donation.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="invert">
               <a href="#calculator">See what you are missing</a>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/food-donors">Sign up with the charity</Link>
+              <Link to="/food-donors">Sign up to donate</Link>
             </Button>
           </div>
         </div>
@@ -103,8 +104,8 @@ function PantryPage() {
           >
             Plenty
           </a>
-          . Churches and businesses who want the seal or united buying sign in
-          on this site.
+          , our pantry app. Churches and businesses sign in here for the seal
+          and group buying.
         </p>
       </section>
 
@@ -138,9 +139,9 @@ function PantryPage() {
               Costco already do it.
             </p>
             <p className="text-sm">
-              Sign up once on this site. Plenty runs the pickup. Liability is
-              covered below. The food still becomes dinner in Toombs County —
-              that is the fruit. The decision starts with the numbers.
+              Sign up once here and we handle the pickup. Liability protection
+              is explained below. And the food you would have thrown away
+              becomes dinner for families in Toombs County.
             </p>
           </div>
           <div id="calculator" className="scroll-mt-24">
@@ -200,9 +201,9 @@ function PantryPage() {
             <Link to="/give" className="text-forest underline-offset-4 hover:underline">
               give time or goods
             </Link>
-            . Churches who want this to be their town’s pantry too:{" "}
+            . Churches who want to support the pantry:{" "}
             <Link to="/join" className="text-forest underline-offset-4 hover:underline">
-              take the seal
+              join us
             </Link>
             .
           </p>

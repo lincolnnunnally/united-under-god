@@ -67,7 +67,7 @@ function Home() {
       <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1.15fr_0.85fr] md:items-center md:px-8 md:py-24">
         <div>
           <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-            The miss
+            Why we exist
           </p>
           <h2 className="mt-3 text-3xl">
             Calling ourselves united is not the same as being one.
@@ -133,11 +133,11 @@ function Home() {
               Your life is purposeful when you use it for a purpose.
             </h2>
             <p className="mt-5 max-w-prose text-pretty text-muted">
-              People are lonely because they made life comfortable. The soul
-              is crying out for something more. Live on Mission is the walk:
-              do good work God can be praised for, come alive in it, and
-              unite with the neighbor beside you. The heart of hands is this
-              work — not the United Under God tab.
+              Many people feel lonely and stuck, even with a comfortable life.
+              The soul is crying out for something more. Live on Mission gives
+              you simple, real ways to serve the people around you — and in
+              the work, you come alive, grow closer to God, and build real
+              friendships with the people serving beside you.
             </p>
             <ul className="mt-6 space-y-3 text-sm text-ink">
               <li className="border-l-2 border-mission pl-4">
@@ -201,13 +201,14 @@ function Home() {
             <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
           </h2>
           <p className="mt-5 text-muted">
-            Sign up once with United Under God, Inc. — the 501(c)(3). Punch in
-            one week of dumpster food and see the write-off. Plenty is the
-            pantry that picks it up after you are on the list.
+            Grocery stores, restaurants, and farms: enter a typical week of
+            unsold food and see how much more you could deduct by donating it.
+            Sign up once, and our Vidalia food pantry, Plenty, picks it up.
           </p>
           <p className="mt-4 text-muted">
-            Then people who felt that kindness come back and spend leftover
-            money in your store. Receipts always say United Under God, Inc.
+            Your neighbors notice — and the people you help often come back
+            to shop with you. Tax receipts come from United Under God, Inc., a
+            501(c)(3) nonprofit.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
@@ -262,6 +263,32 @@ function Home() {
         </div>
       </section>
 
+      <section className="relative isolate overflow-hidden bg-ink text-paper">
+        <img
+          src="/images/sanctuary.jpg"
+          alt="A congregation in worship, one hand raised toward the stage"
+          className="absolute inset-0 size-full object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-ink/40" />
+        <div className="relative mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
+          <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
+            For churches
+          </p>
+          <h2 className="mt-3 max-w-2xl text-3xl text-paper">Every word heard. Every Sunday.</h2>
+          <p className="mt-4 max-w-2xl text-paper/85">
+            Feedback during the prayer, a livestream that drops, members who
+            can’t hear the sermon? Get sound, streaming, and lighting planned
+            and installed for your sanctuary — with your volunteers trained.
+          </p>
+          <Button asChild variant="invert" className="mt-8">
+            <Link to="/church-av">
+              Talk with us about your sanctuary
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+      </section>
+
       <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1fr_1.05fr] md:px-8 md:py-24">
         <div>
           <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
@@ -269,9 +296,9 @@ function Home() {
           </p>
           <h2 className="mt-3 text-3xl">Maybe God let you see this so you could help.</h2>
           <p className="mt-5 text-muted">
-            Offer time, money, or goods. Ask for the seal. Say you are ready to
-            live on mission. We will not treat a raised hand as a mailing list.
-            We will put you to work in love.
+            Offer your time, money, or goods. Ask about the seal. Tell us you
+            are ready to serve. We won’t just add you to a mailing list —
+            a real person will follow up with a real next step.
           </p>
           <blockquote className="mt-8 border-l-2 border-forest pl-5">
             <p className="font-display text-xl italic leading-snug">

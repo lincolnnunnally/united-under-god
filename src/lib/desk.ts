@@ -8,6 +8,7 @@ export const DESK_KINDS = [
   { id: "buying", label: "United buying" },
   { id: "org", label: "Goods ministry" },
   { id: "mission", label: "Live on Mission" },
+  { id: "av", label: "Church sound & video" },
 ] as const;
 
 export type DeskKind = (typeof DESK_KINDS)[number]["id"];
@@ -101,6 +102,7 @@ export function kindsFromSubmission(intent: string, categories: string): DeskKin
   if (intent === "buying") return ["buying"];
   if (intent === "org") return ["org"];
   if (intent === "mission") return ["mission"];
+  if (intent === "av") return ["av"];
   return ["time"];
 }
 

@@ -16,6 +16,7 @@ import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as BibleRouteRouteImport } from './routes/bible/route'
 import { Route as BuyingRouteRouteImport } from './routes/buying/route'
+import { Route as ChurchAvRouteImport } from './routes/church-av'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as FoodDonorsRouteImport } from './routes/food-donors'
@@ -74,6 +75,11 @@ const BibleRouteRoute = BibleRouteRouteImport.update({
 const BuyingRouteRoute = BuyingRouteRouteImport.update({
   id: '/buying',
   path: '/buying',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvRoute = ChurchAvRouteImport.update({
+  id: '/church-av',
+  path: '/church-av',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctrineRoute = DoctrineRouteImport.update({
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
+  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
+  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
+  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -304,6 +313,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
+    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
+    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
+    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -401,6 +413,7 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AppsRoute: typeof AppsRoute
   AssessmentRoute: typeof AssessmentRoute
+  ChurchAvRoute: typeof ChurchAvRoute
   DoctrineRoute: typeof DoctrineRoute
   DonateRoute: typeof DonateRoute
   FoodDonorsRoute: typeof FoodDonorsRoute
@@ -467,6 +480,13 @@ declare module '@tanstack/react-router' {
       path: '/buying'
       fullPath: '/buying'
       preLoaderRoute: typeof BuyingRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av': {
+      id: '/church-av'
+      path: '/church-av'
+      fullPath: '/church-av'
+      preLoaderRoute: typeof ChurchAvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctrine': {
@@ -704,6 +724,7 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AppsRoute: AppsRoute,
   AssessmentRoute: AssessmentRoute,
+  ChurchAvRoute: ChurchAvRoute,
   DoctrineRoute: DoctrineRoute,
   DonateRoute: DonateRoute,
   FoodDonorsRoute: FoodDonorsRoute,

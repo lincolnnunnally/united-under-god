@@ -51,11 +51,11 @@ export const PILLARS = [
 export const BENEFITS = [
   {
     title: "Financially",
-    body: "Kingdom organizations should not pay retail for what they can buy together. A united buying program — the way Georgia compiles bids for its offices — puts toner, supplies, and services within reach of the smallest church and the leanest charity. Shared tools replace duplicate software bills. Grocery donors divert dumpster costs and may qualify for charitable deductions on donated inventory.",
+    body: "Churches and charities that buy together pay less for toner, supplies, and services — so the smallest church gets the same prices as the largest. Shared tools replace duplicate software bills. And stores that donate unsold food instead of throwing it away may deduct up to twice as much.",
   },
   {
     title: "Socially",
-    body: "You stop working as an independent silo. You stand with pastors, business owners, charities, and civic leaders who have made the same statement of intent. The seal is a public witness: we choose to be unified, and we intend to fulfill the biblical mandate. Your community sees the church doing, not only gathering.",
+    body: "You don’t have to do it alone. You stand with pastors, business owners, charities, and civic leaders who have made the same commitment, and your community sees the church serving, not only gathering.",
   },
   {
     title: "Individually",
@@ -88,15 +88,15 @@ export const ORG_TYPES = [
   },
   {
     title: "Businesses",
-    body: "Christian-led companies are not secular machines with a verse on the wall. Operate by God’s principles. Do for others what you want done for you. Join the buying fellowship. Donate surplus. Let the seal tell your people and your customers what you intend.",
+    body: "Run your business on God’s principles and let your customers see it. Save on supplies through group buying, turn surplus into tax-deductible gifts, and display the seal so your team and your town know what you stand for.",
   },
   {
     title: "Charities",
-    body: "You already serve. You should not have to serve alone, on an island of your own software, your own suppliers, and your own exhaustion. Share the desk. Share the load. Let the pantry, the thrift, the mentoring work belong to the whole body.",
+    body: "You already serve — you shouldn’t have to do it alone, with your own software, your own suppliers, and your own exhausted volunteers. Share tools, share volunteers, and get connected with donors who want to help.",
   },
   {
     title: "Governments & civic work",
-    body: "Where Christian men and women hold public trust, the same instruction holds: be united, be just, do good that can be seen. We offer tools, a fellowship, and a way to put surplus and service where neighbors actually live.",
+    body: "Partner with local churches and charities to meet real needs in your community. We help connect public resources, surplus, and volunteers to the neighbors who need them.",
   },
 ] as const;
 
@@ -110,7 +110,7 @@ export const APPS = {
     {
       name: "Spark of Hope",
       href: "https://spark.unitedundergod.org",
-      blurb: "Living testimony — after you do the thing, tell the story so the next person does not start from zero.",
+      blurb: "Real stories of what God is doing through ordinary people — share yours and encourage the next person.",
     },
     {
       name: "Kindred Connections",
@@ -145,7 +145,7 @@ export const APPS = {
     {
       name: "Understanding the Bible",
       href: "/bible",
-      blurb: "Short answers to real questions — verses, not a system for managing sin.",
+      blurb: "Short, clear answers to real questions about faith, straight from Scripture.",
     },
     {
       name: "Presence",
@@ -200,6 +200,11 @@ export const APPS = {
       blurb: "Meet the neighbors around your church — a Gift Drop, a Block Party, or the Vidalia Serve Day. We plan it with you.",
     },
     {
+      name: "Church sound, livestream & lighting",
+      href: "/church-av",
+      blurb: "Every word heard, every Sunday. Sound, streaming, and lighting planned and installed for your sanctuary.",
+    },
+    {
       name: "Neighborly",
       href: "https://neighborly.unitedundergod.org",
       blurb: "Neighbors helping neighbors, locally.",
@@ -207,12 +212,12 @@ export const APPS = {
     {
       name: "Pulse",
       href: "https://pulse.unitedundergod.org",
-      blurb: "Two-way alignment signals so issues surface before they become crises.",
+      blurb: "Quick check-ins with your team so small problems surface before they become big ones.",
     },
     {
       name: "Operate",
       href: "https://operate.unitedundergod.org",
-      blurb: "The desk for thrift, clothing, and furniture — intake, what’s available, pickup or a delivery box.",
+      blurb: "For thrift stores, clothing closets, and furniture ministries — track donations, list what’s available, and schedule pickup or delivery.",
     },
   ],
   practical: [
@@ -232,9 +237,9 @@ export const APPS = {
       blurb: "Free printer monitoring and a buying group for supplies.",
     },
     {
-      name: "SOURCE buying",
-      href: "/buying/desk",
-      blurb: "Staff desk for group bids, quotes, multi-winner awards, and the buying book.",
+      name: "Group buying",
+      href: "/buying",
+      blurb: "Churches and charities pool orders for toner, paper, and supplies — and pay less.",
     },
     {
       name: "Toner Management",
@@ -306,7 +311,7 @@ export const DONOR_BENEFITS = [
     kicker: "04",
     title: "You are covered",
     lead: "Two shields, then a waiver.",
-    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation. If the store already advertises feeding kids, the dock is how that promise happens in Vidalia — department by department, without inventing a new program.",
+    body: "The Bill Emerson Good Samaritan Food Donation Act (42 U.S.C. § 1791) and Georgia’s own statute (O.C.G.A. § 51-1-31) protect good-faith donors of apparently wholesome food to a nonprofit. Recipients at this pantry also sign a waiver before they take food. The exception is gross negligence or intentional misconduct — not ordinary donation.",
   },
 ] as const;
 
@@ -324,8 +329,8 @@ export const DONOR_PATHS: {
     title: "Unsold food",
     who: "Grocery stores, restaurants, farms, distributors",
     desk: "United Under God, then Plenty",
-    deskNote: "This site keeps the donor record and tax letter. Plenty runs the pickup after you are on the list.",
-    blurb: "Sign up once here. After that, live in Plenty for every pickup. Receipts always say United Under God, Inc.",
+    deskNote: "Sign up here for your donation receipts. Pickups are scheduled through Plenty, our food pantry program.",
+    blurb: "Sign up once here, then schedule pickups on Plenty whenever food is ready. Your tax receipts come from United Under God, Inc., a 501(c)(3).",
   },
   {
     id: "goods" as const,
@@ -342,16 +347,16 @@ export const DONOR_PATHS: {
     who: "Shops and ministries that give or receive goods",
     desk: "Operate",
     deskHref: "https://operate.unitedundergod.org",
-    deskNote: "If you run a thrift or a clothing closet, this is your desk — not a second set of books.",
-    blurb: "Join Operate if you receive goods. Offer surplus if you have it. One desk, not a silo.",
+    deskNote: "If you run a thrift store or clothing closet, Operate tracks what comes in and goes out.",
+    blurb: "Join Operate to receive donated goods, or offer your surplus to ministries that need it.",
   },
 ] as const;
 
 export const HAPPENINGS = [
   {
-    title: "Standing up the Vidalia pantry",
-    when: "Saturdays, as we build it",
-    need: "Packers, shelf-builders, a truck, a cool head",
+    title: "Help open the Vidalia food pantry",
+    when: "Saturdays",
+    need: "Packers, shelf-builders, and anyone with a truck",
     desk: "ChurchConnect",
     kind: "help" as const,
   },
@@ -379,26 +384,26 @@ export const DESKS: {
 }[] = [
   {
     name: "This website",
-    role: "The front door and the QR. Capture a donor, a seal, a helper. Route them.",
+    role: "Start here. Join, give, volunteer, or ask a question, and we will point you to the right place.",
   },
   {
     name: "ChurchConnect",
-    role: "Enter an event or a volunteer need once. People who should see it, see it — attend, receive, or help.",
+    role: "Church events, volunteer sign-ups, and announcements, so the right people hear about them.",
     href: "https://churchconnect.unitedundergod.org",
   },
   {
     name: "Plenty",
-    role: "The pantry. Food donors, inventory, recipients, waivers, meals served. Grocers can enter here or on this site.",
+    role: "Our food pantry. Get food, volunteer a shift, or schedule a grocery pickup.",
     href: "https://plenty.unitedundergod.org",
   },
   {
     name: "Operate",
-    role: "The goods desk. Thrift, clothing, furniture. Pickup and delivery.",
+    role: "Donate or request furniture, clothing, and household goods. Pickup and delivery available.",
     href: "https://operate.unitedundergod.org",
   },
   {
     name: "Live on Mission",
-    role: "The public next step for a person who is ready to act this week. Same app as live-on-mission.com.",
+    role: "Find a real way to serve a neighbor this week, and sign up in a minute.",
     href: "https://liveonmission.unitedundergod.org",
   },
 ] as const;

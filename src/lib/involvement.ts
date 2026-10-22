@@ -9,7 +9,8 @@ export type InvolvementIntent =
   | "hand"
   | "food"
   | "org"
-  | "buying";
+  | "buying"
+  | "av";
 
 export type InvolvementRecord = {
   id: string;
@@ -155,13 +156,18 @@ export const INTENT_COPY: Record<
   },
   org: {
     title: "Join as a goods ministry",
-    lead: "Thrift, clothing, furniture — Operate is the desk. Tell us whether you give, receive, or both.",
-    submit: "Open the desk",
+    lead: "Run a thrift store, clothing closet, or furniture ministry? Tell us whether you give goods, receive them, or both, and we will connect you with donors and neighbors.",
+    submit: "Connect our ministry",
   },
   buying: {
-    title: "Join united buying",
-    lead: "Tell us what you buy and how often. We will put you in the catalog with the rest of the body.",
-    submit: "I want in",
+    title: "Join group buying",
+    lead: "Tell us what your organization buys and roughly how often — toner, paper, cleaning supplies, software. We will let you know where pooling orders can lower your cost.",
+    submit: "Count us in",
+  },
+  av: {
+    title: "Tell us about your sanctuary",
+    lead: "Sound, livestream, lighting, or a new building. Share a little about your room and what is not working, and we will call you back.",
+    submit: "Request a call back",
   },
   mission: {
     title: "Live on mission",

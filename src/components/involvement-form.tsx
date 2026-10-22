@@ -28,7 +28,8 @@ type Props = {
 
 export function InvolvementForm({ intent, className }: Props) {
   const copy = INTENT_COPY[intent];
-  const needsOrg = intent === "seal" || intent === "grocery" || intent === "buying";
+  const needsOrg =
+    intent === "seal" || intent === "grocery" || intent === "buying" || intent === "av";
   const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
   const [error, setError] = useState("");
 
@@ -136,7 +137,9 @@ export function InvolvementForm({ intent, className }: Props) {
         {needsOrg ? (
           <>
             <Field
-              label={intent === "grocery" ? "Store or business" : "Organization"}
+              label={
+                intent === "grocery" ? "Store or business" : intent === "av" ? "Church" : "Organization"
+              }
               htmlFor={`${intent}-org`}
             >
               <Input id={`${intent}-org`} name="organization" />
@@ -180,7 +183,11 @@ export function InvolvementForm({ intent, className }: Props) {
           label={
             intent === "seal"
               ? "Anything we should know"
-              : "What you can offer"
+              : intent === "av"
+                ? "What is going on with your sound, stream, or lighting?"
+                : intent === "buying"
+                  ? "What do you buy most often?"
+                  : "What you can offer"
           }
           htmlFor={`${intent}-message`}
           className="sm:col-span-2"
@@ -193,7 +200,11 @@ export function InvolvementForm({ intent, className }: Props) {
                 ? "Produce, bakery, dairy close-dated, canned overstock…"
                 : intent === "time"
                   ? "Evenings, a truck, bookkeeping, packing…"
-                  : undefined
+                  : intent === "av"
+                    ? "Feedback during the sermon, a livestream that drops, a new building in the plans…"
+                    : intent === "buying"
+                      ? "Toner for two copiers, paper, cleaning supplies…"
+                      : undefined
             }
           />
         </Field>

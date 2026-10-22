@@ -32,16 +32,16 @@ function FoodDonorsPage() {
             <span className="block min-w-0 max-w-full">Donate it — you may deduct twice as much.</span>
           </h1>
           <p className="mt-5 max-w-2xl text-paper/85">
-            United Under God, Inc. is the 501(c)(3). Sign up once here so the
-            tax record is clean. Plenty is the pantry program that picks up the
-            food. Receipts always say United Under God, Inc.
+            Sign up once with United Under God, Inc., a 501(c)(3) nonprofit,
+            and you get a tax receipt for every donation. Our Vidalia food
+            pantry, Plenty, picks up the food.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button asChild variant="invert">
               <a href="#calculator">See what you are missing</a>
             </Button>
             <Button asChild variant="outline">
-              <a href="#signup">Sign up with the charity</a>
+              <a href="#signup">Sign up to donate</a>
             </Button>
           </div>
         </div>
@@ -57,7 +57,7 @@ function FoodDonorsPage() {
         <DonorBenefits />
         <p className="mt-8 max-w-3xl text-sm text-muted">
           {LEGAL.name} is a {LEGAL.status}, EIN {LEGAL.ein}. Plenty is our
-          pantry program, not a second charity. Plain-language summary, not
+          food pantry program. Plain-language summary, not
           legal or tax advice. Statutes: IRC §170(e)(3); 42 U.S.C. § 1791;
           O.C.G.A. § 51-1-31. Speak with your accountant and counsel.
         </p>
@@ -67,22 +67,24 @@ function FoodDonorsPage() {
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[0.9fr_1.1fr] md:px-8 md:py-20">
           <div className="min-w-0">
             <h2 className="text-3xl">
-              <span className="block min-w-0 max-w-full">Sign up once here.</span>
-              <span className="block min-w-0 max-w-full">Then live in Plenty for pickups.</span>
+              <span className="block min-w-0 max-w-full">Sign up once.</span>
+              <span className="block min-w-0 max-w-full">We pick it up.</span>
             </h2>
             <ol className="mt-6 space-y-4 text-muted">
               <li>
-                <span className="font-medium text-ink">1. Raise a hand here.</span>{" "}
-                We keep the donor of record — name, store, contact, gift type,
-                tax letter.
+                <span className="font-medium text-ink">1. Sign up here.</span>{" "}
+                Tell us your store and contact so we can send your tax
+                receipts.
               </li>
               <li>
-                <span className="font-medium text-ink">2. Tell Plenty when food is ready.</span>{" "}
-                Pickup window, load, driver, what left the dock.
+                <span className="font-medium text-ink">2. Let us know when food is ready.</span>{" "}
+                Schedule a pickup on Plenty, our pantry app, and we send a
+                driver.
               </li>
               <li>
-                <span className="font-medium text-ink">3. Receipts say United Under God, Inc.</span>{" "}
-                Plenty is a program. There is one charity.
+                <span className="font-medium text-ink">3. Get your receipt.</span>{" "}
+                Every donation is receipted by United Under God, Inc., for
+                your records and your accountant.
               </li>
             </ol>
             <p className="mt-6 text-sm text-muted">
@@ -95,9 +97,9 @@ function FoodDonorsPage() {
               >
                 Request a pickup on Plenty
               </a>
-              . Neighbors who need food also sign in there.{" "}
+              .{" "}
               <Link to="/pantry" className="text-forest underline-offset-4 hover:underline">
-                Vidalia pantry story
+                Learn about the Vidalia pantry
               </Link>
               .
             </p>
