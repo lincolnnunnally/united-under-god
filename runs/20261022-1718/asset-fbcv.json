@@ -1,0 +1,59 @@
+{
+  "logos": [
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/bf5e0e8c-2b9a-4b78-8a61-317897d43d4b/Letterhead_Navy.png?format=1500w",
+      "alt": "FBC Vidalia Georgia",
+      "w": 1500,
+      "h": 750
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/bf5e0e8c-2b9a-4b78-8a61-317897d43d4b/Letterhead_Navy.png?format=1500w",
+      "alt": "FBC Vidalia Georgia",
+      "w": 1500,
+      "h": 750
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/1ab9ea0b-aa26-4912-90d0-5f3be1667d2b/FBCV+New+Logo+%285%29.png?format=1500w",
+      "alt": "A group of diverse people holding hands tightly together in unity, suggesting a moment of prayer, meditation, or mutual support.",
+      "w": 1280,
+      "h": 1280
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/3c47131f-95b2-4687-941a-c031a3cd1ccc/FBCV+New+Logo+%2816%29.png?format=1500w",
+      "alt": "People standing closely in a circle, participating in some activity or ceremony indoors, with some holding hands and heads bowed.",
+      "w": 1280,
+      "h": 1280
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/c31d0dc1-9444-40f5-9899-ec6f75a2e7ac/FBCV+New+Logo+%2812%29.png?format=1500w",
+      "alt": "Close-up of a young girl with blonde hair and a big blue bow, smiling, wearing a blue sweater with embroidered flowers, in a room with a dark piece of furniture behind her.",
+      "w": 1280,
+      "h": 1280
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/0a5aa230-68f7-43cd-b7f2-45dbc0205dfb/FBCV+New+Logo+%2815%29.png?format=1500w",
+      "alt": "Two young women smiling and standing close together outdoors, with one woman wearing sunglasses on her head and the other making a peace sign near her face.",
+      "w": 1280,
+      "h": 1280
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/8fd2d3e2-8a32-47c0-a037-90502c5f0980/FBCV+New+Logo+%2814%29.png?format=1500w",
+      "alt": "A group of people at a baby shower, including a woman with long dark hair, a man with short dark hair and a beard, and an older woman with glasses, who are smiling and engaging with a baby wrapped in a blanket.",
+      "w": 1280,
+      "h": 1280
+    },
+    {
+      "src": "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/7289a723-c995-484b-b127-ab832c8a105f/FBCV+New+Logo+%2820%29.png?format=300w",
+      "alt": "Line graph showing the growth of a business over five years, with an upward trend.",
+      "w": 147,
+      "h": 147
+    }
+  ],
+  "og_image": "http://static1.squarespace.com/static/5a79ffc8edaed853418a84eb/t/689634eb12d44b66c20ee748/1754674411142/FBV_NavyLogo-trans.png?format=1500w",
+  "theme_color": "",
+  "icons": [
+    "https://images.squarespace-cdn.com/content/v1/5a79ffc8edaed853418a84eb/42d268cd-0e1d-43e9-8388-dc0acfa393d1/favicon.ico?format=100w"
+  ],
+  "header_bg": "rgb(241, 236, 228)",
+  "button_bg": "rgb(191, 175, 156)"
+}

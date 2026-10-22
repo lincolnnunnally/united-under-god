@@ -1,0 +1,23 @@
+{
+  "started": "2026-10-22T17:17:26.520Z",
+  "accounts": [],
+  "journeys": {
+    "site-assets": [
+      {
+        "step": "fbcv: open https://www.fbcvidalia.org/",
+        "ok": true,
+        "note": "FBC Vidalia Georgia | Join Us Today for Worship",
+        "url": "https://www.fbcvidalia.org/",
+        "shot": "site-assets-01.png"
+      },
+      {
+        "step": "fbcv: logo and colors",
+        "ok": true,
+        "note": "8 logo candidates, 8 downloaded; header rgb(241, 236, 228); button rgb(191, 175, 156)",
+        "url": "https://www.fbcvidalia.org/",
+        "shot": "site-assets-02.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T17:18:17.299Z"
+}
