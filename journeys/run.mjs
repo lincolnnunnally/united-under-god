@@ -286,28 +286,37 @@ async function churchConnect(page, step) {
     const m = text.match(/(setup|get started|checklist)[^\n]{0,120}/i);
     return m ? m[0] : "no setup checklist text found";
   });
+  await churchConnectInvites(page, "churchconnect");
+}
+
+async function churchConnectInvites(page, journeyName) {
+  const BASE = "https://www.churchconnect.cloud";
   const slugs = (process.env.INVITE_SLUGS || "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!slugs.length) {
-    report.journeys.churchconnect.push({ step: "church invite /for/{slug}", ok: true, note: "skipped: no invite link given yet (needs a super-admin to prepare one)" });
+    report.journeys[journeyName].push({ step: "church invite /for/{slug}", ok: true, note: "skipped: no invite link given yet (needs a super-admin to prepare one)" });
   }
   for (const slug of slugs) {
     const ctx = await page.context().browser().newContext({ viewport: { width: 1280, height: 860 } });
     await ctx.route(/\/site-invite\/[^/]+\/claim|checkout\.stripe\.com/, (r) => r.abort());
     const inv = await ctx.newPage();
     const shot = async (f) => inv.screenshot({ path: path.join(OUT, `cc-invite-${slug}-${f}.png`) }).catch(() => {});
-    const rec = (s) => report.journeys.churchconnect.push(s);
+    const rec = (s) => report.journeys[journeyName].push(s);
     try {
       await inv.goto(`${BASE}/for/${slug}`, { waitUntil: "domcontentloaded" });
       await inv.getByTestId("site-invite").waitFor({ timeout: 45000 });
       await inv.locator('[data-photos-settled="1"]').waitFor({ timeout: 30000 }).catch(() => {});
+      await inv.waitForTimeout(3000);
       await shot("1-page");
+      await inv.screenshot({ path: path.join(OUT, `cc-invite-${slug}-1-full.png`), fullPage: true }).catch(() => {});
       rec({ step: `invite ${slug}: page loads`, ok: true, shot: `cc-invite-${slug}-1-page.png` });
       const open = inv.getByTestId("open-site").getByRole("link", { name: /open it full size/i });
       const href = (await open.count()) ? await open.getAttribute("href") : null;
       if (href) {
         const site = await ctx.newPage();
         const res = await site.goto(href, { waitUntil: "domcontentloaded" }).catch(() => null);
+        await site.waitForTimeout(4000);
         await site.screenshot({ path: path.join(OUT, `cc-invite-${slug}-2-site.png`) }).catch(() => {});
+        await site.screenshot({ path: path.join(OUT, `cc-invite-${slug}-2-site-full.png`), fullPage: true }).catch(() => {});
         rec({ step: `invite ${slug}: "Open it full size"`, ok: Boolean(res && res.status() < 400), note: `${href} → ${res ? res.status() : "failed"}`, shot: `cc-invite-${slug}-2-site.png` });
         await site.close();
       } else {
@@ -459,6 +468,7 @@ const ALL = {
   "easypeazy-uug": (a) => easyPeazy(a.page, a.step, { host: "easypeazy.unitedundergod.org", app: "uug", business: "QA Journey Ministry Shop" }),
   "ai-website-design": (a) => aiWebsiteDesign(a.page, a.step),
   churchconnect: (a) => churchConnect(a.page, a.step),
+  "churchconnect-invite": (a) => churchConnectInvites(a.page, "churchconnect-invite"),
   operate: (a) => operate(a.page, a.step),
   laser: (a) => laser(a.page, a.step),
   "united-under-god": (a) => uug(a.page, a.step),
