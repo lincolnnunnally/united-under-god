@@ -1,0 +1,35 @@
+{
+  "started": "2026-10-22T17:15:55.698Z",
+  "accounts": [],
+  "journeys": {
+    "churchconnect-invite": [
+      {
+        "step": "invite first-shady-grove-baptist-church: page loads",
+        "ok": true,
+        "shot": "cc-invite-first-shady-grove-baptist-church-1-page.png"
+      },
+      {
+        "step": "invite first-shady-grove-baptist-church: \"Open it full size\"",
+        "ok": true,
+        "note": "https://first-shady-grove-baptist-church.churchconnect.cloud/ → 200",
+        "shot": "cc-invite-first-shady-grove-baptist-church-2-site.png"
+      },
+      {
+        "step": "invite first-shady-grove-baptist-church: \"Free + this website ($12/year)\" opens sign-up (stopped before claim)",
+        "ok": true,
+        "shot": "cc-invite-first-shady-grove-baptist-church-3-free_paid_site.png"
+      },
+      {
+        "step": "invite first-shady-grove-baptist-church: \"Try Pro\" opens sign-up (stopped before claim)",
+        "ok": true,
+        "shot": "cc-invite-first-shady-grove-baptist-church-3-pro_site.png"
+      },
+      {
+        "step": "invite first-shady-grove-baptist-church: \"Free, no website\" opens sign-up (stopped before claim)",
+        "ok": true,
+        "shot": "cc-invite-first-shady-grove-baptist-church-3-free_no_site.png"
+      }
+    ]
+  },
+  "finished": "2026-10-22T17:16:07.116Z"
+}
