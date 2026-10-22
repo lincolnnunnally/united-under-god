@@ -341,7 +341,6 @@ async function churchConnectInvites(page, journeyName) {
       await shot("error");
       rec({ step: `invite ${slug}`, ok: false, error: String(e?.message || e).slice(0, 300), shot: `cc-invite-${slug}-error.png` });
     }
-    await ctx.close();
   }
 }
 
@@ -507,6 +506,123 @@ async function siteAssets(page, step) {
   }
 }
 
+// ---------------------------------------------------------------- Operate sample pros
+
+// Sample trades businesses for the owner's friends, set up exactly as a real
+// pro would be: Operate shop, public page with a page per service, and Local
+// Leads switched on for their trades and towns. Contact details are MOCK on
+// purpose (555-01xx numbers, example.com) until the owner supplies real ones.
+// Runs only when asked for by name; each run makes new accounts.
+const SAMPLE_PROS = [
+  {
+    key: "kevin",
+    owner: "Kevin Huddleston",
+    business: "Kevin Huddleston Handyman Services",
+    city: "Vidalia",
+    slug: "kevin-huddleston-handyman",
+    phone: "(912) 555-0142",
+    publicEmail: "kevin@example.com",
+    tagline: "Handyman services in Vidalia and Toombs County",
+    about:
+      "Kevin Huddleston is a Vidalia handyman who takes on the jobs around the house that pile up: a little plumbing, " +
+      "electrical fixes, flooring, painting, insulation and carpentry. One call for the small jobs and the in-between ones.",
+    services: [
+      ["Plumbing repairs", "Leaky faucets, running toilets, fixture swaps and small plumbing repairs."],
+      ["Electrical fixes", "Light fixtures, outlets, switches and ceiling fans."],
+      ["Flooring", "Laminate, vinyl plank and tile repairs and installs."],
+      ["Painting", "Interior and exterior painting, touch-ups and trim."],
+      ["Insulation", "Attic and crawlspace insulation to keep the house comfortable."],
+      ["Carpentry", "Trim, doors, shelving, decks and general carpentry."],
+    ],
+    categories: ["handyman", "painting", "flooring", "finish-carpentry"],
+    areas: ["vidalia", "lyons", "santa-claus", "mount-vernon", "ailey", "uvalda", "soperton", "reidsville"],
+  },
+  {
+    key: "lee",
+    owner: "Lee Brown",
+    business: "Lee Brown Home Services",
+    city: "Loganville",
+    slug: "lee-brown-home-services",
+    phone: "(770) 555-0186",
+    publicEmail: "lee@example.com",
+    tagline: "Carpentry, painting, flooring and cabinetry in Loganville and nearby",
+    about:
+      "Lee Brown serves Loganville and the surrounding area with carpentry, painting, flooring, cabinetry and the " +
+      "everyday repairs a home needs.",
+    services: [
+      ["Carpentry", "Trim, doors, framing repairs and custom carpentry."],
+      ["Painting", "Interior and exterior painting and cabinet painting."],
+      ["Flooring", "Hardwood, laminate, vinyl plank and tile."],
+      ["Cabinetry", "Cabinet installs, repairs and refacing."],
+      ["Home repairs", "The odd jobs and repairs around the house."],
+    ],
+    categories: ["handyman", "painting", "flooring", "finish-carpentry"],
+    areas: ["loganville", "snellville", "grayson", "monroe", "conyers", "lawrenceville"],
+  },
+];
+
+async function operatePros(page, step) {
+  const BASE = "https://operate.unitedundergod.org";
+  for (const pro of SAMPLE_PROS) {
+    // One browser page (so screenshots and the payment block apply), signed out between pros.
+    const p = page;
+    await p.context().clearCookies();
+    const who = `${pro.key}-sample-${RAND}@mailinator.com`;
+    report.accounts.push({ app: `Operate (${pro.owner}, sample)`, email: who });
+    const desk = (body) =>
+      p.evaluate(async (b) => {
+        const r = await fetch("/api/desk", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+        return { status: r.status, body: await r.json().catch(() => ({})) };
+      }, body);
+    await step(`${pro.owner}: sign up on Operate`, async () => {
+      await p.goto(`${BASE}/account?mode=register`, { waitUntil: "domcontentloaded" });
+      await p.locator("#name").fill(pro.owner);
+      await p.locator("#biz").fill(pro.business);
+      await p.locator("#city").fill(pro.city).catch(() => {});
+      await p.getByRole("button", { name: /field & trades/i }).click().catch(() => {});
+      await p.locator("#email").fill(who);
+      await p.locator("#password").fill(PASSWORD);
+      await p.getByRole("button", { name: /start running my shop/i }).click();
+      await p.waitForURL(/\/desk/, { timeout: 45000 });
+      return "on the desk";
+    });
+    await step(`${pro.owner}: public page details (mock contact)`, async () => {
+      const r = await desk({
+        action: "save-website", name: pro.business, city: pro.city, slug: pro.slug, about: pro.about,
+        phone: pro.phone, email: pro.publicEmail, tagline: pro.tagline,
+      });
+      if (r.status !== 200) throw new Error(`save-website ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+      return `slug ${r.body.slug || pro.slug}`;
+    }, { shot: false });
+    await step(`${pro.owner}: services, each with its own page`, async () => {
+      const done = [];
+      for (const [name, description] of pro.services) {
+        const r = await desk({ action: "add-service", name, description, listed: true });
+        if (r.status !== 200) throw new Error(`add-service ${name} ${r.status}: ${JSON.stringify(r.body).slice(0, 160)}`);
+        done.push(name);
+      }
+      await desk({ action: "ensure-website-pages" });
+      return done.join(", ");
+    }, { shot: false });
+    await step(`${pro.owner}: Local Leads on for their trades and towns`, async () => {
+      const r = await p.evaluate(async (b) => {
+        const res = await fetch("/api/leads", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+        return { status: res.status, body: await res.json().catch(() => ({})) };
+      }, { action: "settings", enabled: true, categories: pro.categories, areaSlugs: pro.areas });
+      if (r.status !== 200) throw new Error(`leads settings ${r.status}: ${JSON.stringify(r.body).slice(0, 200)}`);
+      return `${pro.categories.join(", ")} · ${pro.areas.join(", ")}`;
+    }, { shot: false });
+    await step(`${pro.owner}: public page live`, async () => {
+      const url = `${BASE}/site/${pro.slug}`;
+      await p.goto(url, { waitUntil: "networkidle" });
+      const h1 = await p.locator("h1").first().innerText().catch(() => "");
+      const services = await p.locator("a[href*='/site/" + pro.slug + "/']").count();
+      return `${url} — "${h1}" · ${services} service links`;
+    });
+    await ctx.close();
+  }
+}
+
 // ---------------------------------------------------------------- run
 
 const ALL = {
@@ -519,10 +635,11 @@ const ALL = {
   laser: (a) => laser(a.page, a.step),
   "united-under-god": (a) => uug(a.page, a.step),
   "site-assets": (a) => siteAssets(a.page, a.step),
+  "operate-pros": (a) => operatePros(a.page, a.step),
 };
 
-// site-assets only runs when asked for by name.
-const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ALL).filter((k) => k !== "site-assets");
+// site-assets and operate-pros only run when asked for by name.
+const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(ALL).filter((k) => !["site-assets", "operate-pros"].includes(k));
 const browser = await chromium.launch();
 await Promise.all(wanted.map((name) => journey(name, browser, ALL[name])));
 await browser.close();
