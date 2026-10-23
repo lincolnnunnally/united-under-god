@@ -100,7 +100,7 @@ function SummaryPage() {
           lead={
             <p className="mt-4 text-muted">
               The answers and recommendation above are attached to this request. We will call you
-              back to talk through your room. Nothing here is a price or a quote.
+              back to talk through your room.
             </p>
           }
         />

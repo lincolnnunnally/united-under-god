@@ -1,9 +1,11 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { INQUIRY_FOLLOWUP, INQUIRY_UNREACHABLE, OWNER_EMAIL } from "./desk.ts";
 import { sendHardcodedOwnerEmail } from "./desk-mail.ts";
 import { notifySavedInquiry, settleInquirySubmit } from "./desk-submit.ts";
 import type { InquiryNoticeRow } from "./desk.ts";
+import { INTENT_COPY, type InvolvementIntent } from "./involvement.ts";
 
 function row(kind: string): InquiryNoticeRow {
   return {
@@ -39,6 +41,76 @@ function silence() {
     },
   };
 }
+
+const INVOLVEMENT_DONE_FALLBACK =
+  "Someone from United Under God will be in touch. In the meantime, do not wait on us to start — a neighbor, a pantry shift, a first gift of food is already a step on mission.";
+
+/** Assembled so this file does not contain a partner or vendor name. */
+const PARTNER = ["mes", "sen", "ger"].join("");
+
+function source(rel: string) {
+  return readFileSync(new URL(rel, import.meta.url), "utf8");
+}
+
+describe("inquiry thank-you is one message", () => {
+  it("uses the short follow-up and never names a partner", () => {
+    assert.equal(INQUIRY_FOLLOWUP, "We’ll reach out soon.");
+    assert.ok(INQUIRY_FOLLOWUP.trim().length > 0);
+    assert.equal(INQUIRY_FOLLOWUP.toLowerCase().includes(PARTNER), false);
+    assert.equal(INQUIRY_FOLLOWUP.includes("We received it"), false);
+  });
+
+  it("gives every involvement kind one non-empty line", () => {
+    const intents = Object.keys(INTENT_COPY) as InvolvementIntent[];
+    assert.deepEqual(intents.sort(), [
+      "av",
+      "buying",
+      "food",
+      "goods",
+      "grocery",
+      "hand",
+      "mission",
+      "money",
+      "need",
+      "org",
+      "seal",
+      "time",
+    ]);
+    for (const intent of intents) {
+      const body = (INTENT_COPY[intent].done ?? INVOLVEMENT_DONE_FALLBACK).trim();
+      assert.ok(body.length > 0, intent);
+      assert.equal(body.includes("We received it"), false, intent);
+      assert.equal(body.includes(INQUIRY_FOLLOWUP), false, intent);
+      assert.equal(body.toLowerCase().includes(PARTNER), false, intent);
+    }
+    assert.equal(INTENT_COPY.av.done, "We’ll reach out soon to talk about your sanctuary.");
+    assert.equal((INTENT_COPY.av.done ?? "").includes("Nothing here is a price"), false);
+  });
+
+  it("does not stack the shell line on top of a form's own thank-you", () => {
+    const done = source("../components/inquiry-done.tsx");
+    const form = source("../components/involvement-form.tsx");
+    const donor = source("../components/donor-form.tsx");
+    const goods = source("../components/give-goods-form.tsx");
+    assert.equal(done.includes("We received it."), false);
+    assert.equal(done.includes("Received. Thank you."), false);
+    assert.equal(form.includes("Received. Thank you."), false);
+    assert.match(done, /Thank you\./);
+    assert.match(done, /— United Under God/);
+    assert.match(form, /InquiryThanks/);
+    assert.match(donor, /We’ll contact you to confirm a day and time\./);
+    assert.match(donor, /You’re on the charity’s list\./);
+    assert.match(donor, /To book a specific pickup, use Request a pickup on Plenty\./);
+    assert.match(goods, /Pickup is on our list\./);
+    assert.match(
+      goods,
+      /We will look at what you told us — the pictures, the vehicle,\s+the\s+number of hands — and come get it\. Then it goes to a neighbor\./,
+    );
+    for (const file of [done, form, donor, goods]) {
+      assert.equal(file.toLowerCase().includes(PARTNER), false);
+    }
+  });
+});
 
 describe("unsaved inquiry still emails the owner", () => {
   for (const kind of ["food", "goods-furniture"] as const) {
@@ -101,7 +173,7 @@ describe("unsaved inquiry still emails the owner", () => {
         assert.equal(result.error, INQUIRY_UNREACHABLE);
         assert.match(result.error, /lincoln@unitedundergod.org/);
       }
-      assert.equal(INQUIRY_FOLLOWUP, "We received it and will follow up.");
+      assert.equal(INQUIRY_FOLLOWUP, "We’ll reach out soon.");
     } finally {
       log.restore();
     }

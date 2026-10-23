@@ -1,5 +1,5 @@
 import { useState, type FormEvent, type ReactNode } from "react";
-import { InquiryDone } from "@/components/inquiry-done";
+import { InquiryDone, InquiryThanks } from "@/components/inquiry-done";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -105,11 +105,12 @@ export function InvolvementForm({
   if (done) {
     return (
       <InquiryDone saved={done.saved} emailed={done.emailed} className={className}>
-        <h3 className="mt-5 font-display text-2xl">Received. Thank you.</h3>
-        <p className="mt-3 max-w-prose text-muted">
-          {copy.done ??
-            "Someone from United Under God will be in touch. In the meantime, do not wait on us to start — a neighbor, a pantry shift, a first gift of food is already a step on mission."}
-        </p>
+        <InquiryThanks
+          line={
+            copy.done ??
+            "Someone from United Under God will be in touch. In the meantime, do not wait on us to start — a neighbor, a pantry shift, a first gift of food is already a step on mission."
+          }
+        />
       </InquiryDone>
     );
   }

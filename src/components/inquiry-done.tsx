@@ -1,13 +1,21 @@
-import type { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { INQUIRY_FOLLOWUP } from "@/lib/desk";
 import { cn } from "@/lib/utils";
 
+/** Fraunces heading, one 16px line, then the sign-off. */
+export function InquiryThanks({ line }: { line: string }) {
+  return (
+    <>
+      <h3 className="font-display text-[32px] leading-[1.15] text-ink">Thank you.</h3>
+      <p className="mt-3 max-w-prose text-[16px] leading-normal text-ink">{line}</p>
+      <p className="mt-[0.85rem] text-[16px] leading-normal text-muted">— United Under God</p>
+    </>
+  );
+}
+
 export function InquiryDone({
-  saved,
   emailed,
   className,
-  showDetails,
   children,
 }: {
   saved: boolean;
@@ -17,25 +25,26 @@ export function InquiryDone({
   showDetails?: boolean;
   children?: ReactNode;
 }) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    panelRef.current?.focus();
+  }, []);
+
+  const fallback = <InquiryThanks line={INQUIRY_FOLLOWUP} />;
+
   return (
     <div
+      ref={panelRef}
+      tabIndex={-1}
+      role="status"
+      aria-live="polite"
       className={cn(
-        "rounded-xl bg-cream px-6 py-8 shadow-[var(--shadow-border)]",
+        "rounded-xl bg-cream px-6 py-8 shadow-[var(--shadow-border)] outline-none",
         className,
       )}
     >
-      <div className="flex size-11 items-center justify-center rounded-md bg-forest text-paper">
-        <Check className="size-5" />
-      </div>
-      {emailed ? (
-        <>
-          <h3 className="mt-5 font-display text-2xl">We received it.</h3>
-          <p className="mt-3 max-w-prose text-muted">{INQUIRY_FOLLOWUP}</p>
-          {saved || showDetails ? <div className="mt-6">{children}</div> : null}
-        </>
-      ) : (
-        children
-      )}
+      {emailed ? (children ? children : fallback) : children}
     </div>
   );
 }

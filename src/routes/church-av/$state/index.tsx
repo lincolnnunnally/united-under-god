@@ -170,7 +170,6 @@ function StatePage() {
       <FaqSection faq={state.faq} />
 
       <RequestSection
-        place={state.name}
         source={{ path: statePath(state), label: `Church AV — ${state.name}` }}
       >
         <p className="mt-6 text-sm text-muted">

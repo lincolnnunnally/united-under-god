@@ -244,7 +244,6 @@ export function GearList() {
  */
 export function RequestSection({
   heading = "Tell us about your room.",
-  place,
   defaultCity,
   source,
   attachment,
@@ -254,7 +253,6 @@ export function RequestSection({
   children,
 }: {
   heading?: string;
-  place?: string;
   defaultCity?: string;
   source: { path: string; label: string };
   attachment?: string;
@@ -270,9 +268,8 @@ export function RequestSection({
           <h2 className="text-3xl">{heading}</h2>
           {lead ?? (
             <p className="mt-4 text-muted">
-              A few lines is enough{place ? `, and tell us where in ${place} you are` : ""}. We will
-              call you back to talk through what you are hearing, what you would like to change, and
-              what a sensible next step looks like. Nothing here is a price or a quote.
+              A few lines is enough. We’ll call you back to talk through what you’re hearing and
+              what you’d like to change.
             </p>
           )}
           {children}

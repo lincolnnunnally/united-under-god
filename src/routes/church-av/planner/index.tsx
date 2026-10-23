@@ -142,7 +142,6 @@ function PlannerPage() {
             <p className="mt-4 text-muted">
               Your answers and the recommendation are attached to this request, so we see everything
               you see. We will call you back to talk through your room and a sensible next step.
-              Nothing here is a price or a quote.
             </p>
           }
         />
