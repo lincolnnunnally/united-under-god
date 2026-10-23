@@ -4,6 +4,7 @@ import {
   CaseStudyCard,
   FaqSection,
   GearList,
+  HelpLinks,
   ProcessSection,
   RequestSection,
   SectionIntro,
@@ -56,10 +57,13 @@ export const Route = createFileRoute("/church-av/")({
 });
 
 const PAINS = [
-  "Feedback squeals during the prayer.",
-  "Older members can’t hear the sermon.",
-  "The livestream drops right at the invitation.",
-  "One volunteer is the only person who knows how the board works.",
+  { text: "Feedback squeals during the prayer.", slug: "feedback-during-the-sermon" },
+  { text: "Older members can’t hear the sermon.", slug: "hearing-aids-squeal-or-echo" },
+  { text: "The livestream drops right at the invitation.", slug: "livestream-keeps-dropping" },
+  {
+    text: "One volunteer is the only person who knows how the board works.",
+    slug: "volunteers-cant-run-the-board",
+  },
 ];
 
 const CHANGES = [
@@ -108,14 +112,22 @@ function ChurchAvPage() {
         </div>
         <ul className="space-y-3">
           {PAINS.map((pain) => (
-            <li key={pain} className="border-l-2 border-forest pl-4 text-ink">
-              {pain}
+            <li key={pain.slug} className="border-l-2 border-forest pl-4 text-ink">
+              <Link
+                to="/church-av/help/$slug"
+                params={{ slug: pain.slug }}
+                className="underline-offset-4 hover:text-forest hover:underline"
+              >
+                {pain.text}
+              </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="border-y border-rule bg-cream">
+      <HelpLinks />
+
+      <section className="border-b border-rule">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
           <SectionIntro eyebrow="What changes" title="A system your church can count on." />
           <div className="mt-10 grid gap-8 sm:grid-cols-2">

@@ -15,6 +15,7 @@ import {
   type NearbyProject,
   type Project,
 } from "@/lib/church-av";
+import { HELP_PAGES, type HelpPage } from "@/lib/church-av-help";
 import { cn } from "@/lib/utils";
 
 /** Shared sections for /church-av and its state and city pages. */
@@ -68,6 +69,9 @@ export function AvHero({
               Tell us about your sanctuary
               <ArrowRight className="size-4" />
             </a>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link to="/church-av/planner">Plan your room in 5 minutes</Link>
           </Button>
         </div>
       </div>
@@ -243,24 +247,34 @@ export function RequestSection({
   place,
   defaultCity,
   source,
+  attachment,
+  messageLabel,
+  submitLabel,
+  lead,
   children,
 }: {
   heading?: string;
   place?: string;
   defaultCity?: string;
   source: { path: string; label: string };
+  attachment?: string;
+  messageLabel?: string;
+  submitLabel?: string;
+  lead?: ReactNode;
   children?: ReactNode;
 }) {
   return (
-    <section id="talk" className="scroll-mt-24 bg-cream">
+    <section id="talk" className="scroll-mt-24 bg-cream print:hidden">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:px-8 md:py-20">
         <div>
           <h2 className="text-3xl">{heading}</h2>
-          <p className="mt-4 text-muted">
-            A few lines is enough{place ? `, and tell us where in ${place} you are` : ""}. We will
-            call you back to talk through what you are hearing, what you would like to change, and
-            what a sensible next step looks like. Nothing here is a price or a quote.
-          </p>
+          {lead ?? (
+            <p className="mt-4 text-muted">
+              A few lines is enough{place ? `, and tell us where in ${place} you are` : ""}. We will
+              call you back to talk through what you are hearing, what you would like to change, and
+              what a sensible next step looks like. Nothing here is a price or a quote.
+            </p>
+          )}
           {children}
           <p className="mt-6 text-sm text-muted">
             Running the rest of the church too?{" "}
@@ -270,7 +284,14 @@ export function RequestSection({
             — church management, websites, and outreach help.
           </p>
         </div>
-        <InvolvementForm intent="av" defaultCity={defaultCity} source={source} />
+        <InvolvementForm
+          intent="av"
+          defaultCity={defaultCity}
+          source={source}
+          attachment={attachment}
+          messageLabel={messageLabel}
+          submitLabel={submitLabel}
+        />
       </div>
     </section>
   );
@@ -293,5 +314,55 @@ export function SectionIntro({
       <h2 className={cn("text-3xl", eyebrow ? "mt-3" : "")}>{title}</h2>
       {children ? <div className="mt-4 text-muted">{children}</div> : null}
     </div>
+  );
+}
+
+/**
+ * Problem-first help pages and the planner, for the hub, state, and city
+ * pages. Pass `pages` to show a relevant subset; the planner is always offered.
+ */
+export function HelpLinks({
+  pages = HELP_PAGES,
+  title = "Start with the problem you have",
+  eyebrow = "Help for pastors and committees",
+}: {
+  pages?: HelpPage[];
+  title?: string;
+  eyebrow?: string;
+}) {
+  return (
+    <section className="border-y border-rule bg-cream">
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1fr_1.3fr] md:px-8 md:py-20">
+        <div>
+          <SectionIntro eyebrow={eyebrow} title={title}>
+            <p>
+              Plain-language explanations of why it happens, what fixes it, and how fixing it serves
+              your congregation. Or answer a few questions and get a summary to bring to your
+              committee.
+            </p>
+          </SectionIntro>
+          <Button asChild className="mt-6">
+            <Link to="/church-av/planner">
+              Open the Church Room Planner
+              <ArrowRight className="size-4" />
+            </Link>
+          </Button>
+        </div>
+        <ul className="divide-y divide-rule border-y border-rule self-start">
+          {pages.map((page) => (
+            <li key={page.slug}>
+              <Link
+                to="/church-av/help/$slug"
+                params={{ slug: page.slug }}
+                className="flex items-center justify-between gap-4 py-3 text-ink underline-offset-4 hover:text-forest hover:underline"
+              >
+                <span>{page.label}</span>
+                <ArrowRight className="size-4 shrink-0 text-forest" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }

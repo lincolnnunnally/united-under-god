@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { churchAvPaths } from "./sitemap.mjs";
+import { churchAvHelpPaths, churchAvPaths } from "./sitemap.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // The installer's name, assembled so this file does not contain it either.
@@ -18,12 +18,29 @@ function walk(dir) {
   });
 }
 
-// Every file that renders the church AV pages.
+// Every file that renders the church AV pages: the routes (hub, states,
+// cities, help, planner), their components, their libraries, and the data.
 const SOURCES = [
   ...walk(join(ROOT, "src/routes/church-av")),
-  join(ROOT, "src/components/church-av.tsx"),
-  join(ROOT, "src/lib/church-av.ts"),
+  ...readdirSync(join(ROOT, "src/components"))
+    .filter((f) => /^church-av.*\.tsx$/.test(f))
+    .map((f) => join(ROOT, "src/components", f)),
+  ...readdirSync(join(ROOT, "src/lib"))
+    .filter((f) => /^church-av.*\.ts$/.test(f))
+    .map((f) => join(ROOT, "src/lib", f)),
   join(ROOT, "src/data/church-av.json"),
+];
+const read = (rel) => readFileSync(join(ROOT, rel), "utf8");
+
+const HELP_SLUGS = [
+  "cant-hear-in-the-back",
+  "hearing-aids-squeal-or-echo",
+  "livestream-keeps-dropping",
+  "feedback-during-the-sermon",
+  "volunteers-cant-run-the-board",
+  "traditional-sanctuary-without-a-big-screen",
+  "older-members-staying-home",
+  "planning-a-new-building",
 ];
 
 test("church AV sources never name the installation company", () => {
@@ -112,4 +129,192 @@ test("a city page claims work 'in' the city only when a project is listed there"
       assert.fail(`${c.slug} claims a local project it does not have`);
     if (deniesLocal && local.length) assert.fail(`${c.slug} denies a local project it has`);
   }
+});
+
+test("the help, planner, and component sources are all covered", () => {
+  const names = SOURCES.map((f) => f.slice(ROOT.length + 1));
+  for (const f of [
+    "src/lib/church-av-help.ts",
+    "src/lib/church-av-planner.ts",
+    "src/components/church-av-planner.tsx",
+    "src/components/church-av-stage.tsx",
+    "src/routes/church-av/help/$slug.tsx",
+    "src/routes/church-av/help/index.tsx",
+    "src/routes/church-av/planner/index.tsx",
+    "src/routes/church-av/planner/summary.tsx",
+  ]) {
+    assert.ok(names.includes(f), `${f} is not checked`);
+  }
+});
+
+test("no dollar amounts, prices, or ranking promises on church AV pages", () => {
+  for (const file of SOURCES) {
+    const text = readFileSync(file, "utf8");
+    assert.ok(!/\$\s?\d/.test(text), `${file} prints a dollar amount`);
+    assert.ok(!/\b\d[\d,.]*\s?(k|K)?\s?(dollars|USD)\b/.test(text), `${file} prints an amount`);
+    assert.ok(
+      !/\b(first page of Google|rank(s|ed|ing)? (you|your church)|#1|number one)\b/i.test(text),
+      `${file} makes a ranking promise`,
+    );
+    assert.ok(!/\bguarantee/i.test(text), `${file} guarantees something`);
+  }
+});
+
+test("every help page and the planner are in the sitemap and have routes", () => {
+  const paths = churchAvPaths();
+  assert.deepEqual(
+    churchAvHelpPaths()
+      .slice(1)
+      .map((p) => p.replace("/church-av/help/", ""))
+      .sort(),
+    [...HELP_SLUGS].sort(),
+  );
+  for (const slug of HELP_SLUGS) assert.ok(paths.includes(`/church-av/help/${slug}`), slug);
+  assert.ok(paths.includes("/church-av/help"));
+  assert.ok(paths.includes("/church-av/planner"));
+  // The per-church summary is noindex and stays out of the sitemap.
+  assert.ok(!paths.includes("/church-av/planner/summary"));
+  assert.match(read("src/routes/church-av/planner/summary.tsx"), /noindex: true/);
+  const routes = join(ROOT, "src/routes/church-av");
+  assert.ok(existsSync(join(routes, "help", "$slug.tsx")));
+  assert.ok(existsSync(join(routes, "help", "index.tsx")));
+  assert.ok(existsSync(join(routes, "planner", "index.tsx")));
+  assert.ok(existsSync(join(routes, "planner", "summary.tsx")));
+});
+
+test("help pages have unique titles and descriptions and real case studies", () => {
+  const help = read("src/lib/church-av-help.ts");
+  const field = (name) =>
+    [...help.matchAll(new RegExp(`^ {4}${name}:\\s*"([^"]+)",$`, "gm"))].map((m) => m[1]);
+  const titles = field("title");
+  const descriptions = [...help.matchAll(/^ {4}description:\n?\s*"([^"]+)",$/gm)].map((m) => m[1]);
+  assert.equal(titles.length, HELP_SLUGS.length, "one title per help page");
+  assert.equal(descriptions.length, HELP_SLUGS.length, "one description per help page");
+  const allTitles = [...titles, ...av.states.map((s) => s.title), ...av.cities.map((c) => c.title)];
+  assert.equal(new Set(allTitles).size, allTitles.length, "titles are unique across church AV");
+  assert.equal(new Set(descriptions).size, descriptions.length, "descriptions are unique");
+  for (const d of descriptions) {
+    assert.ok(d.length >= 120 && d.length <= 165, `description is ${d.length} chars: ${d}`);
+  }
+  for (const m of help.matchAll(/caseStudies: \[([^\]]+)\]/g)) {
+    for (const id of m[1].match(/"([^"]+)"/g).map((x) => x.slice(1, -1))) {
+      assert.ok(av.caseStudies[id], `help page cites missing case study ${id}`);
+    }
+  }
+  for (const m of help.matchAll(/testimonial: "([^"]+)"/g)) {
+    assert.ok(
+      av.testimonials.some((t) => t.id === m[1]),
+      `missing testimonial ${m[1]}`,
+    );
+  }
+});
+
+test("help copy says 'in <city>' only where a project is listed", () => {
+  const help = read("src/lib/church-av-help.ts") + read("src/lib/church-av-planner.ts");
+  for (const m of help.matchAll(/\bin ([A-Z][a-z]+(?: [A-Z][a-z]+)*), (GA|FL|SC)\b/g)) {
+    const listed = av.projects.some((p) => p.city === m[1] && p.state === m[2]);
+    assert.ok(listed, `claims work in ${m[1]}, ${m[2]} without a listed project`);
+  }
+});
+
+test("every church AV page has exactly one H1", () => {
+  for (const file of walk(join(ROOT, "src/routes/church-av"))) {
+    const text = readFileSync(file, "utf8");
+    const h1 = (text.match(/<h1\b/g) ?? []).length + (text.match(/<AvHero\b/g) ?? []).length;
+    assert.equal(h1, 1, `${file} has ${h1} H1s`);
+  }
+  for (const file of [
+    "src/components/church-av-planner.tsx",
+    "src/components/church-av-stage.tsx",
+  ]) {
+    assert.ok(!/<h1\b/.test(read(file)), `${file} adds an H1`);
+  }
+});
+
+test("help pages give each page Article, FAQPage, and breadcrumb JSON-LD", () => {
+  const route = read("src/routes/church-av/help/$slug.tsx");
+  assert.match(route, /helpArticleJsonLd\(page\)/);
+  assert.match(route, /faqJsonLd\(page\.faq\)/);
+  assert.match(route, /breadcrumbJsonLd\(/);
+  assert.match(route, /helpHowToJsonLd\(page\)/);
+  assert.match(read("src/routes/church-av/planner/index.tsx"), /"@type": "HowTo"/);
+});
+
+test("the hearing aid page is accurate and does not overclaim", () => {
+  const help = read("src/lib/church-av-help.ts");
+  const start = help.indexOf('slug: "hearing-aids-squeal-or-echo"');
+  const page = help.slice(start, help.indexOf('slug: "livestream-keeps-dropping"'));
+  for (const term of [
+    /telecoil/,
+    /“T”/,
+    /induction/,
+    /Auracast/,
+    /Bluetooth LE Audio/,
+    /\bRF\b/,
+    /\bIR\b/,
+    /reverberat/,
+    /feeds back/,
+  ]) {
+    assert.match(page, term);
+  }
+  assert.match(page, /we’ll help you choose the right option/i);
+  assert.match(page, /\/\/ OWNER: confirm with installer before claiming install/);
+  assert.match(page, /religious organizations are (generally|largely) exempt/i);
+  for (const file of SOURCES) {
+    const text = readFileSync(file, "utf8");
+    assert.ok(
+      !/install(s|ed|ing)?\s+(a\s+|the\s+|your\s+)?(hearing\s+|induction\s+)?loops?\b|install(s|ed|ing)?\s+Auracast/i.test(
+        text,
+      ),
+      `${file} claims hearing loop or Auracast installation`,
+    );
+    assert.ok(
+      !/(churches|you) (are|is) (legally )?required to (provide|have|install)/i.test(text),
+      `${file} says churches are legally required`,
+    );
+  }
+});
+
+test("the planner keeps traditional churches screen-free and shows no prices", () => {
+  const planner = read("src/lib/church-av-planner.ts");
+  const traditional = planner.slice(
+    planner.indexOf('if (style === "traditional") {\n    later.push'),
+    planner.indexOf('} else if (style === "blended")'),
+  );
+  assert.ok(traditional.length > 0, "traditional branch found");
+  assert.match(traditional, /No screen behind the pulpit/);
+  assert.ok(!/LED wall/.test(traditional), "traditional never gets an LED wall");
+  assert.match(planner, /PTZ cameras/);
+  const ui = read("src/components/church-av-planner.tsx");
+  assert.match(
+    ui,
+    /\/\/ OWNER: price bands need installer approval|\{\/\* OWNER: price bands need installer approval \*\/\}/,
+  );
+  assert.match(ui, /Budget ranges — ask us/);
+  assert.match(planner, /localStorage/);
+  // The wizard's questions match the saved-progress bound.
+  const steps = ui.slice(ui.indexOf("const STEPS"), ui.indexOf("function optionClass"));
+  const count = Number(planner.match(/PLANNER_STEP_COUNT = (\d+)/)[1]);
+  assert.equal((steps.match(/^ {4}title: /gm) ?? []).length, count);
+  assert.match(ui, /window\.print\(\)/);
+  const stage = read("src/components/church-av-stage.tsx");
+  assert.match(stage, /function Traditional/);
+  assert.match(stage, /function Blended/);
+  assert.match(stage, /function Modern/);
+  // Sends through the one av inquiry form with the answers attached.
+  const route = read("src/routes/church-av/planner/index.tsx");
+  assert.match(route, /attachment=\{plannerMessage\(/);
+  assert.match(read("src/components/church-av.tsx"), /<InvolvementForm\s+intent="av"/);
+  assert.match(read("src/components/involvement-form.tsx"), /attachment \?\? ""/);
+});
+
+test("hub, state, and city pages link to the planner and help pages", () => {
+  for (const file of [
+    "src/routes/church-av/index.tsx",
+    "src/routes/church-av/$state/index.tsx",
+    "src/routes/church-av/$state/$city.tsx",
+  ]) {
+    assert.match(read(file), /<HelpLinks\b/, `${file} links the help pages`);
+  }
+  assert.match(read("src/components/church-av.tsx"), /to="\/church-av\/planner"/);
 });

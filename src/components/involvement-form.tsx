@@ -32,9 +32,26 @@ type Props = {
    * owner sees which page sent it (the inquiry has no separate field for it).
    */
   source?: { path: string; label: string };
+  /**
+   * Extra text added to the message after what the person typed, e.g. the
+   * Church Room Planner's answers, so the owner's email shows everything.
+   */
+  attachment?: string;
+  /** Overrides the message field's label. */
+  messageLabel?: string;
+  /** Overrides the submit button's label. */
+  submitLabel?: string;
 };
 
-export function InvolvementForm({ intent, className, defaultCity, source }: Props) {
+export function InvolvementForm({
+  intent,
+  className,
+  defaultCity,
+  source,
+  attachment,
+  messageLabel,
+  submitLabel,
+}: Props) {
   const copy = INTENT_COPY[intent];
   const needsOrg =
     intent === "seal" || intent === "grocery" || intent === "buying" || intent === "av";
@@ -60,7 +77,11 @@ export function InvolvementForm({ intent, className, defaultCity, source }: Prop
         organization: String(data.get("organization") ?? "").trim(),
         orgType: String(data.get("orgType") ?? "").trim(),
         city: String(data.get("city") ?? "").trim(),
-        message: [String(data.get("message") ?? "").trim(), source ? sourceLine(source) : ""]
+        message: [
+          String(data.get("message") ?? "").trim(),
+          attachment ?? "",
+          source ? sourceLine(source) : "",
+        ]
           .filter(Boolean)
           .join("\n\n"),
         poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
@@ -191,7 +212,7 @@ export function InvolvementForm({ intent, className, defaultCity, source }: Prop
         ) : null}
         <Field
           label={
-            intent === "seal"
+            messageLabel ? messageLabel : intent === "seal"
               ? "Anything we should know"
               : intent === "av"
                 ? "What is going on with your sound, stream, or lighting?"
@@ -238,7 +259,7 @@ export function InvolvementForm({ intent, className, defaultCity, source }: Prop
       {error ? <p className="mt-4 text-sm text-ink">{error}</p> : null}
 
       <Button type="submit" className="mt-6 w-full sm:w-auto">
-        {copy.submit}
+        {submitLabel ?? copy.submit}
       </Button>
     </form>
   );
