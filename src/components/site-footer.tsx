@@ -50,6 +50,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/verse" className="text-muted hover:text-ink">
+                Verse of the Day
+              </Link>
+            </li>
+            <li>
               <Link to="/join" className="text-muted hover:text-ink">
                 Take the seal
               </Link>
