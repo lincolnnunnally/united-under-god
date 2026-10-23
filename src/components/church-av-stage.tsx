@@ -48,9 +48,19 @@ export function StageIllustration({ style, className }: { style: Style; classNam
   );
 }
 
-function Cross({ x = 160, y = 18, size = 1 }: { x?: number; y?: number; size?: number }) {
+function Cross({
+  x = 160,
+  y = 18,
+  size = 1,
+  className = "fill-forest",
+}: {
+  x?: number;
+  y?: number;
+  size?: number;
+  className?: string;
+}) {
   return (
-    <g className="fill-forest">
+    <g className={className}>
       <rect x={x - 3 * size} y={y} width={6 * size} height={44 * size} />
       <rect x={x - 15 * size} y={y + 11 * size} width={30 * size} height={6 * size} />
     </g>
@@ -160,7 +170,7 @@ function Modern() {
           <line key={`h${i}`} x1="40" y1={24 + i * 18} x2="280" y2={24 + i * 18} />
         ))}
       </g>
-      <Cross x={160} y={38} size={0.8} />
+      <Cross x={160} y={38} size={0.8} className="fill-paper/85" />
       {/* band: drums, keys, singers */}
       <g className="fill-ink/70">
         <circle cx="160" cy="112" r="9" />

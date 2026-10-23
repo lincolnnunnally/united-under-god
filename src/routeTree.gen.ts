@@ -38,6 +38,11 @@ import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
 import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
 import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
+import { Route as ChurchAvBlendedRouteImport } from './routes/church-av/blended'
+import { Route as ChurchAvLivestreamMinistryRouteImport } from './routes/church-av/livestream-ministry'
+import { Route as ChurchAvModernRouteImport } from './routes/church-av/modern'
+import { Route as ChurchAvNewBuildingRouteImport } from './routes/church-av/new-building'
+import { Route as ChurchAvTraditionalRouteImport } from './routes/church-av/traditional'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -193,6 +198,32 @@ const ChurchAvIndexRoute = ChurchAvIndexRouteImport.update({
   path: '/church-av/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChurchAvBlendedRoute = ChurchAvBlendedRouteImport.update({
+  id: '/church-av/blended',
+  path: '/church-av/blended',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvLivestreamMinistryRoute =
+  ChurchAvLivestreamMinistryRouteImport.update({
+    id: '/church-av/livestream-ministry',
+    path: '/church-av/livestream-ministry',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ChurchAvModernRoute = ChurchAvModernRouteImport.update({
+  id: '/church-av/modern',
+  path: '/church-av/modern',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvNewBuildingRoute = ChurchAvNewBuildingRouteImport.update({
+  id: '/church-av/new-building',
+  path: '/church-av/new-building',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvTraditionalRoute = ChurchAvTraditionalRouteImport.update({
+  id: '/church-av/traditional',
+  path: '/church-av/traditional',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GiveThanksRoute = GiveThanksRouteImport.update({
   id: '/thanks',
   path: '/thanks',
@@ -265,6 +296,11 @@ export interface FileRoutesByFullPath {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
+  '/church-av/modern': typeof ChurchAvModernRoute
+  '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
@@ -302,6 +338,11 @@ export interface FileRoutesByTo {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
+  '/church-av/modern': typeof ChurchAvModernRoute
+  '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
@@ -343,6 +384,11 @@ export interface FileRoutesById {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
+  '/church-av/modern': typeof ChurchAvModernRoute
+  '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
@@ -385,6 +431,11 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/desk'
+    | '/church-av/blended'
+    | '/church-av/livestream-ministry'
+    | '/church-av/modern'
+    | '/church-av/new-building'
+    | '/church-av/traditional'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
@@ -422,6 +473,11 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/desk'
+    | '/church-av/blended'
+    | '/church-av/livestream-ministry'
+    | '/church-av/modern'
+    | '/church-av/new-building'
+    | '/church-av/traditional'
     | '/give/thanks'
     | '/admin'
     | '/bible'
@@ -462,6 +518,11 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/desk'
+    | '/church-av/blended'
+    | '/church-av/livestream-ministry'
+    | '/church-av/modern'
+    | '/church-av/new-building'
+    | '/church-av/traditional'
     | '/give/thanks'
     | '/admin/'
     | '/bible/'
@@ -498,6 +559,11 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
+  ChurchAvBlendedRoute: typeof ChurchAvBlendedRoute
+  ChurchAvLivestreamMinistryRoute: typeof ChurchAvLivestreamMinistryRoute
+  ChurchAvModernRoute: typeof ChurchAvModernRoute
+  ChurchAvNewBuildingRoute: typeof ChurchAvNewBuildingRoute
+  ChurchAvTraditionalRoute: typeof ChurchAvTraditionalRoute
   ChurchAvIndexRoute: typeof ChurchAvIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -714,6 +780,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChurchAvIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/church-av/blended': {
+      id: '/church-av/blended'
+      path: '/church-av/blended'
+      fullPath: '/church-av/blended'
+      preLoaderRoute: typeof ChurchAvBlendedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/livestream-ministry': {
+      id: '/church-av/livestream-ministry'
+      path: '/church-av/livestream-ministry'
+      fullPath: '/church-av/livestream-ministry'
+      preLoaderRoute: typeof ChurchAvLivestreamMinistryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/modern': {
+      id: '/church-av/modern'
+      path: '/church-av/modern'
+      fullPath: '/church-av/modern'
+      preLoaderRoute: typeof ChurchAvModernRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/new-building': {
+      id: '/church-av/new-building'
+      path: '/church-av/new-building'
+      fullPath: '/church-av/new-building'
+      preLoaderRoute: typeof ChurchAvNewBuildingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/traditional': {
+      id: '/church-av/traditional'
+      path: '/church-av/traditional'
+      fullPath: '/church-av/traditional'
+      preLoaderRoute: typeof ChurchAvTraditionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/give/thanks': {
       id: '/give/thanks'
       path: '/thanks'
@@ -857,6 +958,11 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
+  ChurchAvBlendedRoute: ChurchAvBlendedRoute,
+  ChurchAvLivestreamMinistryRoute: ChurchAvLivestreamMinistryRoute,
+  ChurchAvModernRoute: ChurchAvModernRoute,
+  ChurchAvNewBuildingRoute: ChurchAvNewBuildingRoute,
+  ChurchAvTraditionalRoute: ChurchAvTraditionalRoute,
   ChurchAvIndexRoute: ChurchAvIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

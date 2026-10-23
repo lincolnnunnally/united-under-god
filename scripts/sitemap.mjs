@@ -50,12 +50,23 @@ export function churchAvHelpPaths(root = ROOT) {
 }
 
 /**
+ * /church-av landing pages (one per worship style, one per outcome), read
+ * from the slugs in src/lib/church-av-landing.ts.
+ */
+export function churchAvLandingPaths(root = ROOT) {
+  const source = readFileSync(join(root, "src/lib/church-av-landing.ts"), "utf8");
+  const slugs = [...source.matchAll(/^ {4}slug: "([a-z0-9-]+)",$/gm)].map((m) => m[1]);
+  return slugs.map((slug) => `/church-av/${slug}`);
+}
+
+/**
  * /church-av state, city, help, and planner pages, from the same data the
  * routes render. The planner's per-church summary page is noindex and stays out.
  */
 export function churchAvPaths(root = ROOT) {
   const av = JSON.parse(readFileSync(join(root, "src/data/church-av.json"), "utf8"));
   return [
+    ...churchAvLandingPaths(root),
     "/church-av/planner",
     ...churchAvHelpPaths(root),
     ...av.states.map((s) => `/church-av/${s.slug}`),

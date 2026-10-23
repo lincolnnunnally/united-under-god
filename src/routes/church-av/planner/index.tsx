@@ -86,7 +86,13 @@ function PlannerPage() {
 
       <section className="mx-auto max-w-5xl px-5 py-12 md:px-8 md:py-16 print:p-0">
         <div className="print:hidden">
-          <PlannerWizard initialProblem={search.problems} onAnswers={onAnswers} />
+          <PlannerWizard
+            initialProblem={search.problems}
+            initialStyle={search.style}
+            initialLivestream={search.livestream}
+            initialBuilding={search.building}
+            onAnswers={onAnswers}
+          />
         </div>
         {finished ? (
           <div className="mt-12 print:mt-0">
