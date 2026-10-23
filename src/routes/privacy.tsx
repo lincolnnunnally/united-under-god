@@ -41,9 +41,11 @@ function PrivacyPage() {
           <p>
             If you ask for the verse of the day, we keep the email address you
             typed and whether you have confirmed it. We mail you a confirmation
-            first. After you confirm, we send one verse each day, with a link to
-            that day’s page. Every note has a link to stop. Stopping takes you
-            off the list. We do not sell the address or share it with advertisers.
+            first. The link in that note opens a page, and the verse starts only
+            after you press the button. After you confirm, we send one verse
+            each day, with a link to that day’s page. Every note has a way to
+            stop. Stopping opens a page where you press a button, and that takes
+            you off the list. We do not sell the address or share it with advertisers.
           </p>
           <h2 className="pt-4 text-2xl text-ink">Gifts</h2>
           <p>

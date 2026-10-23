@@ -1,11 +1,12 @@
 import { timingSafeEqual } from "node:crypto";
+import { LEGAL } from "./content.ts";
 import type { Sql } from "./db.ts";
 import { sendResendBatch, sendResendText } from "./desk-mail.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 import { groupVerseDays, type VerseDay } from "./verse.ts";
 import { isMissingRelation, loadVerseDays } from "./verse-feed.ts";
 import {
-  CONFIRM_MAX_PER_HOUR,
+  CONFIRM_PER_ADDRESS_PER_DAY,
   CONFIRM_TTL_SEC,
   UNSUBSCRIBE_TTL_SEC,
   VERSE_SITE,
@@ -13,15 +14,16 @@ import {
   buildConfirmMail,
   buildDailyVerseMail,
   cleanSourcePath,
+  confirmSendAllowed,
+  fullPostalAddress,
   indexNowPayload,
+  ipSubscribeLimited,
   isPlausibleEmail,
   liveMailAllowed,
   ministryToday,
   normalizeEmail,
-  postalLine,
   recipientAllowed,
   signVerseToken,
-  transactionalAllowance,
   usableIndexNowKey,
   utcDayStart,
   utcMonthStart,
@@ -33,8 +35,7 @@ import {
 const NOT_OPEN = `The daily verse email is not open just yet. Write ${OWNER_EMAIL} and we will add you.`;
 const TRY_LATER = "We could not send the confirmation email. Please try again in a little while.";
 const CHECK_INBOX = "Check your inbox for a note from United Under God. Open it and confirm, and the daily verse will start.";
-const ALREADY = "You're already receiving the daily verse. Look for it each day.";
-const RATE = "We already sent a few confirmations. Check your inbox, including the spam folder, or try again in an hour.";
+const SAME_REPLY = { ok: true as const, state: "pending" as const, message: CHECK_INBOX };
 
 type Subscriber = {
   id: string;
@@ -70,32 +71,45 @@ function asCount(rows: Array<{ n?: unknown }>) {
   return Number.isFinite(value) ? value : 0;
 }
 
-async function sentSince(sql: Sql, sinceIso: string) {
-  const verse = await sql<{ n: number }>`
+async function countKind(sql: Sql, sinceIso: string, kind: "confirm" | "daily") {
+  const rows = await sql<{ n: number }>`
     select count(*)::int as n from verse_send_log
-    where status = 'sent' and created_at >= ${sinceIso}::timestamptz
+    where status = 'sent' and kind = ${kind} and created_at >= ${sinceIso}::timestamptz
   `;
-  let desk = 0;
+  return asCount(rows);
+}
+
+async function countDesk(sql: Sql, sinceIso: string) {
   try {
     const rows = await sql<{ n: number }>`
       select count(*)::int as n from email_log
       where status = 'sent' and created_at >= ${sinceIso}::timestamptz
     `;
-    desk = asCount(rows);
+    return asCount(rows);
   } catch (error) {
     if (!isMissingRelation(error)) throw error;
+    return 0;
   }
-  return asCount(verse) + desk;
 }
 
-function confirmBudget(row: Subscriber, now: Date) {
+function confirmsUsedToday(row: Subscriber, now: Date) {
   const windowStart = asTime(row.confirm_window_started_at);
-  const inWindow = windowStart > 0 && now.getTime() - windowStart < 60 * 60 * 1000;
-  const count = inWindow ? Number(row.confirm_send_count) || 0 : 0;
-  if (count >= CONFIRM_MAX_PER_HOUR) return { send: false as const, reason: "rate" as const, count };
-  const last = asTime(row.confirm_sent_at);
-  if (last && now.getTime() - last < 60_000) return { send: false as const, reason: "recent" as const, count };
-  return { send: true as const, reason: "" as const, count };
+  if (windowStart < Date.parse(utcDayStart(now))) return 0;
+  return Number(row.confirm_send_count) || 0;
+}
+
+async function ipOverLimit(sql: Sql, ip: string, now: Date) {
+  const hourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+  const dayStart = utcDayStart(now);
+  const hour = await sql<{ n: number }>`
+    select count(*)::int as n from verse_subscribe_hits
+    where ip = ${ip} and created_at >= ${hourAgo}::timestamptz
+  `;
+  const day = await sql<{ n: number }>`
+    select count(*)::int as n from verse_subscribe_hits
+    where ip = ${ip} and created_at >= ${dayStart}::timestamptz
+  `;
+  return ipSubscribeLimited(asCount(hour), asCount(day));
 }
 
 async function findSubscriber(sql: Sql, email: string) {
@@ -121,12 +135,17 @@ async function sendConfirmation(args: {
     console.error("[verse-mail] confirmation skipped; recipient is not allowed on this host");
     return { ok: false, error: TRY_LATER };
   }
-  const sentToday = await sentSince(args.sql, utcDayStart(args.now));
-  const sentThisMonth = await sentSince(args.sql, utcMonthStart(args.now));
-  if (transactionalAllowance({ sentToday, sentThisMonth }) < 1) {
-    console.error("[verse-mail] confirmation stopped under the send cap");
-    return { ok: false, error: TRY_LATER };
+  const dayStart = utcDayStart(args.now);
+  const monthStart = utcMonthStart(args.now);
+  const confirmsToday = await countKind(args.sql, dayStart, "confirm");
+  const confirmsThisMonth = await countKind(args.sql, monthStart, "confirm");
+  const otherToday = (await countKind(args.sql, dayStart, "daily")) + (await countDesk(args.sql, dayStart));
+  const otherThisMonth = (await countKind(args.sql, monthStart, "daily")) + (await countDesk(args.sql, monthStart));
+  if (!confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth })) {
+    console.error("[verse-mail] confirmation stopped under the confirm slice");
+    return SAME_REPLY;
   }
+  const address = fullPostalAddress(process.env.VERSE_POSTAL_ADDRESS);
   const exp = Math.floor(args.now.getTime() / 1000);
   const confirmToken = signVerseToken(
     { email: args.row.email, purpose: "confirm", exp: exp + CONFIRM_TTL_SEC },
@@ -140,9 +159,9 @@ async function sendConfirmation(args: {
     confirmToken,
     unsubscribeToken,
     site: args.site,
-    address: postalLine(),
+    address: address || LEGAL.name,
   });
-  const hour = Math.floor(args.now.getTime() / 3_600_000);
+  const usedToday = confirmsUsedToday(args.row, args.now);
   const result = await sendResendText({
     to: args.row.email,
     subject: mail.subject,
@@ -150,7 +169,7 @@ async function sendConfirmation(args: {
     html: mail.html,
     headers: mail.headers,
     apiKey: args.apiKey,
-    idempotencyKey: `verse-confirm/${args.row.id}/${hour}`,
+    idempotencyKey: `verse-confirm/${args.row.id}/${dayStart.slice(0, 10)}/${usedToday + 1}`,
     fetchImpl: args.fetchImpl,
   });
   await args.sql`
@@ -166,22 +185,32 @@ async function sendConfirmation(args: {
     console.error(`[verse-mail] confirmation failed subscriber=${args.row.id}`);
     return { ok: false, error: TRY_LATER };
   }
-  const windowStart = asTime(args.row.confirm_window_started_at);
-  const inWindow = windowStart > 0 && args.now.getTime() - windowStart < 60 * 60 * 1000;
+  const sameDay = asTime(args.row.confirm_window_started_at) >= Date.parse(dayStart);
   await args.sql`
     update verse_subscribers
     set confirm_sent_at = ${args.now.toISOString()}::timestamptz,
-        confirm_send_count = ${inWindow ? Number(args.row.confirm_send_count) + 1 : 1},
-        confirm_window_started_at = ${inWindow ? new Date(windowStart).toISOString() : args.now.toISOString()}::timestamptz,
+        confirm_send_count = ${sameDay ? usedToday + 1 : 1},
+        confirm_window_started_at = ${sameDay ? new Date(asTime(args.row.confirm_window_started_at)).toISOString() : args.now.toISOString()}::timestamptz,
         updated_at = now()
     where id = ${args.row.id}
   `;
-  return { ok: true, state: "pending", message: CHECK_INBOX };
+  return SAME_REPLY;
 }
 
 export async function requestVerseSubscription(
   sql: Sql,
-  input: { email: string; sourcePath: string; now?: Date; apiKey?: string; secret?: string; allowLive?: boolean; fetchImpl?: typeof fetch; site?: string },
+  input: {
+    email: string;
+    sourcePath: string;
+    now?: Date;
+    apiKey?: string;
+    secret?: string;
+    allowLive?: boolean;
+    fetchImpl?: typeof fetch;
+    site?: string;
+    ip?: string;
+    hp?: string;
+  },
 ): Promise<SubscribeState> {
   const email = normalizeEmail(input.email);
   if (!isPlausibleEmail(email)) {
@@ -196,8 +225,19 @@ export async function requestVerseSubscription(
   const sourcePath = cleanSourcePath(input.sourcePath);
   const note = `Daily verse by email. Double opt-in from ${sourcePath}.`;
   const allowLive = input.allowLive ?? liveMailAllowed();
+  const ip = input.ip?.trim().slice(0, 64) ?? "";
   try {
+    if (ip) {
+      if (await ipOverLimit(sql, ip, now)) return SAME_REPLY;
+      await sql`
+        insert into verse_subscribe_hits (id, ip, created_at)
+        values (${crypto.randomUUID()}, ${ip}, ${now.toISOString()}::timestamptz)
+      `;
+    }
+    if (input.hp?.trim()) return SAME_REPLY;
     let row = await findSubscriber(sql, email);
+    if (row?.status === "confirmed") return SAME_REPLY;
+    if (row && confirmsUsedToday(row, now) >= CONFIRM_PER_ADDRESS_PER_DAY) return SAME_REPLY;
     if (!row) {
       const id = crypto.randomUUID();
       try {
@@ -209,10 +249,7 @@ export async function requestVerseSubscription(
         if ((error as { code?: string })?.code !== "23505") throw error;
       }
       row = await findSubscriber(sql, email);
-    }
-    if (!row) return { ok: false, error: TRY_LATER };
-    if (row.status === "confirmed") return { ok: true, state: "confirmed", message: ALREADY };
-    if (row.status === "unsubscribed") {
+    } else if (row.status === "unsubscribed") {
       await sql`
         update verse_subscribers
         set status = 'pending',
@@ -234,9 +271,7 @@ export async function requestVerseSubscription(
         where id = ${row.id}
       `;
     }
-    const budget = confirmBudget(row, now);
-    if (!budget.send && budget.reason === "recent") return { ok: true, state: "pending", message: CHECK_INBOX };
-    if (!budget.send) return { ok: false, error: RATE };
+    if (!row) return { ok: false, error: TRY_LATER };
     return sendConfirmation({
       sql,
       row,
@@ -248,6 +283,7 @@ export async function requestVerseSubscription(
       site: input.site,
     });
   } catch (error) {
+    if (input.hp?.trim()) return SAME_REPLY;
     if (isMissingRelation(error)) {
       console.error("[verse-mail] subscriber table is not ready");
       return { ok: false, error: NOT_OPEN };
@@ -331,33 +367,54 @@ export async function unsubscribeVerseToken(
 async function claimRun(
   sql: Sql,
   dateKey: string,
-): Promise<{ state: "claimed"; attempt: number } | { state: "done" | "busy" | "capped" }> {
+): Promise<
+  | { state: "claimed"; attempt: number; recipientIds: string; idempotencyKey: string }
+  | { state: "done" | "busy" }
+> {
   await sql`
     insert into verse_mail_runs (date_key, status)
     values (${dateKey}, 'started')
     on conflict (date_key) do nothing
   `;
-  // A known provider failure bumps the attempt so the next call is not stuck
-  // on a cached error. A crash mid-send keeps the attempt, and the same
-  // idempotency key, so a retry does not mail the list twice.
-  const claimed = await sql<{ attempt: number }>`
+  // A known provider failure bumps the attempt and clears the stored key so
+  // the next call is not stuck on a cached error. A crash mid-send keeps the
+  // stored ids and key. A capped run stays claimable so the rest of the list
+  // can go later the same day. Right-hand values are the row before this update.
+  const claimed = await sql<{ attempt: number; recipient_ids: string; idempotency_key: string }>`
     update verse_mail_runs
     set status = 'sending',
         started_at = now(),
-        attempt = case when stopped_reason = 'send failed' then attempt + 1 else attempt end
+        attempt = case
+          when status = 'partial' and stopped_reason = 'send failed' then attempt + 1
+          else attempt
+        end,
+        recipient_ids = case
+          when status = 'sending' and idempotency_key <> '' then recipient_ids
+          else ''
+        end,
+        idempotency_key = case
+          when status = 'sending' and idempotency_key <> '' then idempotency_key
+          else ''
+        end
     where date_key = ${dateKey}
       and (
-        status in ('started', 'partial')
+        status in ('started', 'partial', 'capped')
         or (status = 'sending' and started_at < now() - interval '15 minutes')
       )
-    returning attempt
+    returning attempt, recipient_ids, idempotency_key
   `;
-  if (claimed.length > 0) return { state: "claimed", attempt: Number(claimed[0]?.attempt ?? 0) };
+  if (claimed.length > 0) {
+    return {
+      state: "claimed",
+      attempt: Number(claimed[0]?.attempt ?? 0),
+      recipientIds: claimed[0]?.recipient_ids ?? "",
+      idempotencyKey: claimed[0]?.idempotency_key ?? "",
+    };
+  }
   const rows = await sql<{ status: string }>`
     select status from verse_mail_runs where date_key = ${dateKey}
   `;
   if (rows[0]?.status === "sent") return { state: "done" };
-  if (rows[0]?.status === "capped") return { state: "capped" };
   return { state: "busy" };
 }
 
@@ -365,7 +422,7 @@ async function finishRun(sql: Sql, dateKey: string, status: string, sent: number
   await sql`
     update verse_mail_runs
     set status = ${status},
-        sent_count = ${sent},
+        sent_count = sent_count + ${sent},
         skipped_count = ${skipped},
         stopped_reason = ${reason},
         finished_at = now()
@@ -387,8 +444,21 @@ export async function submitFreshVersePages(
     return { submitted: [] as string[] };
   }
   const known = await sql<{ slug: string }>`select slug from verse_indexnow_log`;
+  const site = opts.site ?? VERSE_SITE;
+  const slugs = opts.slugs.filter(Boolean);
+  if (known.length === 0 && slugs.length > 0) {
+    for (const slug of slugs) {
+      await sql`
+        insert into verse_indexnow_log (slug, url, http_status)
+        values (${slug}, ${`${site}/verse/${slug}`}, null)
+        on conflict (slug) do nothing
+      `;
+    }
+    console.info(`[indexnow] seeded ${slugs.length} existing verse page(s); not submitting the backlog`);
+    return { submitted: [] as string[] };
+  }
   const have = new Set(known.map((row) => row.slug));
-  const fresh = opts.slugs.filter((slug) => slug && !have.has(slug));
+  const fresh = slugs.filter((slug) => !have.has(slug));
   if (fresh.length === 0) return { submitted: [] as string[] };
   const payload = indexNowPayload({ key, slugs: fresh, site: opts.site });
   const res = await (opts.fetchImpl ?? fetch)("https://api.indexnow.org/indexnow", {
@@ -400,7 +470,6 @@ export async function submitFreshVersePages(
     console.error(`[indexnow] submit failed status=${res.status}`);
     return { submitted: [] as string[] };
   }
-  const site = opts.site ?? VERSE_SITE;
   for (const slug of fresh) {
     await sql`
       insert into verse_indexnow_log (slug, url, http_status)
@@ -422,6 +491,7 @@ export async function deliverDailyVerse(
     fetchImpl?: typeof fetch;
     site?: string;
     days?: VerseDay[];
+    postalAddress?: string;
   } = {},
 ): Promise<DeliverState> {
   const now = opts.now ?? new Date();
@@ -447,18 +517,21 @@ export async function deliverDailyVerse(
     return { ok: true, sent: 0, skipped: 0, reason: "no verse published", indexNow };
   }
 
-  const claim = await claimRun(sql, dateKey);
-  if (claim.state !== "claimed") {
-    const reason =
-      claim.state === "capped" ? "already capped" : claim.state === "busy" ? "already sending" : "already sent";
-    return { ok: true, sent: 0, skipped: 0, reason, indexNow };
-  }
-
   const secret = opts.secret ?? verseLinkSecret();
   if (!secret) {
-    console.error("[verse-mail] daily send skipped; link secret missing");
-    await finishRun(sql, dateKey, "partial", 0, 0, "link secret missing");
+    console.error("[verse-mail] daily send skipped; VERSE_LINK_SECRET is not set");
     return { ok: false, sent: 0, skipped: 0, reason: "link secret missing", indexNow };
+  }
+  const address = fullPostalAddress(opts.postalAddress ?? process.env.VERSE_POSTAL_ADDRESS);
+  if (!address) {
+    console.error("[verse-mail] daily send skipped; VERSE_POSTAL_ADDRESS is not a street or PO box");
+    return { ok: false, sent: 0, skipped: 0, reason: "postal address missing", indexNow };
+  }
+
+  const claim = await claimRun(sql, dateKey);
+  if (claim.state !== "claimed") {
+    const reason = claim.state === "busy" ? "already sending" : "already sent";
+    return { ok: true, sent: 0, skipped: 0, reason, indexNow };
   }
 
   const allowLive = opts.allowLive ?? liveMailAllowed();
@@ -478,20 +551,47 @@ export async function deliverDailyVerse(
   if (skippedLive > 0) {
     console.info(`[verse-mail] skipped ${skippedLive} recipient(s) that this host must not mail`);
   }
-  const sentToday = await sentSince(sql, utcDayStart(now));
-  const sentThisMonth = await sentSince(sql, utcMonthStart(now));
+  const dayStart = utcDayStart(now);
+  const monthStart = utcMonthStart(now);
+  const sentToday = (await countKind(sql, dayStart, "daily")) + (await countDesk(sql, dayStart));
+  const sentThisMonth = (await countKind(sql, monthStart, "daily")) + (await countDesk(sql, monthStart));
   const budget = verseSendAllowance({ sentToday, sentThisMonth });
-  const chosen = allowed.slice(0, budget.allowance);
-  const held = allowed.length - chosen.length;
+
+  let chosen: { id: string; email: string }[];
+  let idempotencyKey = claim.idempotencyKey;
+  if (claim.idempotencyKey) {
+    const wanted = new Set(claim.recipientIds.split(",").filter(Boolean));
+    const replayed: { id: string; email: string }[] = [];
+    for (const id of wanted) {
+      const found = await sql<{ id: string; email: string }>`
+        select id, email from verse_subscribers where id = ${id}
+      `;
+      const row = found[0];
+      if (row && recipientAllowed(row.email, allowLive)) replayed.push(row);
+    }
+    chosen = replayed;
+  } else {
+    chosen = allowed.slice(0, budget.allowance);
+    if (chosen.length === 0) {
+      const reason = allowed.length === 0 ? "no confirmed subscribers" : budget.reason || "cap";
+      await finishRun(sql, dateKey, allowed.length === 0 ? "sent" : "capped", 0, skippedLive, reason);
+      return { ok: true, sent: 0, skipped: skippedLive, reason, indexNow };
+    }
+    idempotencyKey = `${batchIdempotencyKey(dateKey, chosen.map((row) => row.id))}/a${claim.attempt}`;
+    const ids = chosen.map((row) => row.id).join(",");
+    await sql`
+      update verse_mail_runs
+      set recipient_ids = ${ids}, idempotency_key = ${idempotencyKey}
+      where date_key = ${dateKey}
+    `;
+  }
 
   if (chosen.length === 0) {
-    const reason = allowed.length === 0 ? "no confirmed subscribers" : budget.reason || "cap";
-    await finishRun(sql, dateKey, allowed.length === 0 ? "sent" : "capped", 0, skippedLive, reason);
-    return { ok: true, sent: 0, skipped: skippedLive, reason, indexNow };
+    await finishRun(sql, dateKey, "sent", 0, skippedLive, "replay empty");
+    return { ok: true, sent: 0, skipped: skippedLive, reason: "replay empty", indexNow };
   }
 
   const exp = Math.floor(now.getTime() / 1000) + UNSUBSCRIBE_TTL_SEC;
-  const address = postalLine();
   const messages = chosen.map((row) => {
     const token = signVerseToken({ email: row.email, purpose: "unsubscribe", exp }, secret);
     const mail = buildDailyVerseMail({ verse, token, site: opts.site, address });
@@ -500,7 +600,7 @@ export async function deliverDailyVerse(
   const sent = await sendResendBatch({
     messages,
     apiKey: opts.apiKey,
-    idempotencyKey: `${batchIdempotencyKey(dateKey, chosen.map((row) => row.id))}/a${claim.attempt}`,
+    idempotencyKey,
     fetchImpl: opts.fetchImpl,
   });
   if (!sent.ok) {
@@ -509,12 +609,16 @@ export async function deliverDailyVerse(
     return { ok: false, sent: 0, skipped: skippedLive, reason: "send failed", indexNow };
   }
 
+  let recorded = 0;
   for (const row of chosen) {
-    await sql`
+    const inserted = await sql<{ subscriber_id: string }>`
       insert into verse_mail_deliveries (date_key, subscriber_id, status, sent_at)
       values (${dateKey}, ${row.id}, 'sent', now())
       on conflict (date_key, subscriber_id) do nothing
+      returning subscriber_id
     `;
+    if (inserted.length === 0) continue;
+    recorded += 1;
     await sql`
       insert into verse_send_log (id, kind, subscriber_id, date_key, status)
       values (${crypto.randomUUID()}, 'daily', ${row.id}, ${dateKey}, 'sent')
@@ -525,17 +629,28 @@ export async function deliverDailyVerse(
       where id = ${row.id}
     `;
   }
-  const reason = held > 0 ? budget.reason || "cap" : "";
+  const left = await sql<{ n: number }>`
+    select count(*)::int as n from verse_subscribers
+    where status = 'confirmed'
+      and not exists (
+        select 1 from verse_mail_deliveries d
+        where d.subscriber_id = verse_subscribers.id
+          and d.date_key = ${dateKey}
+          and d.status = 'sent'
+      )
+  `;
+  const stillHeld = asCount(left);
+  const reason = stillHeld > 0 ? budget.reason || "cap" : "";
   await finishRun(
     sql,
     dateKey,
-    held > 0 ? "capped" : "sent",
-    chosen.length,
-    skippedLive + held,
+    stillHeld > 0 ? "capped" : "sent",
+    recorded,
+    skippedLive + stillHeld,
     reason,
   );
-  console.info(`[verse-mail] sent date=${dateKey} count=${chosen.length} held=${held}`);
-  return { ok: true, sent: chosen.length, skipped: skippedLive + held, reason, indexNow };
+  console.info(`[verse-mail] sent date=${dateKey} count=${recorded} held=${stillHeld}`);
+  return { ok: true, sent: recorded, skipped: skippedLive + stillHeld, reason, indexNow };
 }
 
 export function cronSecretMatches(request: Request, env: { CRON_SECRET?: string } = process.env) {

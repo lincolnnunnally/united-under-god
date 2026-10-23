@@ -24,6 +24,8 @@ create table if not exists verse_subscribers (
   confirmed_at timestamptz,
   unsubscribed_at timestamptz,
   confirm_sent_at timestamptz,
+  -- confirm_send_count is how many confirmation notes went out during the UTC day
+  -- that started at confirm_window_started_at. It resets on the next day.
   confirm_send_count integer not null default 0,
   confirm_window_started_at timestamptz,
   last_daily_sent_at timestamptz,
@@ -42,6 +44,9 @@ create table if not exists verse_mail_runs (
   skipped_count integer not null default 0,
   stopped_reason text not null default '',
   attempt integer not null default 0,
+  -- Written before the provider call so a retry can reuse the same people and key.
+  recipient_ids text not null default '',
+  idempotency_key text not null default '',
   started_at timestamptz not null default now(),
   finished_at timestamptz,
   constraint verse_mail_runs_status_check check (
@@ -83,17 +88,29 @@ create table if not exists verse_indexnow_log (
   submitted_at timestamptz not null default now()
 );
 
+-- Sign-up attempts by IP. No email address is stored here.
+create table if not exists verse_subscribe_hits (
+  id text primary key,
+  ip text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists verse_subscribe_hits_ip_idx
+  on verse_subscribe_hits (ip, created_at);
+
 alter table verse_subscribers enable row level security;
 alter table verse_mail_runs enable row level security;
 alter table verse_mail_deliveries enable row level security;
 alter table verse_send_log enable row level security;
 alter table verse_indexnow_log enable row level security;
+alter table verse_subscribe_hits enable row level security;
 
 revoke all on table verse_subscribers from public;
 revoke all on table verse_mail_runs from public;
 revoke all on table verse_mail_deliveries from public;
 revoke all on table verse_send_log from public;
 revoke all on table verse_indexnow_log from public;
+revoke all on table verse_subscribe_hits from public;
 
 do $$
 declare
@@ -107,7 +124,8 @@ begin
         'verse_mail_runs',
         'verse_mail_deliveries',
         'verse_send_log',
-        'verse_indexnow_log'
+        'verse_indexnow_log',
+        'verse_subscribe_hits'
       ] loop
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;

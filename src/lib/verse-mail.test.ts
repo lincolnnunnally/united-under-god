@@ -6,15 +6,20 @@ import type { Sql } from "./db.ts";
 import {
   buildConfirmMail,
   buildDailyVerseMail,
+  confirmSendAllowed,
+  fullPostalAddress,
   indexNowKeyFile,
+  ipSubscribeLimited,
   ministryToday,
   recipientAllowed,
   signVerseToken,
   verifyVerseToken,
+  verseLinkSecret,
   verseSendAllowance,
   VERSE_DAILY_SEND_CEILING,
   RESEND_DAILY_CAP,
   RESEND_MONTHLY_CAP,
+  CONFIRM_DAILY_CAP,
 } from "./verse-mail.ts";
 import {
   confirmVerseToken,
@@ -26,6 +31,7 @@ import type { VerseDay } from "./verse.ts";
 
 const SECRET = "test-link-secret";
 const QA = "delivered@resend.dev";
+const POSTAL = "PO Box 10, Vidalia, GA 30474";
 
 function toSql(pg: PGlite): Sql {
   const run = async <T>(text: string, params: unknown[]): Promise<T[]> => {
@@ -97,6 +103,24 @@ describe("verse mail tokens and caps", () => {
     assert.ok(80 * 30 < RESEND_MONTHLY_CAP);
   });
 
+  it("requires its own link secret and a street or PO box", () => {
+    assert.equal(verseLinkSecret({ VERSE_LINK_SECRET: "  verse-secret  " }), "verse-secret");
+    assert.equal(verseLinkSecret({ VERSE_LINK_SECRET: "", BETTER_AUTH_SECRET: "auth-secret" } as { VERSE_LINK_SECRET?: string }), "");
+    assert.equal(fullPostalAddress("Vidalia, Georgia"), "");
+    assert.equal(fullPostalAddress("United Under God, Inc."), "");
+    assert.equal(fullPostalAddress(POSTAL), POSTAL);
+    assert.equal(fullPostalAddress("123 Church Street, Vidalia, GA 30474"), "123 Church Street, Vidalia, GA 30474");
+  });
+
+  it("keeps confirmations in their own slice", () => {
+    assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), true);
+    assert.equal(confirmSendAllowed({ confirmsToday: CONFIRM_DAILY_CAP, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), false);
+    assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 80, otherThisMonth: 0 }), true);
+    assert.equal(ipSubscribeLimited(5, 0), true);
+    assert.equal(ipSubscribeLimited(4, 20), true);
+    assert.equal(ipSubscribeLimited(4, 19), false);
+  });
+
   it("mails QA addresses unless live sending is explicitly allowed", () => {
     assert.equal(recipientAllowed(QA, false), true);
     assert.equal(recipientAllowed("neighbor@example.com", false), false);
@@ -120,9 +144,10 @@ describe("verse mail tokens and caps", () => {
     const mail = buildDailyVerseMail({
       verse: { ...verse("2026-10-23"), translation: "NIV", verseText: "SECRET COPYRIGHT LINE" },
       token,
-      address: "United Under God, Inc., Vidalia, Georgia",
+      address: POSTAL,
     });
-    assert.match(mail.headers["List-Unsubscribe"], /^<https:\/\/www\.unitedundergod\.org\/api\/verse\/unsubscribe\?token=/);
+    assert.match(mail.headers["List-Unsubscribe"], /<mailto:lincoln@unitedundergod\.org\?subject=/);
+    assert.match(mail.headers["List-Unsubscribe"], /<https:\/\/www\.unitedundergod\.org\/api\/verse\/unsubscribe\?token=/);
     assert.equal(mail.headers["List-Unsubscribe-Post"], "List-Unsubscribe=One-Click");
     assert.equal(mail.text.includes("SECRET COPYRIGHT LINE"), false);
     assert.match(mail.text, /God is looking after you/);
@@ -130,7 +155,7 @@ describe("verse mail tokens and caps", () => {
     const confirm = buildConfirmMail({
       confirmToken: signVerseToken({ email: QA, purpose: "confirm", exp: 2_000_000_000 }, SECRET),
       unsubscribeToken: token,
-      address: "United Under God, Inc., Vidalia, Georgia",
+      address: POSTAL,
     });
     assert.match(confirm.text, /Confirm:/);
     assert.equal(confirm.text.includes("Resend"), false);
@@ -196,9 +221,17 @@ describe("verse subscription store", () => {
       secret: SECRET,
       allowLive: false,
       indexNowKey: "",
+      postalAddress: POSTAL,
       days: [day],
       fetchImpl: (async (url: string | URL | Request, init?: RequestInit) => {
+        const stored = await sql<{ idempotency_key: string; recipient_ids: string }>`
+          select idempotency_key, recipient_ids from verse_mail_runs
+        `;
+        assert.ok(stored[0]?.idempotency_key);
+        assert.ok(stored[0]?.recipient_ids);
         deliverCalls.push({ url: String(url), body: String(init?.body ?? "") });
+        const headers = Object.fromEntries(new Headers(init?.headers).entries());
+        assert.equal(headers["idempotency-key"], stored[0]?.idempotency_key);
         return new Response("{}", { status: 200 });
       }) as typeof fetch,
     });
@@ -217,6 +250,7 @@ describe("verse subscription store", () => {
       secret: SECRET,
       allowLive: false,
       indexNowKey: "indexnowkey",
+      postalAddress: POSTAL,
       days: [day],
       fetchImpl: (async () => {
         throw new Error("must not send twice");
@@ -274,6 +308,7 @@ describe("verse subscription store", () => {
       secret: SECRET,
       allowLive: false,
       indexNowKey: "not a key",
+      postalAddress: POSTAL,
       days: [verse("2026-10-23")],
       fetchImpl: (async () => {
         called = true;
@@ -284,5 +319,287 @@ describe("verse subscription store", () => {
     assert.equal(called, false);
     assert.match(result.reason, /cap/);
     await pg.close();
+  });
+
+  it("gives one reply for a new address, a confirmed address, and a rate limit", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:05:00Z");
+    const calls: string[] = [];
+    const fetchImpl = (async () => {
+      calls.push("sent");
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const first = await requestVerseSubscription(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(first.ok, true);
+    const token = signVerseToken(
+      { email: QA, purpose: "confirm", exp: Math.floor(now.getTime() / 1000) + 3600 },
+      SECRET,
+    );
+    await confirmVerseToken(sql, token, { secret: SECRET, now });
+    const again = await requestVerseSubscription(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    await sql`
+      insert into verse_send_log (id, kind, status, created_at)
+      select 'cap-' || g, 'confirm', 'sent', ${now.toISOString()}::timestamptz
+      from generate_series(1, 10) as g
+    `;
+    const capped = await requestVerseSubscription(sql, {
+      email: "bounced@resend.dev",
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(again.ok && capped.ok && again.message, first.ok ? first.message : "");
+    assert.equal(capped.ok && capped.message, first.ok ? first.message : "");
+    assert.equal(calls.length, 1);
+    await pg.close();
+  });
+
+  it("stops a fourth confirmation to the same address on the same day", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T15:00:00Z");
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    for (let n = 0; n < 4; n += 1) {
+      const result = await requestVerseSubscription(sql, {
+        email: QA,
+        sourcePath: "/verse",
+        now,
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      });
+      assert.equal(result.ok && result.message.includes("Check your inbox"), true);
+    }
+    assert.equal(calls, 3);
+    await pg.close();
+  });
+
+  it("limits sign-up attempts from one IP", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T16:00:00Z");
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    for (let n = 0; n < 5; n += 1) {
+      const result = await requestVerseSubscription(sql, {
+        email: `person${n}@example.com`,
+        sourcePath: "/verse",
+        now,
+        ip: "203.0.113.9",
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      });
+      assert.equal(result.ok, false);
+    }
+    const blocked = await requestVerseSubscription(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.9",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(blocked.ok && blocked.message.includes("Check your inbox"), true);
+    assert.equal(calls, 0);
+    await pg.close();
+  });
+
+  it("does not send the verse without a street or PO box", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:05:00Z");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      values ('sub-1', ${QA}, 'confirmed', now())
+    `;
+    let called = false;
+    const result = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: "",
+      allowLive: false,
+      postalAddress: "Vidalia, Georgia",
+      days: [verse("2026-10-23")],
+      fetchImpl: (async () => {
+        called = true;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.reason, "link secret missing");
+    const postal = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      postalAddress: "Vidalia, Georgia",
+      days: [verse("2026-10-23")],
+      fetchImpl: (async () => {
+        called = true;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(postal.reason, "postal address missing");
+    assert.equal(called, false);
+    const runs = await sql<{ n: number }>`select count(*)::int as n from verse_mail_runs`;
+    assert.equal(runs[0]?.n, 0);
+    await pg.close();
+  });
+
+  it("resumes a capped run later the same day", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:05:00Z");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      select 'sub-' || g, 'subscriber-' || g || '@example.com', 'confirmed', ${now.toISOString()}::timestamptz
+      from generate_series(1, 81) as g
+    `;
+    const seen = new Set<string>();
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const batch = JSON.parse(String(init?.body ?? "[]")) as { to: string[] }[];
+      for (const message of batch) seen.add(message.to[0] ?? "");
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const first = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-23")],
+      fetchImpl,
+    });
+    assert.equal(first.sent, 80);
+    assert.match(first.reason, /cap/);
+    const second = await deliverDailyVerse(sql, {
+      now: new Date(now.getTime() + 60_000),
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-23")],
+      fetchImpl,
+    });
+    assert.equal(second.sent, 1);
+    assert.equal(seen.size, 81);
+    await pg.close();
+  });
+
+  it("seeds existing verse pages and submits only a page that is new after that", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:05:00Z");
+    const older = [
+      { ...verse("2026-10-21"), reference: "John 1:1" },
+      { ...verse("2026-10-22"), reference: "John 3:16" },
+    ];
+    const seeded = await deliverDailyVerse(sql, {
+      now,
+      secret: SECRET,
+      postalAddress: POSTAL,
+      indexNowKey: "indexnowkey",
+      days: older,
+      fetchImpl: (async () => {
+        throw new Error("backlog must not be submitted");
+      }) as typeof fetch,
+    });
+    assert.equal(seeded.reason, "no verse published");
+    const rows = await sql<{ slug: string; http_status: number | null }>`
+      select slug, http_status from verse_indexnow_log order by slug
+    `;
+    assert.deepEqual(rows.map((row) => row.slug), ["john-1-1", "john-3-16"]);
+    assert.equal(rows[0]?.http_status, null);
+    let body = "";
+    const fresh = await deliverDailyVerse(sql, {
+      now,
+      secret: SECRET,
+      postalAddress: POSTAL,
+      indexNowKey: "indexnowkey",
+      days: [...older, { ...verse("2026-10-20"), reference: "Romans 8:28" }],
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        body = String(init?.body ?? "");
+        return new Response("{}", { status: 202 });
+      }) as typeof fetch,
+    });
+    assert.equal(fresh.indexNow, 1);
+    assert.match(body, /romans-8-28/);
+    assert.equal(body.includes("john-1-1"), false);
+    await pg.close();
+  });
+
+  it("replays the stored idempotency key after a crash", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:05:00Z");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      values ('sub-1', ${QA}, 'confirmed', now())
+    `;
+    await sql`
+      insert into verse_mail_runs (date_key, status, recipient_ids, idempotency_key, started_at)
+      values (
+        '2026-10-23',
+        'sending',
+        'sub-1',
+        'verse-daily/2026-10-23/stored',
+        ${new Date(now.getTime() - 16 * 60 * 1000).toISOString()}::timestamptz
+      )
+    `;
+    let key = "";
+    const result = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-23")],
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        key = new Headers(init?.headers).get("idempotency-key") ?? "";
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.sent, 1);
+    assert.equal(key, "verse-daily/2026-10-23/stored");
+    await pg.close();
+  });
+});
+
+describe("verse mail routes do not change state on GET", () => {
+  it("confirms and unsubscribes from a button, and the one-click path is POST only", () => {
+    const confirm = readFileSync(new URL("../routes/verse/confirm.tsx", import.meta.url), "utf8");
+    const unsub = readFileSync(new URL("../routes/verse/unsubscribe.tsx", import.meta.url), "utf8");
+    const api = readFileSync(new URL("../routes/api/verse/unsubscribe.ts", import.meta.url), "utf8");
+    assert.equal(confirm.includes("loader:"), false);
+    assert.equal(unsub.includes("loader:"), false);
+    assert.match(confirm, /confirmDailyVerse/);
+    assert.match(unsub, /unsubscribeDailyVerse/);
+    assert.match(api, /POST: \(\{ request \}\) => oneClick\(request\)/);
+    assert.match(api, /GET: \(\) => new Response\(null, \{ status: 405/);
+    assert.equal(api.includes("GET: ({ request }) => oneClick"), false);
   });
 });

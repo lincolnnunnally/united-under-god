@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { LEGAL } from "./content.ts";
+import { OWNER_EMAIL } from "./desk.ts";
 import { isPublicDomainTranslation, verseSlug, type VerseDay } from "./verse.ts";
 
 /** Free-plan caps returned by the Resend account this site already sends from. */
@@ -7,9 +8,10 @@ export const RESEND_DAILY_CAP = 100;
 export const RESEND_MONTHLY_CAP = 3000;
 
 /**
- * Verse letters stop this far under the cap so confirmations, desk mail, and
- * other apps on the same key still fit. The free plan rejects mail at the cap
- * rather than billing an overage; this keeps us off that line.
+ * Verse letters stop this far under the cap so desk mail and other apps on the
+ * same key still fit. Confirmation notes have their own small slice and are
+ * not subtracted from this verse budget. The free plan rejects mail at the
+ * cap rather than billing an overage.
  */
 export const RESEND_DAILY_HEADROOM = 15;
 export const RESEND_MONTHLY_HEADROOM = 300;
@@ -17,12 +19,19 @@ export const RESEND_MONTHLY_HEADROOM = 300;
 /** Never more than this many verse letters in one day, even if headroom remains. */
 export const VERSE_DAILY_SEND_CEILING = 80;
 
-/** Confirmations stop one send under the hard cap. */
-export const TRANSACTIONAL_HEADROOM = 1;
+/** Confirmations, across every address, stop here so they cannot eat the verse budget. */
+export const CONFIRM_DAILY_CAP = 10;
+export const CONFIRM_MONTHLY_CAP = 300;
+
+/** One address may receive this many confirmation notes per UTC day. */
+export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
+
+/** Sign-up attempts from one IP, whether or not a note goes out. */
+export const SUBSCRIBE_IP_PER_HOUR = 5;
+export const SUBSCRIBE_IP_PER_DAY = 20;
 
 export const CONFIRM_TTL_SEC = 48 * 60 * 60;
 export const UNSUBSCRIBE_TTL_SEC = 400 * 24 * 60 * 60;
-export const CONFIRM_MAX_PER_HOUR = 3;
 
 export const QA_MAILBOXES = new Set([
   "delivered@resend.dev",
@@ -63,17 +72,25 @@ export function recipientAllowed(email: string, allowLive: boolean) {
   return isQaMailbox(email);
 }
 
-export function verseLinkSecret(env: {
-  VERSE_LINK_SECRET?: string;
-  BETTER_AUTH_SECRET?: string;
-} = process.env) {
-  return env.VERSE_LINK_SECRET?.trim() || env.BETTER_AUTH_SECRET?.trim() || "";
+/** Link tokens use only VERSE_LINK_SECRET. An empty value means do not send. */
+export function verseLinkSecret(env: { VERSE_LINK_SECRET?: string } = process.env) {
+  return env.VERSE_LINK_SECRET?.trim() ?? "";
 }
 
-export function postalLine(env: { VERSE_POSTAL_ADDRESS?: string } = process.env) {
-  const override = env.VERSE_POSTAL_ADDRESS?.trim();
-  if (override) return override;
-  return `${LEGAL.name}, Vidalia, Georgia`;
+/**
+ * A street number or PO box. A city name alone is not enough for the postal
+ * line the mail rules require. Empty means do not send the daily verse.
+ */
+export function isStreetOrPoBox(value: string) {
+  const trimmed = value.trim();
+  if (trimmed.length < 10 || trimmed.length > 240) return false;
+  if (/\bP\.?\s*O\.?\s*Box\s+\d+/i.test(trimmed)) return true;
+  return /\d/.test(trimmed) && /[A-Za-z]/.test(trimmed) && trimmed.includes(",");
+}
+
+export function fullPostalAddress(value: string | undefined) {
+  const trimmed = value?.trim() ?? "";
+  return isStreetOrPoBox(trimmed) ? trimmed : "";
 }
 
 export function utcDayStart(now = new Date()) {
@@ -116,17 +133,32 @@ export function verseSendAllowance(input: {
   return { allowance, reason };
 }
 
-export function transactionalAllowance(input: {
-  sentToday: number;
-  sentThisMonth: number;
+/**
+ * Confirmations draw from their own slice. `otherToday` / `otherThisMonth`
+ * are verse letters and desk mail, not confirmations, so a confirmation
+ * never shrinks the verse budget. The slice still stops short of the hard cap.
+ */
+export function confirmSendAllowed(input: {
+  confirmsToday: number;
+  confirmsThisMonth: number;
+  otherToday: number;
+  otherThisMonth: number;
   dailyCap?: number;
   monthlyCap?: number;
 }) {
+  if (input.confirmsToday >= CONFIRM_DAILY_CAP) return false;
+  if (input.confirmsThisMonth >= CONFIRM_MONTHLY_CAP) return false;
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
-  const dailyLeft = dailyCap - TRANSACTIONAL_HEADROOM - Math.max(0, input.sentToday);
-  const monthlyLeft = monthlyCap - TRANSACTIONAL_HEADROOM - Math.max(0, input.sentThisMonth);
-  return Math.max(0, Math.min(dailyLeft, monthlyLeft));
+  const dailyReserve = Math.max(0, RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
+  const monthlyReserve = Math.max(0, RESEND_MONTHLY_HEADROOM - CONFIRM_MONTHLY_CAP);
+  if (input.otherToday + input.confirmsToday >= dailyCap - dailyReserve) return false;
+  if (input.otherThisMonth + input.confirmsThisMonth >= monthlyCap - monthlyReserve) return false;
+  return true;
+}
+
+export function ipSubscribeLimited(hourCount: number, dayCount: number) {
+  return hourCount >= SUBSCRIBE_IP_PER_HOUR || dayCount >= SUBSCRIBE_IP_PER_DAY;
 }
 
 type TokenPayload = { email: string; purpose: "confirm" | "unsubscribe"; exp: number };
@@ -197,9 +229,10 @@ export function unsubscribePostUrl(token: string, site = VERSE_SITE) {
   return `${site}/api/verse/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
-export function listUnsubscribeHeaders(token: string, site = VERSE_SITE) {
+export function listUnsubscribeHeaders(token: string, site = VERSE_SITE, mailto = OWNER_EMAIL) {
+  const mail = `mailto:${mailto}?subject=${encodeURIComponent("Stop the daily verse")}`;
   return {
-    "List-Unsubscribe": `<${unsubscribePostUrl(token, site)}>`,
+    "List-Unsubscribe": `<${mail}>, <${unsubscribePostUrl(token, site)}>`,
     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   };
 }

@@ -20,7 +20,8 @@ export const Route = createFileRoute("/api/verse/unsubscribe")({
   server: {
     handlers: {
       POST: ({ request }) => oneClick(request),
-      GET: ({ request }) => oneClick(request),
+      // A visit or a prefetch must not change the list. One-click is POST only.
+      GET: () => new Response(null, { status: 405, headers: { Allow: "POST" } }),
     },
   },
 });
