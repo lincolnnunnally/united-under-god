@@ -82,6 +82,11 @@ function BibleIndex() {
           )}
         </div>
 
+        <p>
+          <a className="bible-btn" href="https://www.unitedundergod.org/verse">
+            Verse of the Day
+          </a>
+        </p>
         <AskBibleQuestion variant="indigo" />
         <p className="bible-count">
           {bibleLibrary.questions.length} questions in the library. More land
@@ -148,7 +153,15 @@ function BibleIndex() {
           </ul>
         )}
 
-        <div className="mt-16 max-w-xl">
+        <p className="mt-12">
+          <Link
+            to="/verse"
+            className="font-medium text-forest underline-offset-4 hover:underline"
+          >
+            Read the Verse of the Day
+          </Link>
+        </p>
+        <div className="mt-10 max-w-xl">
           <AskBibleQuestion variant="movement" />
         </div>
         <p className="mt-8 text-sm text-subtle">
