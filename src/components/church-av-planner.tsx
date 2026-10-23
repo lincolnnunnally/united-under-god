@@ -55,33 +55,37 @@ const STEPS: StepDef[] = [
     ),
   },
   {
-    title: "Tell us about the room",
+    title: "When was the sanctuary built?",
     hint: "Your best guess is fine.",
-    done: (a) => Boolean(a.age && a.ceiling && a.surfaces),
+    done: (a) => Boolean(a.age),
     render: (a, set) => (
-      <div className="space-y-8">
-        <Options
-          legend="When was the sanctuary built?"
-          name="age"
-          choices={AGES}
-          value={a.age}
-          onChange={(age) => set({ age })}
-        />
-        <Options
-          legend="How tall is the ceiling?"
-          name="ceiling"
-          choices={CEILINGS}
-          value={a.ceiling}
-          onChange={(ceiling) => set({ ceiling })}
-        />
-        <Options
-          legend="What are the surfaces like?"
-          name="surfaces"
-          choices={SURFACES}
-          value={a.surfaces}
-          onChange={(surfaces) => set({ surfaces })}
-        />
-      </div>
+      <Options name="age" choices={AGES} value={a.age} onChange={(age) => set({ age })} />
+    ),
+  },
+  {
+    title: "How tall is the ceiling?",
+    hint: "Taller rooms hold sound longer, which is where echo comes from.",
+    done: (a) => Boolean(a.ceiling),
+    render: (a, set) => (
+      <Options
+        name="ceiling"
+        choices={CEILINGS}
+        value={a.ceiling}
+        onChange={(ceiling) => set({ ceiling })}
+      />
+    ),
+  },
+  {
+    title: "What are the walls, floors, and pews like?",
+    hint: "Hard surfaces bounce sound around; soft ones absorb it.",
+    done: (a) => Boolean(a.surfaces),
+    render: (a, set) => (
+      <Options
+        name="surfaces"
+        choices={SURFACES}
+        value={a.surfaces}
+        onChange={(surfaces) => set({ surfaces })}
+      />
     ),
   },
   {
