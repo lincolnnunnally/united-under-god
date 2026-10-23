@@ -83,10 +83,8 @@ describe("inquiry thank-you is one message", () => {
       assert.equal(body.includes(INQUIRY_FOLLOWUP), false, intent);
       assert.equal(body.toLowerCase().includes(PARTNER), false, intent);
     }
-    assert.equal(
-      INTENT_COPY.av.done,
-      "We’ll reach out soon to talk about your sanctuary and a sensible next step. Nothing here is a price or a quote.",
-    );
+    assert.equal(INTENT_COPY.av.done, "We’ll reach out soon to talk about your sanctuary.");
+    assert.equal((INTENT_COPY.av.done ?? "").includes("Nothing here is a price"), false);
   });
 
   it("does not stack the shell line on top of a form's own thank-you", () => {
@@ -97,7 +95,9 @@ describe("inquiry thank-you is one message", () => {
     assert.equal(done.includes("We received it."), false);
     assert.equal(done.includes("Received. Thank you."), false);
     assert.equal(form.includes("Received. Thank you."), false);
-    assert.match(form, /Thank you\./);
+    assert.match(done, /Thank you\./);
+    assert.match(done, /— United Under God/);
+    assert.match(form, /InquiryThanks/);
     assert.match(donor, /We’ll contact you to confirm a day and time\./);
     assert.match(donor, /You’re on the charity’s list\./);
     assert.match(donor, /To book a specific pickup, use Request a pickup on Plenty\./);
