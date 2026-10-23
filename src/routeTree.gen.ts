@@ -43,6 +43,10 @@ import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
 import { Route as ChurchAvStateCityRouteImport } from './routes/church-av/$state/$city'
+import { Route as ChurchAvHelpIndexRouteImport } from './routes/church-av/help/index'
+import { Route as ChurchAvHelpSlugRouteImport } from './routes/church-av/help/$slug'
+import { Route as ChurchAvPlannerIndexRouteImport } from './routes/church-av/planner/index'
+import { Route as ChurchAvPlannerSummaryRouteImport } from './routes/church-av/planner/summary'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -214,6 +218,26 @@ const ChurchAvStateCityRoute = ChurchAvStateCityRouteImport.update({
   path: '/church-av/$state/$city',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChurchAvHelpIndexRoute = ChurchAvHelpIndexRouteImport.update({
+  id: '/church-av/help/',
+  path: '/church-av/help/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvHelpSlugRoute = ChurchAvHelpSlugRouteImport.update({
+  id: '/church-av/help/$slug',
+  path: '/church-av/help/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvPlannerIndexRoute = ChurchAvPlannerIndexRouteImport.update({
+  id: '/church-av/planner/',
+  path: '/church-av/planner/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvPlannerSummaryRoute = ChurchAvPlannerSummaryRouteImport.update({
+  id: '/church-av/planner/summary',
+  path: '/church-av/planner/summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -249,7 +273,11 @@ export interface FileRoutesByFullPath {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
+  '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
+  '/church-av/help/': typeof ChurchAvHelpIndexRoute
+  '/church-av/planner/': typeof ChurchAvPlannerIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -282,7 +310,11 @@ export interface FileRoutesByTo {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
+  '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/church-av/$state': typeof ChurchAvStateIndexRoute
+  '/church-av/help': typeof ChurchAvHelpIndexRoute
+  '/church-av/planner': typeof ChurchAvPlannerIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -319,7 +351,11 @@ export interface FileRoutesById {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
+  '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
+  '/church-av/help/': typeof ChurchAvHelpIndexRoute
+  '/church-av/planner/': typeof ChurchAvPlannerIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -357,7 +393,11 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
+    | '/church-av/help/$slug'
+    | '/church-av/planner/summary'
     | '/church-av/$state/'
+    | '/church-av/help/'
+    | '/church-av/planner/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -390,7 +430,11 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
+    | '/church-av/help/$slug'
+    | '/church-av/planner/summary'
     | '/church-av/$state'
+    | '/church-av/help'
+    | '/church-av/planner'
   id:
     | '__root__'
     | '/'
@@ -426,7 +470,11 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
+    | '/church-av/help/$slug'
+    | '/church-av/planner/summary'
     | '/church-av/$state/'
+    | '/church-av/help/'
+    | '/church-av/planner/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -454,7 +502,11 @@ export interface RootRouteChildren {
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
+  ChurchAvHelpSlugRoute: typeof ChurchAvHelpSlugRoute
+  ChurchAvPlannerSummaryRoute: typeof ChurchAvPlannerSummaryRoute
   ChurchAvStateIndexRoute: typeof ChurchAvStateIndexRoute
+  ChurchAvHelpIndexRoute: typeof ChurchAvHelpIndexRoute
+  ChurchAvPlannerIndexRoute: typeof ChurchAvPlannerIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -697,6 +749,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChurchAvStateCityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/church-av/help/': {
+      id: '/church-av/help/'
+      path: '/church-av/help'
+      fullPath: '/church-av/help/'
+      preLoaderRoute: typeof ChurchAvHelpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/help/$slug': {
+      id: '/church-av/help/$slug'
+      path: '/church-av/help/$slug'
+      fullPath: '/church-av/help/$slug'
+      preLoaderRoute: typeof ChurchAvHelpSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/planner/': {
+      id: '/church-av/planner/'
+      path: '/church-av/planner'
+      fullPath: '/church-av/planner/'
+      preLoaderRoute: typeof ChurchAvPlannerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/planner/summary': {
+      id: '/church-av/planner/summary'
+      path: '/church-av/planner/summary'
+      fullPath: '/church-av/planner/summary'
+      preLoaderRoute: typeof ChurchAvPlannerSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -781,7 +861,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ChurchAvStateCityRoute: ChurchAvStateCityRoute,
+  ChurchAvHelpSlugRoute: ChurchAvHelpSlugRoute,
+  ChurchAvPlannerSummaryRoute: ChurchAvPlannerSummaryRoute,
   ChurchAvStateIndexRoute: ChurchAvStateIndexRoute,
+  ChurchAvHelpIndexRoute: ChurchAvHelpIndexRoute,
+  ChurchAvPlannerIndexRoute: ChurchAvPlannerIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

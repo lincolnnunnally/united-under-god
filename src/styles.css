@@ -1066,3 +1066,14 @@
   gap: 14px;
   margin-top: 26px;
 }
+
+/* Church Room Planner committee summary: print only the summary. */
+@media print {
+  body:has([data-print-summary]) header,
+  body:has([data-print-summary]) footer {
+    display: none !important;
+  }
+  body:has([data-print-summary]) {
+    background: #fff;
+  }
+}

@@ -3,6 +3,7 @@ import {
   AvHero,
   CaseStudyCard,
   FaqSection,
+  HelpLinks,
   ProcessSection,
   ProjectList,
   RequestSection,
@@ -31,6 +32,7 @@ import {
   projectsInCity,
   statePath,
 } from "@/lib/church-av";
+import { helpForServices } from "@/lib/church-av-help";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/church-av/$state/$city")({
@@ -141,6 +143,12 @@ function CityPage() {
           })}
         </div>
       </section>
+
+      <HelpLinks
+        pages={helpForServices(city.situations.map((s) => s.service))}
+        title="Know the problem? Start there."
+        eyebrow={`Help for churches in and around ${city.name}`}
+      />
 
       <ProcessSection compact />
 

@@ -39,10 +39,25 @@ export function biblePaths(root = ROOT) {
   return library.questions.map((q) => `/bible/${q.slug}`);
 }
 
-/** /church-av state and city pages, from the same data the routes render. */
+/**
+ * /church-av help pages, read from the slugs in src/lib/church-av-help.ts so
+ * the sitemap cannot drift from the pages that exist.
+ */
+export function churchAvHelpPaths(root = ROOT) {
+  const source = readFileSync(join(root, "src/lib/church-av-help.ts"), "utf8");
+  const slugs = [...source.matchAll(/^ {4}slug: "([a-z0-9-]+)",$/gm)].map((m) => m[1]);
+  return ["/church-av/help", ...slugs.map((slug) => `/church-av/help/${slug}`)];
+}
+
+/**
+ * /church-av state, city, help, and planner pages, from the same data the
+ * routes render. The planner's per-church summary page is noindex and stays out.
+ */
 export function churchAvPaths(root = ROOT) {
   const av = JSON.parse(readFileSync(join(root, "src/data/church-av.json"), "utf8"));
   return [
+    "/church-av/planner",
+    ...churchAvHelpPaths(root),
     ...av.states.map((s) => `/church-av/${s.slug}`),
     ...av.cities.map((c) => `/church-av/${c.state}/${c.slug}`),
   ];
