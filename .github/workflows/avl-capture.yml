@@ -2,7 +2,8 @@ name: avl-capture
 # One-off: save public pages of the church AV installer's site (permission
 # granted by the owner) so the church-av pages can quote them exactly.
 on:
-  workflow_dispatch:
+  push:
+    branches: [claude/avl-capture]
 permissions:
   contents: write
 jobs:
