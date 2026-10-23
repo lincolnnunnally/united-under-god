@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { LEGAL } from "./content.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 import { isPublicDomainTranslation, verseSlug, type VerseDay } from "./verse.ts";
@@ -29,6 +29,16 @@ export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
 /** Sign-up attempts from one IP, whether or not a note goes out. */
 export const SUBSCRIBE_IP_PER_HOUR = 5;
 export const SUBSCRIBE_IP_PER_DAY = 20;
+
+/** Missing or unreadable addresses share this one bucket. */
+export const SHARED_IP_BUCKET = "shared";
+
+/** Leading zero bits a browser must find before a sign-up counts. */
+export const VERSE_POW_BITS = 16;
+export const VERSE_POW_TTL_SEC = 10 * 60;
+
+export const VERSE_NOT_OPEN = `The daily verse email is not open just yet. Write ${OWNER_EMAIL} and we will add you.`;
+export const CONFIRM_CAP_MESSAGE = "Sign-ups are full for today. Please try again tomorrow.";
 
 export const CONFIRM_TTL_SEC = 48 * 60 * 60;
 export const UNSUBSCRIBE_TTL_SEC = 400 * 24 * 60 * 60;
@@ -77,15 +87,23 @@ export function verseLinkSecret(env: { VERSE_LINK_SECRET?: string } = process.en
   return env.VERSE_LINK_SECRET?.trim() ?? "";
 }
 
+const STREET_WORD =
+  "street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|court|ct|way|place|pl|circle|cir|highway|hwy|trail|trl|parkway|pkwy|terrace|ter|pike|route|rte|square|sq|alley|plaza|loop|path|row|cove|crossing";
+
 /**
- * A street number or PO box. A city name alone is not enough for the postal
- * line the mail rules require. Empty means do not send the daily verse.
+ * A PO Box, or a street number plus a street word (Street, Road, Ave, and so on).
+ * A city, state, and ZIP such as "Vidalia, GA 30474" is not enough.
  */
 export function isStreetOrPoBox(value: string) {
   const trimmed = value.trim();
   if (trimmed.length < 10 || trimmed.length > 240) return false;
   if (/\bP\.?\s*O\.?\s*Box\s+\d+/i.test(trimmed)) return true;
-  return /\d/.test(trimmed) && /[A-Za-z]/.test(trimmed) && trimmed.includes(",");
+  if (!trimmed.includes(",")) return false;
+  const street = new RegExp(
+    `\\b\\d{1,6}\\b(?:\\s+[A-Za-z0-9.'-]+){0,5}\\s+(?:${STREET_WORD})\\b`,
+    "i",
+  );
+  return street.test(trimmed);
 }
 
 export function fullPostalAddress(value: string | undefined) {
@@ -159,6 +177,96 @@ export function confirmSendAllowed(input: {
 
 export function ipSubscribeLimited(hourCount: number, dayCount: number) {
   return hourCount >= SUBSCRIBE_IP_PER_HOUR || dayCount >= SUBSCRIBE_IP_PER_DAY;
+}
+
+/** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */
+export function subscribeIpBucket(ip: string | undefined) {
+  let value = (ip ?? "").trim().toLowerCase();
+  if (!value) return SHARED_IP_BUCKET;
+  if (value.startsWith("[") && value.includes("]")) value = value.slice(1, value.indexOf("]"));
+  const zone = value.indexOf("%");
+  if (zone >= 0) value = value.slice(0, zone);
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return value.slice(0, 64);
+  if (!value.includes(":")) return value.slice(0, 64);
+  const groups = expandIpv6(value);
+  if (!groups) return SHARED_IP_BUCKET;
+  return groups
+    .slice(0, 4)
+    .map((group) => group.padStart(4, "0"))
+    .join(":");
+}
+
+function expandIpv6(value: string) {
+  const halves = value.split("::");
+  if (halves.length > 2) return null;
+  const parse = (part: string) => (part ? part.split(":") : []);
+  if (halves.length === 1) {
+    const groups = parse(value);
+    return groups.length === 8 && groups.every((group) => /^[0-9a-f]{1,4}$/i.test(group)) ? groups : null;
+  }
+  const left = parse(halves[0] ?? "");
+  const right = parse(halves[1] ?? "");
+  const groups = [...left, ...right];
+  if (groups.some((group) => !/^[0-9a-f]{1,4}$/i.test(group))) return null;
+  const missing = 8 - left.length - right.length;
+  if (missing < 0) return null;
+  return [...left, ...Array.from({ length: missing }, () => "0"), ...right];
+}
+
+export function issueVersePow(secret: string, nowSec: number, bits = VERSE_POW_BITS) {
+  const width = Math.min(24, Math.max(8, Math.floor(bits)));
+  const payload = Buffer.from(
+    JSON.stringify({ i: randomBytes(9).toString("base64url"), x: nowSec + VERSE_POW_TTL_SEC, b: width }),
+  ).toString("base64url");
+  return { challenge: `${payload}.${signBody(payload, secret)}`, bits: width };
+}
+
+export function solveVersePow(challenge: string, bits: number) {
+  for (let n = 0; n < 8_000_000; n += 1) {
+    const nonce = String(n);
+    if (powDigestBits(challenge, nonce) >= bits) return nonce;
+  }
+  return "";
+}
+
+export function verifyVersePow(challenge: string, nonce: string, secret: string, nowSec: number) {
+  if (!secret || !challenge || challenge.length > 512 || !nonce || nonce.length > 16 || !/^\d+$/.test(nonce)) return false;
+  const dot = challenge.indexOf(".");
+  if (dot <= 0) return false;
+  const payload = challenge.slice(0, dot);
+  const sig = challenge.slice(dot + 1);
+  const expected = signBody(payload, secret);
+  const a = Buffer.from(sig);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
+  try {
+    const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
+      x?: unknown;
+      b?: unknown;
+    };
+    if (typeof parsed.x !== "number" || parsed.x < nowSec) return false;
+    if (typeof parsed.b !== "number" || parsed.b < 8 || parsed.b > 24) return false;
+    return powDigestBits(challenge, nonce) >= parsed.b;
+  } catch {
+    return false;
+  }
+}
+
+function powDigestBits(challenge: string, nonce: string) {
+  const digest = createHash("sha256").update(`${challenge}\n${nonce}`).digest();
+  let bits = 0;
+  for (const byte of digest) {
+    if (byte === 0) {
+      bits += 8;
+      continue;
+    }
+    for (let i = 7; i >= 0; i -= 1) {
+      if (byte & (1 << i)) return bits;
+      bits += 1;
+    }
+    return bits;
+  }
+  return bits;
 }
 
 type TokenPayload = { email: string; purpose: "confirm" | "unsubscribe"; exp: number };

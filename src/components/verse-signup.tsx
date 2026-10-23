@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { verseEyebrow } from "@/components/verse-of-the-day";
-import { subscribeToDailyVerse } from "@/lib/verse-subscribe";
+import { solveVersePowInBrowser } from "@/lib/verse-pow";
+import { subscribeToDailyVerse, verseSignupChallenge } from "@/lib/verse-subscribe";
 
 export function VerseSignup({ sourcePath }: { sourcePath: string }) {
   const [email, setEmail] = useState("");
@@ -20,11 +21,25 @@ export function VerseSignup({ sourcePath }: { sourcePath: string }) {
     const data = new FormData(form);
     setWorking(true);
     try {
+      const issued = await verseSignupChallenge();
+      if (!issued.ok) {
+        setError(issued.error);
+        setWorking(false);
+        return;
+      }
+      const powNonce = await solveVersePowInBrowser(issued.challenge, issued.bits);
+      if (!powNonce) {
+        setError("We could not take that just now. Please try again in a little while.");
+        setWorking(false);
+        return;
+      }
       const result = await subscribeToDailyVerse({
         data: {
           email,
           sourcePath,
           hp: String(data.get("website") || ""),
+          powChallenge: issued.challenge,
+          powNonce,
         },
       });
       if (result.ok) {

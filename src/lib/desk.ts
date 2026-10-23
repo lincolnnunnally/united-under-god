@@ -163,7 +163,7 @@ export function inquiryBody(row: {
   message: string;
   details: string;
   scheduled_for?: string;
-  assigned_name?: string;
+  assigned_name?: string | null;
 }) {
   let details: Record<string, string> = {};
   try {
@@ -207,7 +207,7 @@ export type InquiryNoticeRow = {
   message: string;
   details: string;
   scheduled_for?: string;
-  assigned_name?: string;
+  assigned_name?: string | null;
   created_at?: string;
 };
 

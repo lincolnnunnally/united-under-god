@@ -17,10 +17,22 @@ const subscribeInput = z.object({
   email: z.string(),
   sourcePath: z.string(),
   hp: z.string(),
+  powChallenge: z.string(),
+  powNonce: z.string(),
 });
 
 const tokenInput = z.object({
   token: z.string(),
+});
+
+export const verseSignupChallenge = createServerFn({ method: "POST" }).handler(async () => {
+  const { issueVersePow, verseLinkSecret, VERSE_NOT_OPEN, fullPostalAddress } = await import("@/lib/verse-mail");
+  const secret = verseLinkSecret();
+  if (!secret || !fullPostalAddress(process.env.VERSE_POSTAL_ADDRESS)) {
+    return { ok: false as const, error: VERSE_NOT_OPEN };
+  }
+  const issued = issueVersePow(secret, Math.floor(Date.now() / 1000));
+  return { ok: true as const, challenge: issued.challenge, bits: issued.bits };
 });
 
 export const subscribeToDailyVerse = createServerFn({ method: "POST" })
@@ -33,6 +45,8 @@ export const subscribeToDailyVerse = createServerFn({ method: "POST" })
       sourcePath: data.sourcePath,
       hp: data.hp,
       ip: callerIp(),
+      powChallenge: data.powChallenge,
+      powNonce: data.powNonce,
       apiKey: process.env.RESEND_API_KEY,
     });
   });

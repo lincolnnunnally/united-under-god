@@ -7,12 +7,17 @@ import {
   buildConfirmMail,
   buildDailyVerseMail,
   confirmSendAllowed,
+  CONFIRM_CAP_MESSAGE,
   fullPostalAddress,
   indexNowKeyFile,
   ipSubscribeLimited,
+  issueVersePow,
   ministryToday,
   recipientAllowed,
+  SHARED_IP_BUCKET,
   signVerseToken,
+  solveVersePow,
+  subscribeIpBucket,
   verifyVerseToken,
   verseLinkSecret,
   verseSendAllowance,
@@ -32,6 +37,20 @@ import type { VerseDay } from "./verse.ts";
 const SECRET = "test-link-secret";
 const QA = "delivered@resend.dev";
 const POSTAL = "PO Box 10, Vidalia, GA 30474";
+
+function gate(now: Date) {
+  const issued = issueVersePow(SECRET, Math.floor(now.getTime() / 1000), 8);
+  return {
+    powChallenge: issued.challenge,
+    powNonce: solveVersePow(issued.challenge, issued.bits),
+    postalAddress: POSTAL,
+  };
+}
+
+function ask(sql: Sql, input: Parameters<typeof requestVerseSubscription>[1]) {
+  const now = input.now ?? new Date();
+  return requestVerseSubscription(sql, { ...gate(now), ...input });
+}
 
 function toSql(pg: PGlite): Sql {
   const run = async <T>(text: string, params: unknown[]): Promise<T[]> => {
@@ -107,9 +126,16 @@ describe("verse mail tokens and caps", () => {
     assert.equal(verseLinkSecret({ VERSE_LINK_SECRET: "  verse-secret  " }), "verse-secret");
     assert.equal(verseLinkSecret({ VERSE_LINK_SECRET: "", BETTER_AUTH_SECRET: "auth-secret" } as { VERSE_LINK_SECRET?: string }), "");
     assert.equal(fullPostalAddress("Vidalia, Georgia"), "");
+    assert.equal(fullPostalAddress("Vidalia, GA 30474"), "");
+    assert.equal(fullPostalAddress("Church Street, Vidalia, GA 30474"), "");
     assert.equal(fullPostalAddress("United Under God, Inc."), "");
     assert.equal(fullPostalAddress(POSTAL), POSTAL);
     assert.equal(fullPostalAddress("123 Church Street, Vidalia, GA 30474"), "123 Church Street, Vidalia, GA 30474");
+    assert.equal(subscribeIpBucket(""), SHARED_IP_BUCKET);
+    assert.equal(subscribeIpBucket("   "), SHARED_IP_BUCKET);
+    assert.equal(subscribeIpBucket("203.0.113.9"), "203.0.113.9");
+    assert.equal(subscribeIpBucket("2001:db8:85a3:1::8a2e"), subscribeIpBucket("2001:db8:85a3:1:ffff::1"));
+    assert.notEqual(subscribeIpBucket("2001:db8:85a3:1::1"), subscribeIpBucket("2001:db8:85a3:2::1"));
   });
 
   it("keeps confirmations in their own slice", () => {
@@ -172,7 +198,7 @@ describe("verse subscription store", () => {
 
     const calls: { url: string; body: string; headers: Record<string, string> }[] = [];
     const now = new Date("2026-10-23T13:05:00Z");
-    const joined = await requestVerseSubscription(sql, {
+    const joined = await ask(sql, {
       email: `  ${QA} `,
       sourcePath: "/verse/psalm-23-1",
       now,
@@ -192,7 +218,7 @@ describe("verse subscription store", () => {
     const rows = await sql<{ status: string }>`select status from verse_subscribers`;
     assert.equal(rows[0]?.status, "pending");
 
-    const blocked = await requestVerseSubscription(sql, {
+    const blocked = await ask(sql, {
       email: "neighbor@example.com",
       sourcePath: "/verse",
       now,
@@ -273,7 +299,7 @@ describe("verse subscription store", () => {
   it("does not call the network for a real address outside production", async () => {
     const { pg, sql } = await db();
     let called = false;
-    const result = await requestVerseSubscription(sql, {
+    const result = await ask(sql, {
       email: "neighbor@example.com",
       sourcePath: "/verse",
       apiKey: "re_test",
@@ -325,11 +351,11 @@ describe("verse subscription store", () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T13:05:00Z");
     const calls: string[] = [];
-    const fetchImpl = (async () => {
-      calls.push("sent");
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      calls.push(String(init?.body ?? ""));
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
-    const first = await requestVerseSubscription(sql, {
+    const first = await ask(sql, {
       email: QA,
       sourcePath: "/verse",
       now,
@@ -344,7 +370,7 @@ describe("verse subscription store", () => {
       SECRET,
     );
     await confirmVerseToken(sql, token, { secret: SECRET, now });
-    const again = await requestVerseSubscription(sql, {
+    const again = await ask(sql, {
       email: QA,
       sourcePath: "/verse",
       now,
@@ -358,7 +384,7 @@ describe("verse subscription store", () => {
       select 'cap-' || g, 'confirm', 'sent', ${now.toISOString()}::timestamptz
       from generate_series(1, 10) as g
     `;
-    const capped = await requestVerseSubscription(sql, {
+    const capped = await ask(sql, {
       email: "bounced@resend.dev",
       sourcePath: "/verse",
       now,
@@ -367,9 +393,22 @@ describe("verse subscription store", () => {
       allowLive: false,
       fetchImpl,
     });
-    assert.equal(again.ok && capped.ok && again.message, first.ok ? first.message : "");
-    assert.equal(capped.ok && capped.message, first.ok ? first.message : "");
-    assert.equal(calls.length, 1);
+    assert.equal(again.ok && again.message, first.ok ? first.message : "");
+    assert.equal(capped.ok, false);
+    assert.equal(capped.ok === false && capped.error, CONFIRM_CAP_MESSAGE);
+    assert.equal(calls.length, 2);
+    const owner = JSON.parse(calls[1] ?? "{}") as { to?: string[] };
+    assert.deepEqual(owner.to, ["lincoln@unitedundergod.org"]);
+    await ask(sql, {
+      email: "complained@resend.dev",
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(calls.length, 2);
     await pg.close();
   });
 
@@ -382,7 +421,7 @@ describe("verse subscription store", () => {
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
     for (let n = 0; n < 4; n += 1) {
-      const result = await requestVerseSubscription(sql, {
+      const result = await ask(sql, {
         email: QA,
         sourcePath: "/verse",
         now,
@@ -406,7 +445,7 @@ describe("verse subscription store", () => {
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
     for (let n = 0; n < 5; n += 1) {
-      const result = await requestVerseSubscription(sql, {
+      const result = await ask(sql, {
         email: `person${n}@example.com`,
         sourcePath: "/verse",
         now,
@@ -418,7 +457,7 @@ describe("verse subscription store", () => {
       });
       assert.equal(result.ok, false);
     }
-    const blocked = await requestVerseSubscription(sql, {
+    const blocked = await ask(sql, {
       email: QA,
       sourcePath: "/verse",
       now,
@@ -430,6 +469,138 @@ describe("verse subscription store", () => {
     });
     assert.equal(blocked.ok && blocked.message.includes("Check your inbox"), true);
     assert.equal(calls, 0);
+    await pg.close();
+  });
+
+  it("ignores a sign-up that has not solved the proof of work", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T17:00:00Z");
+    let calls = 0;
+    const result = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.50",
+      powChallenge: "not-a-challenge",
+      powNonce: "1",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => {
+        calls += 1;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.ok, false);
+    assert.equal(calls, 0);
+    const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
+    assert.equal(hits[0]?.n, 0);
+    await pg.close();
+  });
+
+  it("does not count a honeypot fill against the IP limit", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T17:10:00Z");
+    let calls = 0;
+    const result = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.51",
+      hp: "https://example.invalid",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => {
+        calls += 1;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.ok && result.message.includes("Check your inbox"), true);
+    assert.equal(calls, 0);
+    const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
+    assert.equal(hits[0]?.n, 0);
+    await pg.close();
+  });
+
+  it("shares one bucket when the caller address is missing and groups IPv6 by /64", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T18:00:00Z");
+    const fetchImpl = (async () => new Response("{}", { status: 200 })) as typeof fetch;
+    for (let n = 0; n < 5; n += 1) {
+      await ask(sql, {
+        email: `person${n}@example.com`,
+        sourcePath: "/verse",
+        now,
+        ip: "",
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      });
+    }
+    const shared = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(shared.ok && shared.message.includes("Check your inbox"), true);
+    const buckets = await sql<{ ip: string }>`select distinct ip from verse_subscribe_hits`;
+    assert.deepEqual(buckets.map((row) => row.ip), [SHARED_IP_BUCKET]);
+
+    for (let n = 0; n < 5; n += 1) {
+      await ask(sql, {
+        email: `v6${n}@example.com`,
+        sourcePath: "/verse",
+        now,
+        ip: `2001:db8:85a3:4::${n}`,
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      });
+    }
+    const samePrefix = await ask(sql, {
+      email: "bounced@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "2001:db8:85a3:4:ffff::9",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(samePrefix.ok && samePrefix.message.includes("Check your inbox"), true);
+    await pg.close();
+  });
+
+  it("does not send a confirmation without a street or PO box", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T19:00:00Z");
+    let calls = 0;
+    const result = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      postalAddress: "Vidalia, GA 30474",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => {
+        calls += 1;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(result.ok, false);
+    assert.match(result.ok ? "" : result.error, /not open just yet/);
+    assert.equal(calls, 0);
+    const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
+    assert.equal(hits[0]?.n, 0);
     await pg.close();
   });
 

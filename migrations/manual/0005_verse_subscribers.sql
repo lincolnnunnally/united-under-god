@@ -98,12 +98,19 @@ create table if not exists verse_subscribe_hits (
 create index if not exists verse_subscribe_hits_ip_idx
   on verse_subscribe_hits (ip, created_at);
 
+-- Solved proof-of-work challenges. One use each, so a single solution cannot spend the cap.
+create table if not exists verse_pow_used (
+  challenge text primary key,
+  used_at timestamptz not null default now()
+);
+
 alter table verse_subscribers enable row level security;
 alter table verse_mail_runs enable row level security;
 alter table verse_mail_deliveries enable row level security;
 alter table verse_send_log enable row level security;
 alter table verse_indexnow_log enable row level security;
 alter table verse_subscribe_hits enable row level security;
+alter table verse_pow_used enable row level security;
 
 revoke all on table verse_subscribers from public;
 revoke all on table verse_mail_runs from public;
@@ -111,6 +118,7 @@ revoke all on table verse_mail_deliveries from public;
 revoke all on table verse_send_log from public;
 revoke all on table verse_indexnow_log from public;
 revoke all on table verse_subscribe_hits from public;
+revoke all on table verse_pow_used from public;
 
 do $$
 declare
@@ -125,7 +133,8 @@ begin
         'verse_mail_deliveries',
         'verse_send_log',
         'verse_indexnow_log',
-        'verse_subscribe_hits'
+        'verse_subscribe_hits',
+        'verse_pow_used'
       ] loop
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;
