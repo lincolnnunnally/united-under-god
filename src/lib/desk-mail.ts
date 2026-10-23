@@ -24,6 +24,8 @@ export function resendMessage(args: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
+  headers?: Record<string, string>;
   from?: string;
 }) {
   const from = args.from?.trim() || deskFromAddress();
@@ -33,6 +35,8 @@ export function resendMessage(args: {
     reply_to: DESK_REPLY_TO,
     subject: args.subject,
     text: args.text,
+    ...(args.html ? { html: args.html } : {}),
+    ...(args.headers && Object.keys(args.headers).length > 0 ? { headers: args.headers } : {}),
   };
 }
 
@@ -44,8 +48,11 @@ export async function sendResendText(args: {
   to: string;
   subject: string;
   text: string;
+  html?: string;
+  headers?: Record<string, string>;
   apiKey?: string;
   from?: string;
+  idempotencyKey?: string;
   fetchImpl?: typeof fetch;
 }): Promise<{ ok: boolean; error: string }> {
   const key = args.apiKey?.trim();
@@ -56,14 +63,65 @@ export async function sendResendText(args: {
       headers: {
         Authorization: `Bearer ${key}`,
         "Content-Type": "application/json",
+        ...(args.idempotencyKey ? { "Idempotency-Key": args.idempotencyKey } : {}),
       },
       body: JSON.stringify(
         resendMessage({
           to: args.to,
           subject: args.subject,
           text: args.text,
+          html: args.html,
+          headers: args.headers,
           from: args.from,
         }),
+      ),
+    });
+    if (!res.ok) {
+      const error = clipResendError(await res.text());
+      return { ok: false, error: error || "resend rejected" };
+    }
+    return { ok: true, error: "" };
+  } catch {
+    return { ok: false, error: "resend request failed" };
+  }
+}
+
+/** Distinct letters in one Resend call. Same From and reply-to as every other send. */
+export async function sendResendBatch(args: {
+  messages: Array<{
+    to: string;
+    subject: string;
+    text: string;
+    html?: string;
+    headers?: Record<string, string>;
+  }>;
+  apiKey?: string;
+  from?: string;
+  idempotencyKey?: string;
+  fetchImpl?: typeof fetch;
+}): Promise<{ ok: boolean; error: string }> {
+  if (args.messages.length === 0) return { ok: true, error: "" };
+  const key = args.apiKey?.trim();
+  if (!key) return { ok: false, error: "" };
+  try {
+    const res = await (args.fetchImpl ?? fetch)("https://api.resend.com/emails/batch", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        ...(args.idempotencyKey ? { "Idempotency-Key": args.idempotencyKey } : {}),
+      },
+      body: JSON.stringify(
+        args.messages.map((message) =>
+          resendMessage({
+            to: message.to,
+            subject: message.subject,
+            text: message.text,
+            html: message.html,
+            headers: message.headers,
+            from: args.from,
+          }),
+        ),
       ),
     });
     if (!res.ok) {

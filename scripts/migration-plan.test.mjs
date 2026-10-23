@@ -56,10 +56,30 @@ test("non-.sql entries are dropped (readdir also yields the auth/ directory)", (
   assert.deepEqual(pendingMigrations(["auth", "README.md"], []), []);
 });
 
-test("the auth schema ships outside the globbed directory", () => {
+test("verse subscriber SQL is in the repo and outside the deploy migrator", () => {
   const migrationsDir = join(projectRoot(), "migrations");
-  assert.deepEqual(pendingMigrations(readdirSync(migrationsDir), []), []);
+  const names = readdirSync(migrationsDir);
+  assert.equal(names.includes("0005_verse_subscribers.sql"), false);
+  const sql = readFileSync(join(migrationsDir, "manual", "0005_verse_subscribers.sql"), "utf8");
+  assert.match(sql, /enable row level security/i);
+  assert.match(sql, /revoke all on table verse_subscribers from public/i);
+  assert.match(sql, /'anon'/);
+  assert.equal(
+    pendingMigrations(names, []).some((entry) => entry.name.includes("verse")),
+    false,
+  );
+});
+
+test("the deploy migrator does not descend into migrations subdirectories", () => {
+  const migrationsDir = join(projectRoot(), "migrations");
+  const names = readdirSync(migrationsDir);
+  assert.ok(names.includes("0001_auth.sql"));
+  assert.equal(names.includes("0005_verse_subscribers.sql"), false);
   assert.ok(readdirSync(join(migrationsDir, "auth")).includes("0001_auth.sql"));
+  assert.equal(
+    pendingMigrations(names, []).some((entry) => entry.path.includes("manual")),
+    false,
+  );
 });
 
 test("this workspace's auth schema copy is byte-identical to its source", () => {

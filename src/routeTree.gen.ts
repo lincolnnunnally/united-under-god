@@ -47,8 +47,12 @@ import { Route as ChurchAvTraditionalRouteImport } from './routes/church-av/trad
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as VerseIndexRouteImport } from './routes/verse/index'
 import { Route as VerseSlugRouteImport } from './routes/verse/$slug'
+import { Route as VerseConfirmRouteImport } from './routes/verse/confirm'
+import { Route as VerseUnsubscribeRouteImport } from './routes/verse/unsubscribe'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiVerseDeliverRouteImport } from './routes/api/verse/deliver'
+import { Route as ApiVerseUnsubscribeRouteImport } from './routes/api/verse/unsubscribe'
 import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
 import { Route as ChurchAvStateCityRouteImport } from './routes/church-av/$state/$city'
 import { Route as ChurchAvHelpIndexRouteImport } from './routes/church-av/help/index'
@@ -247,6 +251,16 @@ const VerseSlugRoute = VerseSlugRouteImport.update({
   path: '/verse/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerseConfirmRoute = VerseConfirmRouteImport.update({
+  id: '/verse/confirm',
+  path: '/verse/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerseUnsubscribeRoute = VerseUnsubscribeRouteImport.update({
+  id: '/verse/unsubscribe',
+  path: '/verse/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminStatsRoute = ApiAdminStatsRouteImport.update({
   id: '/api/admin/stats',
   path: '/api/admin/stats',
@@ -255,6 +269,16 @@ const ApiAdminStatsRoute = ApiAdminStatsRouteImport.update({
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerseDeliverRoute = ApiVerseDeliverRouteImport.update({
+  id: '/api/verse/deliver',
+  path: '/api/verse/deliver',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerseUnsubscribeRoute = ApiVerseUnsubscribeRouteImport.update({
+  id: '/api/verse/unsubscribe',
+  path: '/api/verse/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChurchAvStateIndexRoute = ChurchAvStateIndexRouteImport.update({
@@ -322,6 +346,8 @@ export interface FileRoutesByFullPath {
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/verse/$slug': typeof VerseSlugRoute
+  '/verse/confirm': typeof VerseConfirmRoute
+  '/verse/unsubscribe': typeof VerseUnsubscribeRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
@@ -329,6 +355,8 @@ export interface FileRoutesByFullPath {
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/verse/deliver': typeof ApiVerseDeliverRoute
+  '/api/verse/unsubscribe': typeof ApiVerseUnsubscribeRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -367,6 +395,8 @@ export interface FileRoutesByTo {
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/verse/$slug': typeof VerseSlugRoute
+  '/verse/confirm': typeof VerseConfirmRoute
+  '/verse/unsubscribe': typeof VerseUnsubscribeRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
   '/buying': typeof BuyingIndexRoute
@@ -374,6 +404,8 @@ export interface FileRoutesByTo {
   '/verse': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/verse/deliver': typeof ApiVerseDeliverRoute
+  '/api/verse/unsubscribe': typeof ApiVerseUnsubscribeRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -416,6 +448,8 @@ export interface FileRoutesById {
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
   '/verse/$slug': typeof VerseSlugRoute
+  '/verse/confirm': typeof VerseConfirmRoute
+  '/verse/unsubscribe': typeof VerseUnsubscribeRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
@@ -423,6 +457,8 @@ export interface FileRoutesById {
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/verse/deliver': typeof ApiVerseDeliverRoute
+  '/api/verse/unsubscribe': typeof ApiVerseUnsubscribeRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -466,6 +502,8 @@ export interface FileRouteTypes {
     | '/church-av/traditional'
     | '/give/thanks'
     | '/verse/$slug'
+    | '/verse/confirm'
+    | '/verse/unsubscribe'
     | '/admin/'
     | '/bible/'
     | '/buying/'
@@ -473,6 +511,8 @@ export interface FileRouteTypes {
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/verse/deliver'
+    | '/api/verse/unsubscribe'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -511,6 +551,8 @@ export interface FileRouteTypes {
     | '/church-av/traditional'
     | '/give/thanks'
     | '/verse/$slug'
+    | '/verse/confirm'
+    | '/verse/unsubscribe'
     | '/admin'
     | '/bible'
     | '/buying'
@@ -518,6 +560,8 @@ export interface FileRouteTypes {
     | '/verse'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/verse/deliver'
+    | '/api/verse/unsubscribe'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -559,6 +603,8 @@ export interface FileRouteTypes {
     | '/church-av/traditional'
     | '/give/thanks'
     | '/verse/$slug'
+    | '/verse/confirm'
+    | '/verse/unsubscribe'
     | '/admin/'
     | '/bible/'
     | '/buying/'
@@ -566,6 +612,8 @@ export interface FileRouteTypes {
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/verse/deliver'
+    | '/api/verse/unsubscribe'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -602,10 +650,14 @@ export interface RootRouteChildren {
   ChurchAvNewBuildingRoute: typeof ChurchAvNewBuildingRoute
   ChurchAvTraditionalRoute: typeof ChurchAvTraditionalRoute
   VerseSlugRoute: typeof VerseSlugRoute
+  VerseConfirmRoute: typeof VerseConfirmRoute
+  VerseUnsubscribeRoute: typeof VerseUnsubscribeRoute
   ChurchAvIndexRoute: typeof ChurchAvIndexRoute
   VerseIndexRoute: typeof VerseIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiVerseDeliverRoute: typeof ApiVerseDeliverRoute
+  ApiVerseUnsubscribeRoute: typeof ApiVerseUnsubscribeRoute
   ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
   ChurchAvHelpSlugRoute: typeof ChurchAvHelpSlugRoute
   ChurchAvPlannerSummaryRoute: typeof ChurchAvPlannerSummaryRoute
@@ -882,6 +934,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VerseSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verse/confirm': {
+      id: '/verse/confirm'
+      path: '/verse/confirm'
+      fullPath: '/verse/confirm'
+      preLoaderRoute: typeof VerseConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verse/unsubscribe': {
+      id: '/verse/unsubscribe'
+      path: '/verse/unsubscribe'
+      fullPath: '/verse/unsubscribe'
+      preLoaderRoute: typeof VerseUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/stats': {
       id: '/api/admin/stats'
       path: '/api/admin/stats'
@@ -894,6 +960,20 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verse/deliver': {
+      id: '/api/verse/deliver'
+      path: '/api/verse/deliver'
+      fullPath: '/api/verse/deliver'
+      preLoaderRoute: typeof ApiVerseDeliverRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verse/unsubscribe': {
+      id: '/api/verse/unsubscribe'
+      path: '/api/verse/unsubscribe'
+      fullPath: '/api/verse/unsubscribe'
+      preLoaderRoute: typeof ApiVerseUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/church-av/$state/': {
@@ -1025,10 +1105,14 @@ const rootRouteChildren: RootRouteChildren = {
   ChurchAvNewBuildingRoute: ChurchAvNewBuildingRoute,
   ChurchAvTraditionalRoute: ChurchAvTraditionalRoute,
   VerseSlugRoute: VerseSlugRoute,
+  VerseConfirmRoute: VerseConfirmRoute,
+  VerseUnsubscribeRoute: VerseUnsubscribeRoute,
   ChurchAvIndexRoute: ChurchAvIndexRoute,
   VerseIndexRoute: VerseIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiVerseDeliverRoute: ApiVerseDeliverRoute,
+  ApiVerseUnsubscribeRoute: ApiVerseUnsubscribeRoute,
   ChurchAvStateCityRoute: ChurchAvStateCityRoute,
   ChurchAvHelpSlugRoute: ChurchAvHelpSlugRoute,
   ChurchAvPlannerSummaryRoute: ChurchAvPlannerSummaryRoute,

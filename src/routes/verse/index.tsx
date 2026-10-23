@@ -6,6 +6,7 @@ import {
   verseEyebrow,
   VerseNextSteps,
 } from "@/components/verse-of-the-day";
+import { VerseSignup } from "@/components/verse-signup";
 import { absoluteUrl, ORG_ID, pageHead } from "@/lib/seo";
 import { describe, formatDateKey, groupVerseDays, verseSlug } from "@/lib/verse";
 import { getVerseDays, VERSE_CACHE_HEADERS } from "@/lib/verse-data";
@@ -84,6 +85,10 @@ function VerseIndex() {
             </p>
           </>
         )}
+
+        <div className="mt-12">
+          <VerseSignup sourcePath="/verse" />
+        </div>
 
         {recent.length > 0 ? (
           <section className="mt-14 border-t border-rule pt-8">

@@ -3,7 +3,9 @@
  * Writes public/sitemap.xml: every public, indexable page on the production
  * host (the apex 308s to www), each with the date its own source files last
  * changed. Private pages (/login, /account, /admin,
- * /buying/desk, /give/thanks) and redirects (/donate) stay out on purpose.
+ * /buying/desk, /give/thanks, /verse/confirm, /verse/unsubscribe) and
+ * redirects (/donate) stay out on purpose. Verse pages themselves are listed
+ * from the live feed in /sitemap-verse.xml, not baked into this file.
  *
  *   node scripts/sitemap.mjs          # rewrite public/sitemap.xml
  *   node scripts/sitemap.mjs --check  # exit 1 if it is out of date

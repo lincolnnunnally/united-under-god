@@ -15,5 +15,8 @@
   ],
   "rewrites": [
     { "source": "/favicon.ico", "destination": "/favicon.svg" }
+  ],
+  "crons": [
+    { "path": "/api/verse/deliver", "schedule": "0 13 * * *" }
   ]
 }

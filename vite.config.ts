@@ -61,6 +61,39 @@ function pgliteBootstrapPlugin(): Plugin {
  * and returns the 302 / completion HTML. Deployed apps do not use the popup
  * (full-page OAuth redirect), so `apply: "serve"` is enough.
  */
+/** Dev-server twin of server/middleware/indexnow-key.ts. Production uses Nitro. */
+function indexNowDevPlugin(): Plugin {
+  return {
+    name: "app-builder:indexnow-key",
+    apply: "serve",
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          const pathOnly = (req.url ?? "").split("?", 1)[0] ?? "";
+          if (!pathOnly.endsWith(".txt")) {
+            next();
+            return;
+          }
+          const mod = (await server.ssrLoadModule("/src/lib/verse-mail.ts")) as {
+            indexNowKeyFile: (pathname: string, key: string | undefined) => { body: string } | null;
+          };
+          const hit = mod.indexNowKeyFile(pathOnly, process.env.INDEXNOW_KEY);
+          if (!hit) {
+            next();
+            return;
+          }
+          res.statusCode = req.method === "HEAD" ? 200 : 200;
+          res.setHeader("content-type", "text/plain; charset=utf-8");
+          res.end(req.method === "HEAD" ? undefined : hit.body);
+        } catch (err) {
+          console.error("[indexnow] key file failed");
+          next(err);
+        }
+      });
+    },
+  };
+}
+
 function authPopupPlugin(): Plugin {
   return {
     name: "app-builder:auth-popup",
@@ -161,6 +194,7 @@ export default defineConfig(({ command, isPreview }) => ({
     pgliteBootstrapPlugin(),
     // Before tanstackStart so /auth/popup never falls through to the SPA.
     authPopupPlugin(),
+    indexNowDevPlugin(),
     // Dev-only /__app-env, read by scripts/check-auth-invariant.mjs.
     appEnvPlugin(),
     // PWA head + ?install=1 tutorial page; runs before Start/Nitro.
