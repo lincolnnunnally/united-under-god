@@ -82,7 +82,7 @@ function HelpPageView() {
 
         <section className="border-y border-rule bg-cream">
           <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-            <SectionIntro eyebrow="What fixes it" title="What actually helps" />
+            <SectionIntro eyebrow="How we fix it" title="How we solve it in your sanctuary" />
             <div className="mt-10 grid gap-8 sm:grid-cols-2">
               {page.fixes.map((fix) => (
                 <div key={fix.title} className="border-t border-rule pt-5">
@@ -108,6 +108,8 @@ function HelpPageView() {
             </p>
           </div>
         </section>
+
+        <FixItBand page={page} />
 
         {page.steps ? <Steps steps={page.steps} /> : null}
 
@@ -149,7 +151,7 @@ function HelpPageView() {
       <RelatedHelp page={page} />
 
       <RequestSection
-        heading="Tell us what you are hearing."
+        heading="Tell us what you are hearing. We will fix it."
         source={{ path: helpPath(page), label: `Church AV help — ${page.label}` }}
       />
     </SiteShell>
@@ -175,6 +177,39 @@ function Steps({ steps }: { steps: NonNullable<HelpPage["steps"]> }) {
           </li>
         ))}
       </ol>
+    </section>
+  );
+}
+
+function FixItBand({ page }: { page: HelpPage }) {
+  return (
+    <section className="print:hidden">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-12 md:flex-row md:items-center md:justify-between md:px-8">
+        <div className="max-w-2xl">
+          <h2 className="text-2xl">We can fix this in your church.</h2>
+          <p className="mt-3 text-muted">
+            Tell us what you are hearing on Sunday. We will call you back, look at your room, and
+            walk you through a plan that fits your sanctuary and how your church gives. Nothing
+            here is a price or a quote.
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg">
+            <a href="#talk">
+              Get this fixed
+              <ArrowRight className="size-4" />
+            </a>
+          </Button>
+          <Button asChild size="lg" variant="secondary">
+            <Link
+              to="/church-av/planner"
+              search={page.slug === "planning-a-new-building" ? {} : { problems: page.slug }}
+            >
+              Plan your room
+            </Link>
+          </Button>
+        </div>
+      </div>
     </section>
   );
 }
