@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
  * Writes public/sitemap.xml: every public, indexable page on the production
- * host (the apex 308s to www). Private pages (/login, /account, /admin,
+ * host (the apex 308s to www), each with the date its own source files last
+ * changed. Private pages (/login, /account, /admin,
  * /buying/desk, /give/thanks) and redirects (/donate) stay out on purpose.
  *
  *   node scripts/sitemap.mjs          # rewrite public/sitemap.xml
  *   node scripts/sitemap.mjs --check  # exit 1 if it is out of date
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -74,15 +76,80 @@ export function churchAvPaths(root = ROOT) {
   ];
 }
 
-export function renderSitemap(paths) {
+/**
+ * The files a page is built from. A page's <lastmod> is the last commit that
+ * touched any of them, so it moves when that page's words change and not on
+ * every deploy. Unknown paths return [] and get no <lastmod>.
+ */
+export function sourcesFor(path, root = ROOT) {
+  const route = (name) => {
+    const file = join("src/routes", `${name}.tsx`);
+    const index = join("src/routes", name, "index.tsx");
+    if (existsSync(join(root, file))) return file;
+    if (existsSync(join(root, index))) return index;
+    return null;
+  };
+  const av = ["src/data/church-av.json", "src/lib/church-av.ts", "src/components/church-av.tsx"];
+  if (path === "/") return ["src/routes/index.tsx"];
+  if (path.startsWith("/bible/")) return ["src/data/bible-library.json", "src/routes/bible/$slug.tsx"];
+  if (path === "/church-av/help") return ["src/lib/church-av-help.ts", "src/routes/church-av/help/index.tsx"];
+  if (path.startsWith("/church-av/help/")) return ["src/lib/church-av-help.ts", "src/routes/church-av/help/$slug.tsx"];
+  if (path === "/church-av/planner") return ["src/lib/church-av-planner.ts", "src/routes/church-av/planner/index.tsx"];
+  if (path === "/church-av") return [...av, "src/routes/church-av/index.tsx"];
+  const parts = path.split("/").filter(Boolean);
+  if (parts[0] === "church-av" && parts.length === 2) {
+    const landing = route(`church-av/${parts[1]}`);
+    if (landing) return ["src/lib/church-av-landing.ts", "src/components/church-av-landing.tsx", landing];
+    return [...av, "src/routes/church-av/$state/index.tsx"];
+  }
+  if (parts[0] === "church-av" && parts.length === 3) return [...av, "src/routes/church-av/$state/$city.tsx"];
+  const file = route(path.slice(1));
+  return file ? [file] : [];
+}
+
+/** Date (YYYY-MM-DD) of the last commit touching `sources`, today if they have uncommitted edits, null without git. */
+export function gitLastmod(sources, root = ROOT) {
+  if (!sources.length) return null;
+  try {
+    const opts = { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] };
+    const dirty = execFileSync("git", ["status", "--porcelain", "--", ...sources], opts).trim();
+    if (dirty) return new Date().toISOString().slice(0, 10);
+    const date = execFileSync("git", ["log", "-1", "--format=%cs", "--", ...sources], opts).trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : null;
+  } catch {
+    return null;
+  }
+}
+
+/** <loc> -> <lastmod> already in public/sitemap.xml: the fallback when git history is missing (shallow clone, tarball). */
+export function committedLastmods(root = ROOT) {
+  const out = new Map();
+  try {
+    const xml = readFileSync(join(root, "public/sitemap.xml"), "utf8");
+    for (const m of xml.matchAll(/<loc>([^<]+)<\/loc><lastmod>([^<]+)<\/lastmod>/g)) out.set(m[1], m[2]);
+  } catch {
+    /* no committed sitemap yet */
+  }
+  return out;
+}
+
+export function renderSitemap(paths, lastmodFor = () => null) {
   const urls = paths
-    .map((path) => `  <url><loc>${SITE_URL}${path === "/" ? "/" : path}</loc></url>`)
+    .map((path) => {
+      const loc = `${SITE_URL}${path === "/" ? "/" : path}`;
+      const lastmod = lastmodFor(path, loc);
+      return `  <url><loc>${loc}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}</url>`;
+    })
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
 export function buildSitemap(root = ROOT) {
-  return renderSitemap([...STATIC_PATHS, ...churchAvPaths(root), ...biblePaths(root)]);
+  const committed = committedLastmods(root);
+  return renderSitemap(
+    [...STATIC_PATHS, ...churchAvPaths(root), ...biblePaths(root)],
+    (path, loc) => gitLastmod(sourcesFor(path, root), root) ?? committed.get(loc) ?? null,
+  );
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
