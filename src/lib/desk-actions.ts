@@ -4,6 +4,7 @@ import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
 import { sendHardcodedOwnerEmail } from "@/lib/desk-mail";
+import { sendAvConfirmation } from "@/lib/church-av-confirm";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
 import { notifySavedInquiry, settleInquirySubmit } from "@/lib/desk-submit";
 import {
@@ -266,6 +267,13 @@ export const submitInquiry = createServerFn({ method: "POST" })
     });
     if (settled.saved) {
       await forwardInquiryToDashboard(inquiry).catch(() => undefined);
+    }
+    if (settled.ok && kind === "av") {
+      // Instant reply to the church that asked. Never blocks the submit:
+      // sendAvConfirmation catches and logs its own failures.
+      await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY }).catch(
+        () => undefined,
+      );
     }
     if (!settled.ok) {
       return {
