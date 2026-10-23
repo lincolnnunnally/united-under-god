@@ -9,6 +9,7 @@ import {
   SectionIntro,
   TestimonialQuote,
 } from "@/components/church-av";
+import { LandingPointer } from "@/components/church-av-landing";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { breadcrumbJsonLd, faqJsonLd, getService, INSTALLER_LINE } from "@/lib/church-av";
@@ -19,6 +20,7 @@ import {
   helpPath,
   type HelpPage,
 } from "@/lib/church-av-help";
+import { HELP_LANDING } from "@/lib/church-av-landing";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/church-av/help/$slug")({
@@ -135,6 +137,8 @@ function HelpPageView() {
           <TestimonialQuote id={page.testimonial} className="mt-10" />
         </section>
       </article>
+
+      {HELP_LANDING[page.slug] ? <LandingPointer slug={HELP_LANDING[page.slug]} /> : null}
 
       <PlannerBand page={page} />
 

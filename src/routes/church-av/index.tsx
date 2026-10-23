@@ -11,6 +11,7 @@ import {
   StatsRow,
   TestimonialQuote,
 } from "@/components/church-av";
+import { DirectionCards } from "@/components/church-av-landing";
 import { SiteShell } from "@/components/site-shell";
 import {
   AV_CASE_STUDIES,
@@ -100,6 +101,8 @@ function ChurchAvPage() {
           Florida, and South Carolina.
         </p>
       </AvHero>
+
+      <DirectionCards />
 
       <section className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-2 md:px-8 md:py-20">
         <div>

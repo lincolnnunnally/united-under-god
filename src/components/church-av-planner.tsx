@@ -28,6 +28,7 @@ import {
   type Choice,
 } from "@/lib/church-av-planner";
 import { cn } from "@/lib/utils";
+import { getLanding, landingForStyle, landingPath } from "@/lib/church-av-landing";
 
 // ------------------------------------------------------------ questions
 
@@ -218,9 +219,16 @@ function Options<T extends string>({
 
 export function PlannerWizard({
   initialProblem,
+  initialStyle,
+  initialLivestream,
+  initialBuilding,
   onAnswers,
 }: {
   initialProblem?: string;
+  /** ?style= from a landing page; preselects the first question. */
+  initialStyle?: string;
+  initialLivestream?: string;
+  initialBuilding?: string;
   onAnswers: (answers: Answers, finished: boolean) => void;
 }) {
   const [answers, setAnswers] = useState<Answers>(EMPTY_ANSWERS);
@@ -229,17 +237,29 @@ export function PlannerWizard({
 
   useEffect(() => {
     const saved = loadSaved();
+    // A landing page link (?style=, ?livestream=, ?building=) is what the
+    // visitor just chose, so it wins over an older saved answer.
+    const preset = cleanAnswers({
+      style: initialStyle,
+      livestream: initialLivestream,
+      building: initialBuilding,
+    });
+    const presetPatch: Partial<Answers> = {};
+    if (preset.style) presetPatch.style = preset.style;
+    if (preset.livestream) presetPatch.livestream = preset.livestream;
+    if (preset.building) presetPatch.building = preset.building;
     if (saved) {
-      setAnswers(saved.answers);
+      setAnswers({ ...saved.answers, ...presetPatch });
       setStep(saved.step);
-    } else if (initialProblem) {
+    } else {
       setAnswers({
         ...EMPTY_ANSWERS,
-        problems: cleanAnswers({ problems: initialProblem }).problems,
+        ...presetPatch,
+        problems: initialProblem ? cleanAnswers({ problems: initialProblem }).problems : [],
       });
     }
     setLoaded(true);
-  }, [initialProblem]);
+  }, [initialProblem, initialStyle, initialLivestream, initialBuilding]);
 
   useEffect(() => {
     if (!loaded) return;
@@ -438,6 +458,8 @@ export function PlannerSummary({ answers }: { answers: Answers }) {
         </p>
       </section>
 
+      <PlannerLandingLinks answers={answers} />
+
       <section className="print:break-inside-avoid">
         <h2 className="text-2xl">Next steps</h2>
         <ol className="mt-4 list-decimal space-y-2 pl-5 text-ink">
@@ -472,5 +494,45 @@ export function SummaryActions({ answers }: { answers: Answers }) {
         </Link>
       </Button>
     </div>
+  );
+}
+
+/** From the results to the landing page for this church's style and plans. */
+function PlannerLandingLinks({ answers }: { answers: Answers }) {
+  const style = landingForStyle(answers.style ?? "traditional");
+  const extra = [
+    answers.livestream === "yes" ? getLanding("livestream-ministry") : null,
+    answers.building === "new-building" ? getLanding("new-building") : null,
+  ].filter((p): p is NonNullable<typeof p> => Boolean(p));
+  return (
+    <section className="rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] print:hidden">
+      <p className="text-xs font-semibold tracking-[0.14em] text-forest uppercase">
+        For churches like yours
+      </p>
+      <Link
+        to={landingPath(style) as "/church-av"}
+        className="mt-2 inline-flex items-center gap-2 font-display text-2xl text-ink underline-offset-4 hover:underline"
+      >
+        {style.cardTitle}
+        <ArrowRight className="size-5 shrink-0 text-forest" />
+      </Link>
+      <p className="mt-1 text-muted">{style.cardBody}</p>
+      {extra.length ? (
+        <p className="mt-3 text-sm">
+          Also:{" "}
+          {extra.map((page, i) => (
+            <span key={page.slug}>
+              {i > 0 ? " · " : ""}
+              <Link
+                to={landingPath(page) as "/church-av"}
+                className="text-forest underline-offset-4 hover:underline"
+              >
+                {page.cardTitle}
+              </Link>
+            </span>
+          ))}
+        </p>
+      ) : null}
+    </section>
   );
 }

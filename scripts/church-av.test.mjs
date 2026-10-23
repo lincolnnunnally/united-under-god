@@ -3,7 +3,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { churchAvHelpPaths, churchAvPaths } from "./sitemap.mjs";
+import { churchAvHelpPaths, churchAvLandingPaths, churchAvPaths } from "./sitemap.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 // The installer's name, assembled so this file does not contain it either.
@@ -344,4 +344,152 @@ test("the av confirmation email links only real planner problems, by their real 
 test("av requests get the confirmation email, and only av requests", () => {
   const actions = read("src/lib/desk-actions.ts");
   assert.match(actions, /settled\.ok && kind === "av"[\s\S]{0,300}sendAvConfirmation\(/);
+});
+
+// ------------------------------------------------------------ landing pages
+
+const LANDING = {
+  traditional: "traditional",
+  modern: "modern",
+  blended: "blended",
+  "livestream-ministry": "livestream",
+  "new-building": "newbuild",
+};
+
+test("every landing page has a route, a sitemap entry, and is checked", () => {
+  const paths = churchAvPaths();
+  assert.deepEqual(
+    churchAvLandingPaths().sort(),
+    Object.keys(LANDING)
+      .map((slug) => `/church-av/${slug}`)
+      .sort(),
+  );
+  const names = SOURCES.map((f) => f.slice(ROOT.length + 1));
+  for (const f of ["src/lib/church-av-landing.ts", "src/components/church-av-landing.tsx"]) {
+    assert.ok(names.includes(f), `${f} is not checked`);
+  }
+  for (const slug of Object.keys(LANDING)) {
+    assert.ok(paths.includes(`/church-av/${slug}`), `${slug} is not in the sitemap`);
+    const file = `src/routes/church-av/${slug}.tsx`;
+    assert.ok(names.includes(file), `${file} is missing or not checked`);
+    const route = read(file);
+    assert.match(route, new RegExp(`createFileRoute\\("/church-av/${slug}"\\)`));
+    assert.match(route, /head: \(\) => landingHead\(PAGE\)/, `${slug} uses the landing head`);
+    assert.match(route, new RegExp(`getLanding\\("${slug}"\\)`));
+    assert.match(route, /<LandingLook page=\{PAGE\}>/, `${slug} wraps itself in its look`);
+    assert.match(route, /<LandingBody page=\{PAGE\} \/>/, `${slug} renders every section`);
+    assert.match(route, /<LandingActions page=\{PAGE\}/, `${slug} offers the planner`);
+  }
+});
+
+test("landing pages have unique SEO, real case studies, and the full set of sections", () => {
+  const src = read("src/lib/church-av-landing.ts");
+  const titles = [...src.matchAll(/^ {4}title: "([^"]+)",$/gm)].map((m) => m[1]);
+  const descriptions = [...src.matchAll(/^ {4}description:\n?\s*"([^"]+)",$/gm)].map((m) => m[1]);
+  const n = Object.keys(LANDING).length;
+  assert.equal(titles.length, n, "one title per landing page");
+  assert.equal(descriptions.length, n, "one description per landing page");
+  const help = read("src/lib/church-av-help.ts");
+  const helpTitles = [...help.matchAll(/^ {4}title:\s*"([^"]+)",$/gm)].map((m) => m[1]);
+  const all = [
+    ...titles,
+    ...helpTitles,
+    ...av.states.map((s) => s.title),
+    ...av.cities.map((c) => c.title),
+  ];
+  assert.equal(new Set(all).size, all.length, "titles are unique across church AV");
+  assert.equal(new Set(descriptions).size, n, "descriptions are unique");
+  for (const d of descriptions) {
+    assert.ok(d.length >= 120 && d.length <= 165, `description is ${d.length} chars: ${d}`);
+  }
+  for (const [slug, look] of Object.entries(LANDING)) {
+    assert.match(src, new RegExp(`slug: "${slug}",\\n\\s+look: "${look}",`), `${slug} look`);
+  }
+  for (const m of src.matchAll(/caseStudies: \[([^\]]+)\]/g)) {
+    for (const id of m[1].match(/"([^"]+)"/g).map((x) => x.slice(1, -1))) {
+      assert.ok(av.caseStudies[id], `landing page cites missing case study ${id}`);
+    }
+  }
+  for (const m of src.matchAll(/testimonial: "([^"]+)"/g)) {
+    assert.ok(
+      av.testimonials.some((t) => t.id === m[1]),
+      `missing testimonial ${m[1]}`,
+    );
+  }
+  // The pages the owner named.
+  assert.match(src, /"word-of-faith"/);
+  assert.match(src, /"lake-point-community-church",\s+"lakeside-church"/);
+  // Service + FAQPage + BreadcrumbList for every page.
+  const head = src.slice(src.indexOf("export function landingHead"));
+  assert.match(head, /avServiceJsonLd\(/);
+  assert.match(head, /faqJsonLd\(page\.faq\)/);
+  assert.match(head, /breadcrumbJsonLd\(/);
+  // Stage, case studies, testimonial, process with warranty, FAQ, planner, form.
+  const body = read("src/components/church-av-landing.tsx");
+  for (const part of [
+    /<StageIllustration\b/,
+    /<CaseStudyCard\b/,
+    /<TestimonialQuote\b/,
+    /AV_PROCESS\.map/,
+    /1-year parts and labor warranty/,
+    /<FaqSection\b/,
+    /to="\/church-av\/planner" search=\{page\.planner\}/,
+    /<RequestSection\b/,
+  ]) {
+    assert.match(body, part);
+  }
+  assert.ok(!/<h1\b/.test(body), "the landing components add no H1");
+  // The style pages hand their style to the planner.
+  for (const style of ["traditional", "blended", "modern"]) {
+    assert.match(src, new RegExp(`planner: \\{ style: "${style}" \\}`));
+  }
+});
+
+test("each landing look is scoped to its page and readable", () => {
+  const css = read("src/styles.css");
+  for (const look of Object.values(LANDING)) {
+    assert.match(css, new RegExp(`\\.av-look-${look} \\{\\n\\s+--color-paper:`), `${look} tokens`);
+  }
+  // Traditional: body at least 18px for older readers, no motion.
+  const trad = css.slice(css.indexOf(".av-look-traditional {"));
+  assert.match(trad, /--text-sm: 1\.125rem;/);
+  assert.match(trad, /--text-base: 1\.1875rem;/);
+  assert.match(trad, /animation: none !important;/);
+  // Modern: motion only when the visitor has not asked for less.
+  const motion = css.slice(css.indexOf(".av-mod-beam-1,") - 80, css.indexOf(".av-mod-h1 {"));
+  assert.match(motion, /@media \(prefers-reduced-motion: no-preference\)/);
+  // Nothing outside the landing pages picks up a look.
+  for (const file of walk(join(ROOT, "src"))) {
+    if (!/\.tsx?$/.test(file)) continue;
+    const rel = file.slice(ROOT.length + 1);
+    if (
+      /church-av-landing\.tsx?$|routes\/church-av\/(traditional|modern|blended|livestream-ministry|new-building)\.tsx$/.test(
+        rel,
+      )
+    )
+      continue;
+    assert.ok(!/av-look-/.test(readFileSync(file, "utf8")), `${rel} uses a landing look`);
+  }
+});
+
+test("hub, help pages, and planner results link to the landing pages", () => {
+  assert.match(read("src/routes/church-av/index.tsx"), /<DirectionCards \/>/);
+  const comp = read("src/components/church-av-landing.tsx");
+  assert.match(comp, /Choose your direction/);
+  assert.match(comp, /LANDING_STYLES\.map/);
+  assert.match(comp, /LANDING_OUTCOMES\.map/);
+  const src = read("src/lib/church-av-landing.ts");
+  for (const [help, slug] of [
+    ["traditional-sanctuary-without-a-big-screen", "traditional"],
+    ["hearing-aids-squeal-or-echo", "traditional"],
+    ["livestream-keeps-dropping", "livestream-ministry"],
+    ["planning-a-new-building", "new-building"],
+  ]) {
+    assert.match(src, new RegExp(`"${help}": "${slug}"`), `${help} links ${slug}`);
+  }
+  assert.match(read("src/routes/church-av/help/$slug.tsx"), /HELP_LANDING\[page\.slug\]/);
+  const planner = read("src/components/church-av-planner.tsx");
+  assert.match(planner, /landingForStyle\(answers\.style/);
+  assert.match(planner, /initialStyle/);
+  assert.match(read("src/routes/church-av/planner/index.tsx"), /initialStyle=\{search\.style\}/);
 });
