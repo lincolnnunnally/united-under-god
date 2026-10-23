@@ -117,7 +117,7 @@ export function matchingNeeds(offer: string, categories: string) {
 
 export const INTENT_COPY: Record<
   InvolvementIntent,
-  { title: string; lead: string; submit: string }
+  { title: string; lead: string; submit: string; done?: string }
 > = {
   seal: {
     title: "Make the statement of intent",
@@ -168,6 +168,7 @@ export const INTENT_COPY: Record<
     title: "Tell us about your sanctuary",
     lead: "Sound, livestream, lighting, or a new building. Share a little about your room and what is not working, and we will call you back.",
     submit: "Request a call back",
+    done: "We will call you back to talk through your room, what you are hearing, and a sensible next step. Nothing here is a price or a quote.",
   },
   mission: {
     title: "Live on mission",

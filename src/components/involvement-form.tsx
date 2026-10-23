@@ -86,9 +86,8 @@ export function InvolvementForm({ intent, className, defaultCity, source }: Prop
       <InquiryDone saved={done.saved} emailed={done.emailed} className={className}>
         <h3 className="mt-5 font-display text-2xl">Received. Thank you.</h3>
         <p className="mt-3 max-w-prose text-muted">
-          Someone from United Under God will be in touch. In the meantime, do
-          not wait on us to start — a neighbor, a pantry shift, a first gift of
-          food is already a step on mission.
+          {copy.done ??
+            "Someone from United Under God will be in touch. In the meantime, do not wait on us to start — a neighbor, a pantry shift, a first gift of food is already a step on mission."}
         </p>
       </InquiryDone>
     );
