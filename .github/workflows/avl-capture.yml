@@ -24,6 +24,13 @@ jobs:
           done
           curl -sSL -A "Mozilla/5.0" "$base/sitemap.xml" -o avl-capture/sitemap.xml || true
           curl -sSL -A "Mozilla/5.0" "$base/sitemap_index.xml" -o avl-capture/sitemap_index.xml || true
+          for js in $(grep -oE '/assets/[^"]+\.js' avl-capture/home.html | sort -u); do
+            curl -sSL -A "Mozilla/5.0" "$base$js" -o "avl-capture/$(basename $js)" || true
+          done
+          # Dynamic chunks the main bundle imports
+          for js in $(grep -ohE 'assets/[A-Za-z0-9_.-]+\.js' avl-capture/*.js | sort -u | head -80); do
+            [ -f "avl-capture/$(basename $js)" ] || curl -sSL -A "Mozilla/5.0" "$base/$js" -o "avl-capture/$(basename $js)" || true
+          done
           ls -la avl-capture
       - name: Commit
         run: |
