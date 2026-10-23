@@ -142,6 +142,8 @@ test("the help, planner, and component sources are all covered", () => {
     "src/routes/church-av/help/index.tsx",
     "src/routes/church-av/planner/index.tsx",
     "src/routes/church-av/planner/summary.tsx",
+    "src/lib/church-av-confirm.ts",
+    "src/lib/church-av-confirm.test.ts",
   ]) {
     assert.ok(names.includes(f), `${f} is not checked`);
   }
@@ -317,4 +319,29 @@ test("hub, state, and city pages link to the planner and help pages", () => {
     assert.match(read(file), /<HelpLinks\b/, `${file} links the help pages`);
   }
   assert.match(read("src/components/church-av.tsx"), /to="\/church-av\/planner"/);
+});
+
+test("the av confirmation email links only real planner problems, by their real labels", () => {
+  const help = read("src/lib/church-av-help.ts");
+  const confirm = read("src/lib/church-av-confirm.ts");
+  const pairs = [...confirm.matchAll(/\{ slug: "([a-z-]+)", label: "([^"]+)" \}/g)];
+  assert.ok(pairs.length >= 6, "confirmation email lists the planner problems");
+  for (const [, slug, label] of pairs) {
+    assert.ok(HELP_SLUGS.includes(slug), `${slug} is not a help page`);
+    assert.ok(
+      help.includes(`slug: "${slug}",\n    label: "${label}",`),
+      `${slug} label differs from church-av-help.ts`,
+    );
+  }
+  // Only our own pages; never the installer's site, phone, or email.
+  for (const url of confirm.match(/https?:\/\/[^\s"`]+/g) ?? []) {
+    assert.ok(url.startsWith("https://www.unitedundergod.org"), `outside link ${url}`);
+  }
+  assert.ok(!/[^\s@"`]+@[^\s@"`]+\.[a-z]{2,}/i.test(confirm), "no email address printed");
+  assert.ok(!/\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/.test(confirm), "no phone number printed");
+});
+
+test("av requests get the confirmation email, and only av requests", () => {
+  const actions = read("src/lib/desk-actions.ts");
+  assert.match(actions, /settled\.ok && kind === "av"[\s\S]{0,300}sendAvConfirmation\(/);
 });
