@@ -168,7 +168,7 @@ export const INTENT_COPY: Record<
     title: "Tell us about your sanctuary",
     lead: "Sound, livestream, lighting, or a new building. Share a little about your room and what is not working, and we will call you back.",
     submit: "Request a call back",
-    done: "We will call you back to talk through your room, what you are hearing, and a sensible next step. Nothing here is a price or a quote.",
+    done: "We’ll reach out soon to talk about your sanctuary and a sensible next step. Nothing here is a price or a quote.",
   },
   mission: {
     title: "Live on mission",

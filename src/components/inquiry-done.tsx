@@ -28,11 +28,16 @@ export function InquiryDone({
         <Check className="size-5" />
       </div>
       {emailed ? (
-        <>
-          <h3 className="mt-5 font-display text-2xl">We received it.</h3>
-          <p className="mt-3 max-w-prose text-muted">{INQUIRY_FOLLOWUP}</p>
-          {saved || showDetails ? <div className="mt-6">{children}</div> : null}
-        </>
+        // One message only: when the form passes its own thank-you (children),
+        // show that; otherwise fall back to the shared generic line.
+        (saved || showDetails) && children ? (
+          children
+        ) : (
+          <>
+            <h3 className="mt-5 font-display text-2xl">Thank you.</h3>
+            <p className="mt-3 max-w-prose text-muted">{INQUIRY_FOLLOWUP}</p>
+          </>
+        )
       ) : (
         children
       )}

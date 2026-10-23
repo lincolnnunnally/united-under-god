@@ -41,7 +41,7 @@ export const SUPER_EMAILS = [
 /** Owner inbox. A literal address, never an environment variable. */
 export const OWNER_EMAIL = "lincoln@unitedundergod.org";
 
-export const INQUIRY_FOLLOWUP = "We received it and will follow up.";
+export const INQUIRY_FOLLOWUP = "We’ll reach out soon.";
 
 export const INQUIRY_UNREACHABLE =
   "We could not take that in. Email lincoln@unitedundergod.org or call, and we will take it from there.";
