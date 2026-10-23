@@ -4,19 +4,31 @@ import { AskBibleQuestion } from "@/components/ask-bible-question";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { bibleLibrary, searchQuestions } from "@/lib/bible";
+import { absoluteUrl, ORG_ID, pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/bible/")({
   component: BibleIndex,
-  head: () => ({
-    meta: [
-      { title: "Understanding the Bible — United Under God" },
-      {
-        name: "description",
-        content:
-          "Real questions. Short answers. The verses. Freedom first — not a system for managing sin.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Understanding the Bible: real questions, short answers",
+      description:
+        "Real questions about faith with short, clear answers straight from Scripture, and the verses to read for yourself. Freedom first, not a system for managing sin.",
+      path: "/bible",
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Understanding the Bible",
+          url: absoluteUrl("/bible"),
+          publisher: { "@id": ORG_ID },
+          hasPart: bibleLibrary.questions.map((q) => ({
+            "@type": "WebPage",
+            name: q.question,
+            url: absoluteUrl(`/bible/${q.slug}`),
+          })),
+        },
+      ],
+    }),
 });
 
 const bibleLayout = getRouteApi("/bible");

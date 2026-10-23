@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { SiteShell } from "@/components/site-shell";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/doctrine")({
   component: DoctrinePage,
-  head: () => ({
-    meta: [{ title: "Doctrine — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Doctrine and biblical foundation | United Under God",
+      description: "What United Under God believes: God is good, God gives life, and His people are invited to bring His life, love, hope, and freedom into the world. Read the doctrine.",
+      path: "/doctrine",
+    }),
 });
 
 function Article({

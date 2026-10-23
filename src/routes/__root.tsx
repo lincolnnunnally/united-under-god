@@ -1,6 +1,7 @@
 import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
 import { AuthProvider } from "@/lib/auth/provider";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
+import { ldJsonMeta, ORGANIZATION_JSON_LD } from "@/lib/seo";
 import appCss from "../styles.css?url";
 
 const APP_NAME = "United Under God";
@@ -17,6 +18,7 @@ export const Route = createRootRoute({
           "United, loving, and active. A movement of Christians united under the authority of God — in love for one another, and in work that makes the world look more like His Kingdom.",
       },
       { name: "theme-color", content: "#2E4A3C" },
+      ldJsonMeta(ORGANIZATION_JSON_LD),
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=seal4" },

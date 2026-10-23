@@ -7,26 +7,23 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { readMyPlace } from "@/lib/member-actions";
 import { listPublishedBook, type PublicBookEntry } from "@/lib/source-actions";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/buying/")({
   loader: () => listPublishedBook(),
   component: BuyingPage,
-  head: () => ({
-    meta: [
-      { title: "Group buying for churches and charities — United Under God" },
-      {
-        name: "description",
-        content:
-          "Churches, charities, and Christian-owned businesses pool their orders for toner, supplies, and services so everyone pays less and more money goes to ministry.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Group buying for churches and charities | United Under God",
+      description: "Churches, charities, and Christian-owned businesses pool their orders for toner, paper, and supplies so everyone pays less and more money goes to ministry.",
+      path: "/buying", jsonLd: [serviceJsonLd({ name: "Group buying for churches and charities", description: "Churches, charities, and Christian-owned businesses pool orders for toner, paper, and supplies to get group prices.", path: "/buying", serviceType: "Group purchasing", audience: "Churches, charities, and Christian-owned businesses", offers: { price: "0", description: "Joining is free, with no minimum order." } })],
+    }),
 });
 
 const CATALOGS = [
   {
     title: "Toner and printers",
-    body: "Free printer monitoring tells you before toner runs out, then orders it at the group price — no more emergency trips to the office store.",
+    body: "Printer monitoring tells you before toner runs out, then orders it at the group price — no more emergency trips to the office store.",
     href: "https://tonerconnect.unitedundergod.org",
     cta: "Open Toner Connect",
   },

@@ -7,12 +7,16 @@ import { SiteShell } from "@/components/site-shell";
 import { GIVE_WAYS, LEGAL } from "@/lib/content";
 import type { InvolvementIntent } from "@/lib/involvement";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/give")({
   component: GivePage,
-  head: () => ({
-    meta: [{ title: "Give — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Give time, money, or goods | United Under God (501(c)(3))",
+      description: "Give time, money, or goods to United Under God, Inc., a 501(c)(3) nonprofit (EIN 81-3554390). Gifts fund the Vidalia pantry, church tools, and people on mission.",
+      path: "/give",
+    }),
 });
 
 const TABS: { id: InvolvementIntent; label: string }[] = [

@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site-shell";
 import { LEGAL } from "@/lib/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
-  head: () => ({
-    meta: [{ title: "Privacy Policy — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Privacy Policy | United Under God",
+      description: "How United Under God, Inc. collects, uses, and protects the information you share on unitedundergod.org.",
+      path: "/privacy",
+    }),
 });
 
 function PrivacyPage() {

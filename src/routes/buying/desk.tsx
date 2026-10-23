@@ -17,12 +17,11 @@ import {
   type SourceDesk,
 } from "@/lib/source-actions";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/buying/desk")({
   component: SourcePage,
-  head: () => ({
-    meta: [{ title: "SOURCE buying — Desk" }],
-  }),
+  head: () => pageHead({ title: "Group buying desk | United Under God", path: "/buying/desk", noindex: true }),
 });
 
 type DraftItem = {

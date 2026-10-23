@@ -1,5 +1,6 @@
 import { createFileRoute, getRouteApi, Link, notFound } from "@tanstack/react-router";
 import { bibleLibrary, getQuestion } from "@/lib/bible";
+import { absoluteUrl, ORG_ID, pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/bible/$slug")({
   component: BibleQuestionPage,
@@ -8,18 +9,27 @@ export const Route = createFileRoute("/bible/$slug")({
     if (!item) throw notFound();
     return item;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      {
-        title: loaderData
-          ? `${loaderData.question} — Understanding the Bible`
-          : "Understanding the Bible",
-      },
-      ...(loaderData
-        ? [{ name: "description", content: loaderData.shortAnswer }]
-        : []),
-    ],
-  }),
+  head: ({ loaderData, params }) =>
+    loaderData
+      ? pageHead({
+          title: `${loaderData.question} | Understanding the Bible`,
+          description: loaderData.shortAnswer,
+          path: `/bible/${params.slug}`,
+          type: "article",
+          jsonLd: [
+            {
+              "@context": "https://schema.org",
+              "@type": "Article",
+              headline: loaderData.question,
+              description: loaderData.shortAnswer,
+              url: absoluteUrl(`/bible/${params.slug}`),
+              author: { "@id": ORG_ID },
+              publisher: { "@id": ORG_ID },
+              isPartOf: { "@type": "CollectionPage", name: "Understanding the Bible", url: absoluteUrl("/bible") },
+            },
+          ],
+        })
+      : { meta: [{ title: "Understanding the Bible" }] },
 });
 
 const bibleLayout = getRouteApi("/bible");

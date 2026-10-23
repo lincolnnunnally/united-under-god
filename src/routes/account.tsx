@@ -13,12 +13,11 @@ import {
   type MemberPlace,
 } from "@/lib/member-actions";
 import { cn } from "@/lib/utils";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/account")({
   component: AccountPage,
-  head: () => ({
-    meta: [{ title: "Your place — United Under God" }],
-  }),
+  head: () => pageHead({ title: "Your account | United Under God", path: "/account", noindex: true }),
 });
 
 const ORG_TYPES = [

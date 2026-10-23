@@ -6,19 +6,16 @@ import { StoreCalculator } from "@/components/store-calculator";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { PLENTY_URL } from "@/lib/content";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/pantry")({
   component: PantryPage,
-  head: () => ({
-    meta: [
-      { title: "Throw it away, deduct the cost. Donate it, you may deduct twice as much — United Under God" },
-      {
-        name: "description",
-        content:
-          "Grocery stores: unsold food in the dumpster is a cost write-off. Donate it to Plenty in Vidalia and you may deduct up to twice what you paid — then neighbors who felt that kindness come back and spend in your store.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Vidalia food pantry: grocers donate safely | United Under God",
+      description: "How grocers donate unsold food to Plenty, the Vidalia, Georgia food pantry: Good Samaritan protections, the recipient waiver, the tax deduction, and how pickup works.",
+      path: "/pantry", jsonLd: [serviceJsonLd({ name: "Vidalia food pantry grocery donations", description: "Grocers donate unsold food to Plenty, the food pantry program of United Under God in Vidalia, Georgia.", path: "/pantry", audience: "Grocery stores", areaServed: "Vidalia, Georgia" })],
+    }),
 });
 
 const PROTECTIONS = [

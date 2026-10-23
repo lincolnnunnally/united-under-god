@@ -2,12 +2,16 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/assessment")({
   component: AssessmentPage,
-  head: () => ({
-    meta: [{ title: "Organizational health assessment — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Organizational health assessment for churches | United Under God",
+      description: "One short conversation to find the money and time your church or charity is losing on toner, internet, and office hours, with a clear next step for each.",
+      path: "/assessment", jsonLd: [serviceJsonLd({ name: "Organizational health assessment", description: "A short conversation that shows where a church, charity, or business is losing money and time, with a next step for each.", path: "/assessment", audience: "Churches, charities, and businesses" })],
+    }),
 });
 
 const WINS = [
