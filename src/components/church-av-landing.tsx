@@ -38,7 +38,11 @@ export function LandingLook({ page, children }: { page: LandingPage; children: R
 export function LandingCrumbs({ page }: { page: LandingPage }) {
   return (
     <nav aria-label="Breadcrumb" className="av-l-crumbs">
-      <Link to="/church-av" className="underline-offset-4 hover:underline">
+      <Link
+        to="/church-av"
+        activeOptions={{ exact: true }}
+        className="underline-offset-4 hover:underline"
+      >
         Church sound, video & lighting
       </Link>
       {" / "}
