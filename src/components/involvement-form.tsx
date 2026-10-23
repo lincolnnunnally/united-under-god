@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   INTENT_COPY,
+  sourceLine,
   type InvolvementIntent,
 } from "@/lib/involvement";
 import { INQUIRY_UNREACHABLE } from "@/lib/desk";
@@ -24,9 +25,16 @@ const ORG_TYPES = [
 type Props = {
   intent: InvolvementIntent;
   className?: string;
+  /** Prefills the City field, e.g. "Savannah, GA" on a city page. */
+  defaultCity?: string;
+  /**
+   * Where the request came from. Added as a last line of the message so the
+   * owner sees which page sent it (the inquiry has no separate field for it).
+   */
+  source?: { path: string; label: string };
 };
 
-export function InvolvementForm({ intent, className }: Props) {
+export function InvolvementForm({ intent, className, defaultCity, source }: Props) {
   const copy = INTENT_COPY[intent];
   const needsOrg =
     intent === "seal" || intent === "grocery" || intent === "buying" || intent === "av";
@@ -52,7 +60,9 @@ export function InvolvementForm({ intent, className }: Props) {
         organization: String(data.get("organization") ?? "").trim(),
         orgType: String(data.get("orgType") ?? "").trim(),
         city: String(data.get("city") ?? "").trim(),
-        message: String(data.get("message") ?? "").trim(),
+        message: [String(data.get("message") ?? "").trim(), source ? sourceLine(source) : ""]
+          .filter(Boolean)
+          .join("\n\n"),
         poundsPerWeek: String(data.get("poundsPerWeek") ?? "").trim(),
         address: String(data.get("address") ?? "").trim(),
         pickupDay: String(data.get("pickupDay") ?? "").trim(),
@@ -132,6 +142,7 @@ export function InvolvementForm({ intent, className }: Props) {
             name="city"
             autoComplete="address-level2"
             placeholder="Vidalia, Toombs County…"
+            defaultValue={defaultCity}
           />
         </Field>
         {needsOrg ? (
