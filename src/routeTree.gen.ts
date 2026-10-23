@@ -27,6 +27,7 @@ import { Route as MissionRouteImport } from './routes/mission'
 import { Route as OrganizationsRouteImport } from './routes/organizations'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SitemapVerseDotxmlRouteImport } from './routes/sitemap-verse[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnderstandingTheBibleRouteImport } from './routes/understanding-the-bible'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -44,6 +45,8 @@ import { Route as ChurchAvModernRouteImport } from './routes/church-av/modern'
 import { Route as ChurchAvNewBuildingRouteImport } from './routes/church-av/new-building'
 import { Route as ChurchAvTraditionalRouteImport } from './routes/church-av/traditional'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
+import { Route as VerseIndexRouteImport } from './routes/verse/index'
+import { Route as VerseSlugRouteImport } from './routes/verse/$slug'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
@@ -143,6 +146,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapVerseDotxmlRoute = SitemapVerseDotxmlRouteImport.update({
+  id: '/sitemap-verse.xml',
+  path: '/sitemap-verse.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -229,6 +237,16 @@ const GiveThanksRoute = GiveThanksRouteImport.update({
   path: '/thanks',
   getParentRoute: () => GiveRoute,
 } as any)
+const VerseIndexRoute = VerseIndexRouteImport.update({
+  id: '/verse/',
+  path: '/verse/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerseSlugRoute = VerseSlugRouteImport.update({
+  id: '/verse/$slug',
+  path: '/verse/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminStatsRoute = ApiAdminStatsRouteImport.update({
   id: '/api/admin/stats',
   path: '/api/admin/stats',
@@ -289,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/organizations': typeof OrganizationsRoute
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
   '/admin/members': typeof AdminMembersRoute
@@ -302,10 +321,12 @@ export interface FileRoutesByFullPath {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
+  '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
@@ -331,6 +352,7 @@ export interface FileRoutesByTo {
   '/organizations': typeof OrganizationsRoute
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
   '/admin/members': typeof AdminMembersRoute
@@ -344,10 +366,12 @@ export interface FileRoutesByTo {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/verse/$slug': typeof VerseSlugRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
   '/buying': typeof BuyingIndexRoute
   '/church-av': typeof ChurchAvIndexRoute
+  '/verse': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
@@ -377,6 +401,7 @@ export interface FileRoutesById {
   '/organizations': typeof OrganizationsRoute
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
+  '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
   '/admin/members': typeof AdminMembersRoute
@@ -390,10 +415,12 @@ export interface FileRoutesById {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
+  '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
@@ -424,6 +451,7 @@ export interface FileRouteTypes {
     | '/organizations'
     | '/pantry'
     | '/privacy'
+    | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
     | '/admin/members'
@@ -437,10 +465,12 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/verse/$slug'
     | '/admin/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
+    | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
@@ -466,6 +496,7 @@ export interface FileRouteTypes {
     | '/organizations'
     | '/pantry'
     | '/privacy'
+    | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
     | '/admin/members'
@@ -479,10 +510,12 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/verse/$slug'
     | '/admin'
     | '/bible'
     | '/buying'
     | '/church-av'
+    | '/verse'
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
@@ -511,6 +544,7 @@ export interface FileRouteTypes {
     | '/organizations'
     | '/pantry'
     | '/privacy'
+    | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
     | '/admin/members'
@@ -524,10 +558,12 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/verse/$slug'
     | '/admin/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
+    | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/church-av/$state/$city'
@@ -557,6 +593,7 @@ export interface RootRouteChildren {
   OrganizationsRoute: typeof OrganizationsRoute
   PantryRoute: typeof PantryRoute
   PrivacyRoute: typeof PrivacyRoute
+  SitemapVerseDotxmlRoute: typeof SitemapVerseDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
   ChurchAvBlendedRoute: typeof ChurchAvBlendedRoute
@@ -564,7 +601,9 @@ export interface RootRouteChildren {
   ChurchAvModernRoute: typeof ChurchAvModernRoute
   ChurchAvNewBuildingRoute: typeof ChurchAvNewBuildingRoute
   ChurchAvTraditionalRoute: typeof ChurchAvTraditionalRoute
+  VerseSlugRoute: typeof VerseSlugRoute
   ChurchAvIndexRoute: typeof ChurchAvIndexRoute
+  VerseIndexRoute: typeof VerseIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
@@ -703,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap-verse.xml': {
+      id: '/sitemap-verse.xml'
+      path: '/sitemap-verse.xml'
+      fullPath: '/sitemap-verse.xml'
+      preLoaderRoute: typeof SitemapVerseDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms': {
       id: '/terms'
       path: '/terms'
@@ -821,6 +867,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/give/thanks'
       preLoaderRoute: typeof GiveThanksRouteImport
       parentRoute: typeof GiveRoute
+    }
+    '/verse/': {
+      id: '/verse/'
+      path: '/verse'
+      fullPath: '/verse/'
+      preLoaderRoute: typeof VerseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verse/$slug': {
+      id: '/verse/$slug'
+      path: '/verse/$slug'
+      fullPath: '/verse/$slug'
+      preLoaderRoute: typeof VerseSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/admin/stats': {
       id: '/api/admin/stats'
@@ -956,6 +1016,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrganizationsRoute: OrganizationsRoute,
   PantryRoute: PantryRoute,
   PrivacyRoute: PrivacyRoute,
+  SitemapVerseDotxmlRoute: SitemapVerseDotxmlRoute,
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
   ChurchAvBlendedRoute: ChurchAvBlendedRoute,
@@ -963,7 +1024,9 @@ const rootRouteChildren: RootRouteChildren = {
   ChurchAvModernRoute: ChurchAvModernRoute,
   ChurchAvNewBuildingRoute: ChurchAvNewBuildingRoute,
   ChurchAvTraditionalRoute: ChurchAvTraditionalRoute,
+  VerseSlugRoute: VerseSlugRoute,
   ChurchAvIndexRoute: ChurchAvIndexRoute,
+  VerseIndexRoute: VerseIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ChurchAvStateCityRoute: ChurchAvStateCityRoute,

@@ -3,3 +3,4 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://www.unitedundergod.org/sitemap.xml
+Sitemap: https://www.unitedundergod.org/sitemap-verse.xml
