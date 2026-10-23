@@ -36,13 +36,16 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+        <nav
+          className="hidden shrink-0 items-center gap-0.5 min-[1200px]:flex"
+          aria-label="Primary"
+        >
           {NAV.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               className={cn(
-                "rounded-md px-3 py-2 text-sm text-muted transition-colors duration-[var(--motion-quick)] hover:text-ink",
+                "whitespace-nowrap rounded-md px-2 py-2 text-sm text-muted transition-colors duration-[var(--motion-quick)] hover:text-ink",
                 pathname === item.to && "text-ink",
               )}
             >
@@ -52,7 +55,7 @@ export function SiteHeader() {
           <SignedOut>
             <Link
               to="/login"
-              className="ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
+              className="ml-1 whitespace-nowrap rounded-md px-2 py-2 text-sm text-muted hover:text-ink"
             >
               Sign in
             </Link>
@@ -61,21 +64,21 @@ export function SiteHeader() {
             <Link
               to="/account"
               className={cn(
-                "ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink",
+                "ml-1 whitespace-nowrap rounded-md px-2 py-2 text-sm text-muted hover:text-ink",
                 pathname === "/account" && "text-ink",
               )}
             >
               My account
             </Link>
           </SignedIn>
-          <Button asChild className="ml-3">
+          <Button asChild className="ml-2 shrink-0 whitespace-nowrap">
             <Link to="/join">Take the seal</Link>
           </Button>
         </nav>
 
         <button
           type="button"
-          className="inline-flex size-11 items-center justify-center rounded-md text-ink lg:hidden"
+          className="inline-flex size-11 items-center justify-center rounded-md text-ink min-[1200px]:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -88,7 +91,7 @@ export function SiteHeader() {
       {open ? (
         <div
           id="mobile-nav"
-          className="border-t border-rule bg-paper px-5 py-4 lg:hidden"
+          className="border-t border-rule bg-paper px-5 py-4 min-[1200px]:hidden"
         >
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {NAV.map((item) => (

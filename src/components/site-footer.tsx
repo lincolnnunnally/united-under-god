@@ -55,11 +55,6 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <Link to="/give" className="text-muted hover:text-ink">
-                Give
-              </Link>
-            </li>
-            <li>
               <Link to="/food-donors" className="text-muted hover:text-ink">
                 Food donors
               </Link>
