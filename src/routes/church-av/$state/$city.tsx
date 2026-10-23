@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import {
   AvHero,
   CaseStudyCard,
+  ChurchConnectLinks,
   FaqSection,
   HelpLinks,
   ProcessSection,
@@ -32,6 +33,7 @@ import {
   projectsInCity,
   statePath,
 } from "@/lib/church-av";
+import { churchConnectLinks, hasChurchConnectTown } from "@/lib/church-av-churchconnect";
 import { helpForServices } from "@/lib/church-av-help";
 import { pageHead } from "@/lib/seo";
 
@@ -149,6 +151,13 @@ function CityPage() {
         title="Know the problem? Start there."
         eyebrow={`Help for churches in and around ${city.name}`}
       />
+
+      {hasChurchConnectTown(city) ? (
+        <ChurchConnectLinks
+          title={`Already on ChurchConnect in ${city.name}?`}
+          links={churchConnectLinks(["livestream", "booth"], city)}
+        />
+      ) : null}
 
       <ProcessSection compact />
 

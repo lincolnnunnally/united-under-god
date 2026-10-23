@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import {
   AvHero,
   CaseStudyCard,
+  ChurchConnectLinks,
   FaqSection,
   ProcessSection,
   RequestSection,
@@ -20,6 +21,7 @@ import {
   helpPath,
   type HelpPage,
 } from "@/lib/church-av-help";
+import { churchConnectLinks, HELP_CHURCHCONNECT } from "@/lib/church-av-churchconnect";
 import { HELP_LANDING } from "@/lib/church-av-landing";
 import { pageHead } from "@/lib/seo";
 
@@ -149,6 +151,8 @@ function HelpPageView() {
       <FaqSection faq={page.faq} />
 
       <RelatedHelp page={page} />
+
+      <ChurchConnectLinks links={churchConnectLinks(HELP_CHURCHCONNECT[page.slug] ?? [])} />
 
       <RequestSection
         heading="Tell us what you are hearing. We will fix it."
