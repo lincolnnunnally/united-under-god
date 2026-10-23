@@ -107,11 +107,16 @@ export function sourcesFor(path, root = ROOT) {
   return file ? [file] : [];
 }
 
-/** Date (YYYY-MM-DD) of the last commit touching `sources`, today if they have uncommitted edits, null without git. */
+/**
+ * Date (YYYY-MM-DD) of the last commit touching `sources`, today if they have
+ * uncommitted edits, null without full git history. A shallow clone would date
+ * every old file to its cut-off commit, so it counts as no history.
+ */
 export function gitLastmod(sources, root = ROOT) {
   if (!sources.length) return null;
   try {
     const opts = { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] };
+    if (execFileSync("git", ["rev-parse", "--is-shallow-repository"], opts).trim() !== "false") return null;
     const dirty = execFileSync("git", ["status", "--porcelain", "--", ...sources], opts).trim();
     if (dirty) return new Date().toISOString().slice(0, 10);
     const date = execFileSync("git", ["log", "-1", "--format=%cs", "--", ...sources], opts).trim();
