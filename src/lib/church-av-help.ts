@@ -47,7 +47,7 @@ export const HELP_PAGES: HelpPage[] = [
       "Why the back rows of a sanctuary miss the sermon even when it is loud enough up front, and the speaker, microphone, and room fixes that reach every pew.",
     h1: "When the back pews can’t hear the sermon",
     eyebrow: "For pastors and committees · Sound",
-    lead: "It is loud enough at the pulpit. It is loud enough in the front rows. Halfway back, people lean forward, and in the last pews they nod along to words they did not catch. This page explains why that happens and what actually fixes it.",
+    lead: "It is loud enough at the pulpit. It is loud enough in the front rows. Halfway back, people lean forward, and in the last pews they nod along to words they did not catch. Here is why that happens, and how we fix it.",
     whyTitle: "Why the back of the room loses the words",
     why: [
       "Sound gets weaker the farther it travels. A speaker that is comfortable in the front row can be half as loud a few rows later, so whoever sets the volume from the front is setting it for the front.",
