@@ -1,0 +1,33 @@
+name: avl-capture
+# One-off: save public pages of the church AV installer's site (permission
+# granted by the owner) so the church-av pages can quote them exactly.
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/avl-capture
+      - name: Fetch pages
+        run: |
+          mkdir -p avl-capture
+          base=https://messengeravl.com
+          curl -sSL -A "Mozilla/5.0" "$base/" -o avl-capture/home.html || true
+          for path in $(grep -oE 'href="https://messengeravl.com/[^"#?]*"' avl-capture/home.html | sed 's/href="https:\/\/messengeravl.com//;s/"$//' | sort -u | grep -vE '\.(css|js|png|jpg|jpeg|svg|webp|ico|xml)$' | head -60); do
+            name=$(echo "$path" | sed 's#^/##;s#/$##;s#/#__#g'); [ -z "$name" ] && continue
+            curl -sSL -A "Mozilla/5.0" "$base$path" -o "avl-capture/$name.html" || true
+          done
+          curl -sSL -A "Mozilla/5.0" "$base/sitemap.xml" -o avl-capture/sitemap.xml || true
+          curl -sSL -A "Mozilla/5.0" "$base/sitemap_index.xml" -o avl-capture/sitemap_index.xml || true
+          ls -la avl-capture
+      - name: Commit
+        run: |
+          git config user.name "avl-capture"
+          git config user.email "noreply@unitedundergod.org"
+          git add avl-capture
+          git commit -m "Capture installer site pages" || echo nothing
+          git push origin HEAD:claude/avl-capture
