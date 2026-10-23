@@ -39,6 +39,15 @@ export function biblePaths(root = ROOT) {
   return library.questions.map((q) => `/bible/${q.slug}`);
 }
 
+/** /church-av state and city pages, from the same data the routes render. */
+export function churchAvPaths(root = ROOT) {
+  const av = JSON.parse(readFileSync(join(root, "src/data/church-av.json"), "utf8"));
+  return [
+    ...av.states.map((s) => `/church-av/${s.slug}`),
+    ...av.cities.map((c) => `/church-av/${c.state}/${c.slug}`),
+  ];
+}
+
 export function renderSitemap(paths) {
   const urls = paths
     .map((path) => `  <url><loc>${SITE_URL}${path === "/" ? "/" : path}</loc></url>`)
@@ -47,7 +56,7 @@ export function renderSitemap(paths) {
 }
 
 export function buildSitemap(root = ROOT) {
-  return renderSitemap([...STATIC_PATHS, ...biblePaths(root)]);
+  return renderSitemap([...STATIC_PATHS, ...churchAvPaths(root), ...biblePaths(root)]);
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

@@ -180,3 +180,11 @@ export const INTENT_COPY: Record<
     submit: "Raise my hand",
   },
 };
+
+/**
+ * Appended to an inquiry's message so the owner can see which page (and which
+ * state or city) sent it. The inquiry has no separate field for the page.
+ */
+export function sourceLine(source: { path: string; label: string }) {
+  return `Sent from: ${source.label} page (https://www.unitedundergod.org${source.path})`;
+}

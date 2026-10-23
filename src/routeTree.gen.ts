@@ -16,7 +16,6 @@ import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AssessmentRouteImport } from './routes/assessment'
 import { Route as BibleRouteRouteImport } from './routes/bible/route'
 import { Route as BuyingRouteRouteImport } from './routes/buying/route'
-import { Route as ChurchAvRouteImport } from './routes/church-av'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
 import { Route as DonateRouteImport } from './routes/donate'
 import { Route as FoodDonorsRouteImport } from './routes/food-donors'
@@ -38,9 +37,12 @@ import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
 import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
+import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
+import { Route as ChurchAvStateCityRouteImport } from './routes/church-av/$state/$city'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -75,11 +77,6 @@ const BibleRouteRoute = BibleRouteRouteImport.update({
 const BuyingRouteRoute = BuyingRouteRouteImport.update({
   id: '/buying',
   path: '/buying',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChurchAvRoute = ChurchAvRouteImport.update({
-  id: '/church-av',
-  path: '/church-av',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoctrineRoute = DoctrineRouteImport.update({
@@ -187,6 +184,11 @@ const BuyingDeskRoute = BuyingDeskRouteImport.update({
   path: '/desk',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const ChurchAvIndexRoute = ChurchAvIndexRouteImport.update({
+  id: '/church-av/',
+  path: '/church-av/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GiveThanksRoute = GiveThanksRouteImport.update({
   id: '/thanks',
   path: '/thanks',
@@ -202,6 +204,16 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChurchAvStateIndexRoute = ChurchAvStateIndexRouteImport.update({
+  id: '/church-av/$state/',
+  path: '/church-av/$state/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvStateCityRoute = ChurchAvStateCityRouteImport.update({
+  id: '/church-av/$state/$city',
+  path: '/church-av/$state/$city',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -211,7 +223,6 @@ export interface FileRoutesByFullPath {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -234,15 +245,17 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
+  '/church-av/': typeof ChurchAvIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/$state/': typeof ChurchAvStateIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -265,8 +278,11 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
   '/buying': typeof BuyingIndexRoute
+  '/church-av': typeof ChurchAvIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/$state': typeof ChurchAvStateIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -277,7 +293,6 @@ export interface FileRoutesById {
   '/account': typeof AccountRoute
   '/apps': typeof AppsRoute
   '/assessment': typeof AssessmentRoute
-  '/church-av': typeof ChurchAvRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
   '/food-donors': typeof FoodDonorsRoute
@@ -300,8 +315,11 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
+  '/church-av/': typeof ChurchAvIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/church-av/$state/$city': typeof ChurchAvStateCityRoute
+  '/church-av/$state/': typeof ChurchAvStateIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -313,7 +331,6 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -336,15 +353,17 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/bible/'
     | '/buying/'
+    | '/church-av/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/church-av/$state/$city'
+    | '/church-av/$state/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -367,8 +386,11 @@ export interface FileRouteTypes {
     | '/admin'
     | '/bible'
     | '/buying'
+    | '/church-av'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/church-av/$state/$city'
+    | '/church-av/$state'
   id:
     | '__root__'
     | '/'
@@ -378,7 +400,6 @@ export interface FileRouteTypes {
     | '/account'
     | '/apps'
     | '/assessment'
-    | '/church-av'
     | '/doctrine'
     | '/donate'
     | '/food-donors'
@@ -401,8 +422,11 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/bible/'
     | '/buying/'
+    | '/church-av/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/church-av/$state/$city'
+    | '/church-av/$state/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -413,7 +437,6 @@ export interface RootRouteChildren {
   AccountRoute: typeof AccountRoute
   AppsRoute: typeof AppsRoute
   AssessmentRoute: typeof AssessmentRoute
-  ChurchAvRoute: typeof ChurchAvRoute
   DoctrineRoute: typeof DoctrineRoute
   DonateRoute: typeof DonateRoute
   FoodDonorsRoute: typeof FoodDonorsRoute
@@ -427,8 +450,11 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
+  ChurchAvIndexRoute: typeof ChurchAvIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
+  ChurchAvStateIndexRoute: typeof ChurchAvStateIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -480,13 +506,6 @@ declare module '@tanstack/react-router' {
       path: '/buying'
       fullPath: '/buying'
       preLoaderRoute: typeof BuyingRouteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/church-av': {
-      id: '/church-av'
-      path: '/church-av'
-      fullPath: '/church-av'
-      preLoaderRoute: typeof ChurchAvRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doctrine': {
@@ -636,6 +655,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingDeskRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/church-av/': {
+      id: '/church-av/'
+      path: '/church-av'
+      fullPath: '/church-av/'
+      preLoaderRoute: typeof ChurchAvIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/give/thanks': {
       id: '/give/thanks'
       path: '/thanks'
@@ -655,6 +681,20 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/$state/': {
+      id: '/church-av/$state/'
+      path: '/church-av/$state'
+      fullPath: '/church-av/$state/'
+      preLoaderRoute: typeof ChurchAvStateIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/$state/$city': {
+      id: '/church-av/$state/$city'
+      path: '/church-av/$state/$city'
+      fullPath: '/church-av/$state/$city'
+      preLoaderRoute: typeof ChurchAvStateCityRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -724,7 +764,6 @@ const rootRouteChildren: RootRouteChildren = {
   AccountRoute: AccountRoute,
   AppsRoute: AppsRoute,
   AssessmentRoute: AssessmentRoute,
-  ChurchAvRoute: ChurchAvRoute,
   DoctrineRoute: DoctrineRoute,
   DonateRoute: DonateRoute,
   FoodDonorsRoute: FoodDonorsRoute,
@@ -738,8 +777,11 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
+  ChurchAvIndexRoute: ChurchAvIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ChurchAvStateCityRoute: ChurchAvStateCityRoute,
+  ChurchAvStateIndexRoute: ChurchAvStateIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
