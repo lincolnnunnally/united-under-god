@@ -5,12 +5,16 @@ import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { SEAL_STATEMENT } from "@/lib/content";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/join")({
   component: JoinPage,
-  head: () => ({
-    meta: [{ title: "Take the seal — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Take the seal: unite your church or business | United Under God",
+      description: "The seal is a public statement of intent for churches, businesses, charities, and households: united under God, loving one another, active in good work. It is free.",
+      path: "/join", jsonLd: [serviceJsonLd({ name: "The United Under God seal", description: "A free public statement of intent for churches, businesses, charities, and households, linked to a public page anyone can check.", path: "/join", audience: "Churches, businesses, charities, and households", offers: { price: "0", description: "The seal is free and never for sale." } })],
+    }),
 });
 
 function JoinPage() {

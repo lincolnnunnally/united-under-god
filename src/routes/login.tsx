@@ -8,12 +8,11 @@ import { GROK_PROVIDERS, authClient, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { PLENTY_URL } from "@/lib/content";
 import { readMyPlace } from "@/lib/member-actions";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
-  head: () => ({
-    meta: [{ title: "Sign in — United Under God" }],
-  }),
+  head: () => pageHead({ title: "Sign in | United Under God", path: "/login", noindex: true }),
 });
 
 function nameFromEmail(email: string) {

@@ -4,12 +4,16 @@ import { SiteShell } from "@/components/site-shell";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { Button } from "@/components/ui/button";
 import { ORG_TYPES } from "@/lib/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/organizations")({
   component: OrganizationsPage,
-  head: () => ({
-    meta: [{ title: "For organizations — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "For churches, charities, and businesses | United Under God",
+      description: "Churches, charities, and Christian-owned businesses that work together save money and reach more of their town: the seal, group buying, outreach, and church tools.",
+      path: "/organizations",
+    }),
 });
 
 const HELPS = [

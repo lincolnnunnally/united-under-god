@@ -2,12 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { LEGAL } from "@/lib/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/give/thanks")({
   component: GiveThanks,
-  head: () => ({
-    meta: [{ title: "Thank you — United Under God" }],
-  }),
+  head: () => pageHead({ title: "Thank you | United Under God", path: "/give/thanks", noindex: true }),
 });
 
 function GiveThanks() {

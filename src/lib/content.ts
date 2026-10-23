@@ -100,174 +100,258 @@ export const ORG_TYPES = [
   },
 ] as const;
 
-export const APPS = {
+export type AppEntry = {
+  /** Anchor on /apps (unitedundergod.org/apps#slug). */
+  slug: string;
+  name: string;
+  /** The app's own site, or an internal page on this site. */
+  href: string;
+  /** Who it is for, in plain words. */
+  who: string;
+  blurb: string;
+};
+
+/**
+ * Every app and service this site points to. Each gets its own section on
+ * /apps with an id so it can be linked and found; the app's own site does the
+ * selling. Keep blurbs to what the app actually does today.
+ */
+export const APPS: {
+  hope: AppEntry[];
+  church: AppEntry[];
+  practical: AppEntry[];
+} = {
   hope: [
     {
+      slug: "live-on-mission",
       name: "Live On Mission",
       href: "https://liveonmission.unitedundergod.org",
-      blurb: "See the need. Do the thing. Tell the story. The ordinary path into a purposeful life.",
+      who: "Anyone who wants a real way to help a neighbor this week.",
+      blurb: "See the need. Do the thing. Tell the story. Browse local needs and ways to serve, sign up, and share what God did.",
     },
     {
+      slug: "spark-of-hope",
       name: "Spark of Hope",
       href: "https://spark.unitedundergod.org",
-      blurb: "Real stories of what God is doing through ordinary people — share yours and encourage the next person.",
+      who: "People who want encouragement, and people with a story to tell.",
+      blurb: "Real stories of what God is doing through ordinary people. Share yours and encourage the next person.",
     },
     {
+      slug: "kindred-connections",
       name: "Kindred Connections",
       href: "https://kindred.unitedundergod.org",
+      who: "Adults looking for real friends and a group to grow with.",
       blurb: "Friendships and growth groups around purpose.",
     },
     {
+      slug: "aligned-souls",
       name: "Aligned Souls",
       href: "https://alignedsouls.unitedundergod.org",
+      who: "Single Christians looking for a partner.",
       blurb: "Dating partners who help you become who God designed you to be.",
     },
     {
+      slug: "kids-need-dads",
       name: "Kids Need Dads",
       href: "https://dads.unitedundergod.org",
+      who: "Fathers, and the people who want to stand with them.",
       blurb: "Support, mentorship, and restoration for fathers.",
     },
     {
+      slug: "childfirst-solutions",
       name: "ChildFirst Solutions",
       href: "https://childfirst.unitedundergod.org",
+      who: "Separated or divorced parents raising children together.",
       blurb: "Co-parenting support and child-focused tools for families in conflict.",
     },
     {
+      slug: "best-life",
       name: "Best Life",
       href: "https://bestlife.unitedundergod.org",
-      blurb: "Growth pathways — relational, financial, spiritual, mental, emotional, physical.",
+      who: "Anyone ready to grow in one area of life at a time.",
+      blurb: "Growth pathways: relational, financial, spiritual, mental, emotional, and physical.",
     },
     {
+      slug: "speak-to-me",
       name: "Speak to Me",
       href: "https://speak-to-me.unitedundergod.org",
+      who: "Anyone who wants a simple daily Bible reading habit.",
       blurb: "Simple personal Bible reading, one day at a time.",
     },
     {
+      slug: "understanding-the-bible",
       name: "Understanding the Bible",
       href: "/bible",
-      blurb: "Short, clear answers to real questions about faith, straight from Scripture.",
+      who: "Anyone with an honest question about faith.",
+      blurb: "Short, clear answers to real questions about faith, straight from Scripture, with the verses.",
     },
     {
+      slug: "presence",
       name: "Presence",
       href: "https://presence.unitedundergod.org",
+      who: "Hosts and guests who want time together to be simple.",
       blurb: "Simple ways to host and enjoy the presence of others.",
     },
     {
+      slug: "immerse",
       name: "Immerse",
       href: "https://immerse.unitedundergod.org",
-      blurb: "Nature immersion camping — public land, simple trip planning.",
+      who: "Families and friends who want time outdoors.",
+      blurb: "Nature immersion camping on public land, with simple trip planning.",
     },
     {
+      slug: "barefoot-coalition",
       name: "Barefoot Coalition",
       href: "https://barefoot.unitedundergod.org",
-      blurb: "Natural living and grounding — rooted in nature, united in purpose.",
+      who: "People interested in natural living and grounding.",
+      blurb: "Natural living and grounding, rooted in nature and united in purpose.",
     },
     {
+      slug: "dreamstand",
       name: "Dreamstand",
       href: "https://dreamstand.unitedundergod.org",
-      blurb: "Kids turn ideas into little businesses — courage, money, and a flop that is only a lesson.",
+      who: "Kids with an idea, and the parents cheering them on.",
+      blurb: "Kids turn ideas into little businesses: courage, money, and a flop that is only a lesson.",
     },
     {
+      slug: "sandlot",
       name: "Sandlot",
       href: "https://sandlot.unitedundergod.org",
-      blurb: "Kids meetups, toy exchange, and supervised playdates — free, parent-run.",
+      who: "Parents who want their kids playing with other kids.",
+      blurb: "Kids meetups, toy exchange, and supervised playdates, run by parents.",
     },
     {
+      slug: "rally",
       name: "Rally",
       href: "https://rally.unitedundergod.org",
-      blurb: "Tennis and pickleball — find a hitting partner, book a lesson, start a league.",
+      who: "Tennis and pickleball players of any level.",
+      blurb: "Find a hitting partner, book a lesson, or start a league.",
     },
   ],
   church: [
     {
+      slug: "churchconnect",
       name: "ChurchConnect",
-      href: "https://churchconnect.unitedundergod.org",
-      blurb: "Communication, events, groups, volunteers, giving, and discipleship in one system. Enter once.",
+      href: "https://www.churchconnect.cloud",
+      who: "Church secretaries, pastors, and the volunteers who keep a church running.",
+      blurb: "Church software for people, events, groups, volunteers, giving records, and Sunday communication. Enter it once.",
     },
     {
+      slug: "plenty",
       name: "Plenty",
       href: "https://plenty.unitedundergod.org",
-      blurb: "The Vidalia food pantry — get food, volunteer, or donate. Grocers can give here or through this site.",
+      who: "Neighbors in Vidalia who need groceries, and the people who help.",
+      blurb: "The Vidalia food pantry. Get food, volunteer a shift, or give. Grocers schedule food pickups here.",
     },
     {
+      slug: "pastors-circle",
       name: "Vidalia / Toombs Pastors Circle",
-      href: "https://churchconnect.unitedundergod.org/association",
-      blurb: "Local pastors, standing together — not competing for a town that belongs to God.",
+      href: "https://www.churchconnect.cloud/association",
+      who: "Pastors in Vidalia and Toombs County.",
+      blurb: "Local pastors standing together, not competing for a town that belongs to God.",
     },
     {
+      slug: "outreach",
       name: "Outreach",
       href: "https://live-on-mission.com/outreach",
-      blurb: "Meet the neighbors around your church — a Gift Drop, a Block Party, or the Vidalia Serve Day. We plan it with you.",
+      who: "Churches that want to meet the neighbors around their building.",
+      blurb: "A Neighbor Gift Drop, a Block Party, or the Vidalia Serve Day. Send a request and we plan it with you.",
     },
     {
+      slug: "church-sound-video",
       name: "Church sound, livestream & lighting",
       href: "/church-av",
-      blurb: "Every word heard, every Sunday. Sound, streaming, and lighting planned and installed for your sanctuary.",
+      who: "Churches whose sound, stream, or lighting fights them every Sunday.",
+      blurb: "Sound, streaming, and lighting planned and installed for your sanctuary, with your volunteers trained.",
     },
     {
+      slug: "neighborly",
       name: "Neighborly",
       href: "https://neighborly.unitedundergod.org",
+      who: "Neighbors who want to help and be helped close to home.",
       blurb: "Neighbors helping neighbors, locally.",
     },
     {
+      slug: "pulse",
       name: "Pulse",
       href: "https://pulse.unitedundergod.org",
+      who: "Leaders of staff and volunteer teams.",
       blurb: "Quick check-ins with your team so small problems surface before they become big ones.",
-    },
-    {
-      name: "Operate",
-      href: "https://operate.unitedundergod.org",
-      blurb: "For thrift stores, clothing closets, and furniture ministries — track donations, list what’s available, and schedule pickup or delivery.",
     },
   ],
   practical: [
     {
+      slug: "easypeazy",
       name: "EasyPeazy",
-      href: "https://easypeazy.unitedundergod.org",
-      blurb: "Domains, hosting, and websites without the tech overwhelm.",
+      href: "https://easypeazy.site",
+      who: "Churches and small businesses that need a website without learning hosting.",
+      blurb: "Describe your church or business and we design, write, and host the website. Domains, hosting, and a website without the tech overwhelm.",
     },
     {
+      slug: "ai-website-design",
       name: "AI Website Design",
       href: "https://ai-website.design",
-      blurb: "A finished website for your business or ministry, built with your own photos and logo. Change anything by clicking it.",
+      who: "Businesses that want a finished website quickly.",
+      blurb: "A finished website for your business, built with your own photos and logo. Change anything by clicking it.",
     },
     {
-      name: "Porchlight",
-      href: "https://porchlight.unitedundergod.org",
-      blurb: "Off-market houses in Vidalia and Toombs — buy, repair, live, rent, or sell.",
-    },
-    {
-      name: "Toner Connect",
-      href: "https://tonerconnect.unitedundergod.org",
-      blurb: "Free printer monitoring and a buying group for supplies.",
-    },
-    {
+      slug: "group-buying",
       name: "Group buying",
       href: "/buying",
-      blurb: "Churches and charities pool orders for toner, paper, and supplies — and pay less.",
+      who: "Churches, charities, and Christian-owned businesses that buy supplies.",
+      blurb: "Pool orders for toner, paper, and supplies with other organizations, and pay less.",
     },
     {
+      slug: "toner-management",
       name: "Toner Management",
       href: "https://toner.management",
+      who: "Offices tired of running out of toner.",
       blurb: "We watch your printers and get toner to the right desk before anyone runs out.",
     },
     {
-      name: "Ideas",
-      href: "https://ideas.unitedundergod.org",
-      blurb: "Capture an idea the moment it arrives and forge it into content.",
+      slug: "toner-connect",
+      name: "Toner Connect",
+      href: "https://tonerconnect.unitedundergod.org",
+      who: "Organizations that want printer monitoring and group prices on supplies.",
+      blurb: "Printer monitoring and a buying group for supplies. Keep your supplier, buy from us, or join a group buy.",
     },
     {
+      slug: "operate",
+      name: "Operate",
+      href: "https://operate.unitedundergod.org",
+      who: "Thrift stores and clothing closets, and households with goods to give.",
+      blurb: "Track donated furniture, clothing, and household goods, list what is available, and schedule pickup or delivery.",
+    },
+    {
+      slug: "porchlight",
+      name: "Porchlight",
+      href: "https://porchlight.unitedundergod.org",
+      who: "People looking for a house in Vidalia and Toombs County.",
+      blurb: "Off-market houses in Vidalia and Toombs: buy, repair, live, rent, or sell.",
+    },
+    {
+      slug: "laser-engrave-market",
       name: "Laser Engrave Market",
       href: "https://laser.unitedundergod.org",
+      who: "Anyone who needs a custom gift, product, or branded piece.",
       blurb: "Custom engraving for gifts, products, and business branding.",
     },
     {
+      slug: "ideas",
+      name: "Ideas",
+      href: "https://ideas.unitedundergod.org",
+      who: "Writers, teachers, and anyone who loses good ideas.",
+      blurb: "Capture an idea the moment it arrives and forge it into content.",
+    },
+    {
+      slug: "app-engine",
       name: "App Engine",
       href: "https://appengine.unitedundergod.org",
+      who: "Organizations with a problem a simple app could solve.",
       blurb: "Describe a problem. Get a working app built for it.",
     },
   ],
-} as const;
+};
 
 export const SEAL_STATEMENT = [
   "Our organization chooses to be united under God — one body and one purpose for God’s Kingdom.",
@@ -289,7 +373,7 @@ export const PLENTY_STORES = "https://plenty.unitedundergod.org/for-stores";
 export const SPARK_URL = "https://spark.unitedundergod.org";
 export const MISSION_APP = "https://liveonmission.unitedundergod.org";
 export const MISSION_PUBLIC = "https://live-on-mission.com";
-export const CHURCHCONNECT_URL = "https://churchconnect.unitedundergod.org";
+export const CHURCHCONNECT_URL = "https://www.churchconnect.cloud";
 
 export const DONOR_URL = "https://unitedundergod.org/food-donors";
 
@@ -394,7 +478,7 @@ export const DESKS: {
   {
     name: "ChurchConnect",
     role: "Church events, volunteer sign-ups, and announcements, so the right people hear about them.",
-    href: "https://churchconnect.unitedundergod.org",
+    href: CHURCHCONNECT_URL,
   },
   {
     name: "Plenty",

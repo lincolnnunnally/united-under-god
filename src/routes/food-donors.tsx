@@ -6,17 +6,16 @@ import { SiteShell } from "@/components/site-shell";
 import { StoreCalculator } from "@/components/store-calculator";
 import { Button } from "@/components/ui/button";
 import { LEGAL, PLENTY_STORES } from "@/lib/content";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/food-donors")({
   component: FoodDonorsPage,
-  head: () => ({
-    meta: [
-      {
-        title:
-          "Throw it away, deduct the cost. Donate it, you may deduct twice as much — United Under God",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Donate unsold food: you may deduct twice | United Under God",
+      description: "Grocery stores, restaurants, and farms: donate unsold food instead of throwing it away. You may deduct up to twice the cost. Sign up once; receipts come from a 501(c)(3).",
+      path: "/food-donors", jsonLd: [serviceJsonLd({ name: "Food donor sign-up and tax receipts", description: "Grocery stores, restaurants, farms, and distributors sign up once to donate unsold food to the Plenty pantry in Vidalia and receive receipts from United Under God, Inc.", path: "/food-donors", audience: "Grocery stores, restaurants, farms, and distributors", areaServed: "Vidalia, Georgia" })],
+    }),
 });
 
 function FoodDonorsPage() {

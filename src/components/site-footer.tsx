@@ -65,6 +65,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/apps" className="text-muted hover:text-ink">
+                Apps & services
+              </Link>
+            </li>
+            <li>
               <Link to="/happenings" className="text-muted hover:text-ink">
                 What’s on
               </Link>
@@ -93,7 +98,7 @@ export function SiteFooter() {
             </Link>
             {" · "}
             <Link to="/apps" className="text-forest underline-offset-4 hover:underline">
-              Tools
+              All apps & services
             </Link>
           </p>
         </div>

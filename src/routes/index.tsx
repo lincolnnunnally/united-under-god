@@ -8,8 +8,19 @@ import { SealBadge } from "@/components/seal-mark";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { BENEFITS, PILLARS, SCRIPTURE } from "@/lib/content";
+import { pageHead, WEBSITE_JSON_LD } from "@/lib/seo";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () =>
+    pageHead({
+      title: "United Under God | Christians united, loving, and active",
+      description:
+        "A 501(c)(3) movement of Christians, churches, businesses, and charities in Vidalia, Georgia and beyond: take the seal, serve a neighbor, feed families, and give.",
+      path: "/",
+      jsonLd: [WEBSITE_JSON_LD],
+    }),
+});
 
 function Home() {
   const navigate = useNavigate();
@@ -289,7 +300,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1fr_1.05fr] md:px-8 md:py-24">
+      <section id="raise-your-hand" className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-[1fr_1.05fr] md:px-8 md:py-24 scroll-mt-24">
         <div>
           <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
             Raise your hand

@@ -3,12 +3,16 @@ import { InvolvementForm } from "@/components/involvement-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { DESKS, HAPPENINGS } from "@/lib/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/happenings")({
   component: HappeningsPage,
-  head: () => ({
-    meta: [{ title: "What’s on — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Ways to serve and events near Vidalia | United Under God",
+      description: "What is happening now: ways to serve, events, and where to go for food help, donated goods, church events, and volunteering in Vidalia, Georgia and beyond.",
+      path: "/happenings",
+    }),
 });
 
 function HappeningsPage() {
@@ -92,7 +96,7 @@ function HappeningsPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
               <a
-                href="https://churchconnect.unitedundergod.org"
+                href="https://www.churchconnect.cloud"
                 target="_blank"
                 rel="noreferrer"
               >

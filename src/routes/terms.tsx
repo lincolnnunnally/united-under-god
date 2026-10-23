@@ -1,12 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteShell } from "@/components/site-shell";
 import { LEGAL } from "@/lib/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/terms")({
   component: TermsPage,
-  head: () => ({
-    meta: [{ title: "Terms of Use — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Terms of Use | United Under God",
+      description: "The terms for using unitedundergod.org, the seal, the assessment, and giving to United Under God, Inc., a 501(c)(3) nonprofit.",
+      path: "/terms",
+    }),
 });
 
 function TermsPage() {

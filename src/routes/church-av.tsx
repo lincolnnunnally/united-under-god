@@ -3,19 +3,16 @@ import { ArrowRight } from "lucide-react";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/church-av")({
   component: ChurchAvPage,
-  head: () => ({
-    meta: [
-      { title: "Church sound, livestream & lighting — United Under God" },
-      {
-        name: "description",
-        content:
-          "Clear sound, a steady livestream, and lighting that works — planned and installed for your sanctuary, with your volunteers trained before the first Sunday.",
-      },
-    ],
-  }),
+  head: () =>
+    pageHead({
+      title: "Church sound, livestream and lighting | United Under God",
+      description: "Clear sound, a steady livestream, and lighting that works, planned and installed for your sanctuary, with your volunteers trained before the first Sunday.",
+      path: "/church-av", jsonLd: [serviceJsonLd({ name: "Church sound, livestream, and lighting", description: "Sound, livestream, lighting, and video planned and installed for a church sanctuary, with volunteers trained on-site.", path: "/church-av", serviceType: "Church audio, video, and lighting installation", audience: "Churches" })],
+    }),
 });
 
 const PAINS = [

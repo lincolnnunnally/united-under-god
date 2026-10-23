@@ -115,6 +115,31 @@ test("platform chrome overwrites share-card metas and always sets og:title", () 
   assert.doesNotMatch(out, /property="og:image"/);
 });
 
+test("site.pageMeta keeps the page's own title/description/url and still adds the card", () => {
+  const html =
+    '<html><head><title>Page</title><meta property="og:title" content="Page title"><meta property="og:description" content="Page desc"><meta property="og:url" content="https://example.org/page"><meta name="twitter:card" content="summary"></head></html>';
+  const out = injectGrokPwaHead(html, {
+    host: "example.org",
+    cwd: mkdtempSync(join(tmpdir(), "grok-og-pagemeta-")),
+    site: { title: "Site", image: "/og.jpg", pageMeta: true },
+  });
+  assert.match(out, /property="og:title" content="Page title"/);
+  assert.doesNotMatch(out, /property="og:title" content="Site"/);
+  assert.match(out, /property="og:description" content="Page desc"/);
+  assert.match(out, /property="og:url" content="https:\/\/example\.org\/page"/);
+  assert.match(out, /property="og:image" content="https:\/\/example\.org\/og\.jpg"/);
+  assert.match(out, /name="twitter:card" content="summary_large_image"/);
+  assert.doesNotMatch(out, /content="summary"/);
+  assert.equal(out.split('property="og:title"').length - 1, 1);
+});
+
+test("site.pageMeta still supplies og:title when the page has none", () => {
+  const out = injectGrokPwaHead("<html><head><title>Hello</title></head></html>", {
+    site: { title: "Site", pageMeta: true },
+  });
+  assert.match(out, /property="og:title" content="Site"/);
+});
+
 test("does not duplicate twitter:card or og:title", () => {
   const once = injectGrokPwaHead("<html><head><title>Hello World</title></head></html>");
   const twice = injectGrokPwaHead(once);

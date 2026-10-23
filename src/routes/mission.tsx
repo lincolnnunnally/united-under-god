@@ -6,12 +6,16 @@ import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { MISSION_APP, SCRIPTURE, SPARK_URL } from "@/lib/content";
+import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/mission")({
   component: MissionPage,
-  head: () => ({
-    meta: [{ title: "Live on Mission — United Under God" }],
-  }),
+  head: () =>
+    pageHead({
+      title: "Live on Mission: serve a neighbor this week | United Under God",
+      description: "Your life is purposeful when you use it for a purpose. Find a real way to serve a neighbor this week, do it, and tell what God did. Start where you live.",
+      path: "/mission", jsonLd: [serviceJsonLd({ name: "Live on Mission", description: "An invitation to serve a neighbor this week: see the need, do the thing, tell the story.", path: "/mission", serviceType: "Volunteer opportunities", audience: "Christians and churches" })],
+    }),
 });
 
 const FRUIT = [

@@ -375,11 +375,32 @@ export function grokOgHeadTags({
   return tags;
 }
 
-export function stripShareMetaTags(html) {
+/**
+ * Share metas a page may own when site.json sets `"pageMeta": true`: each
+ * route writes its own title/description/url so a shared link names the page,
+ * not just the site. The platform still owns the card image and twitter:card.
+ */
+export const PAGE_OWNED_SHARE_KEYS = new Set([
+  "og:title",
+  "og:description",
+  "og:url",
+  "og:type",
+  "og:site_name",
+  "twitter:title",
+  "twitter:description",
+]);
+
+function metaKeyOf(tag) {
+  const match = String(tag).match(/\b(?:property|name)\s*=\s*["']([^"']+)["']/i);
+  return match ? String(match[1]).toLowerCase() : "";
+}
+
+export function stripShareMetaTags(html, keep = new Set()) {
   return String(html).replace(/<meta\b[^>]*>/gi, (tag) => {
     const attrs = [...tag.matchAll(/\b(?:property|name)\s*=\s*["']([^"']+)["']/gi)];
     for (const match of attrs) {
-      if (SHARE_META_KEYS.has(String(match[1]).toLowerCase())) return "";
+      const key = String(match[1]).toLowerCase();
+      if (SHARE_META_KEYS.has(key) && !keep.has(key)) return "";
     }
     return tag;
   });
@@ -432,7 +453,11 @@ export function injectGrokPwaHead(html, ctx = {}) {
     host,
     documentTitle,
   );
-  let next = stripShareMetaTags(html);
+  const pageOwned = site?.pageMeta === true ? PAGE_OWNED_SHARE_KEYS : new Set();
+  let next = stripShareMetaTags(html, pageOwned);
+  const pageKeys = new Set(
+    [...next.matchAll(/<meta\b[^>]*>/gi)].map((m) => metaKeyOf(m[0])).filter(Boolean),
+  );
 
   const missing = grokPwaHeadTags(appName)
     .filter(([key]) => {
@@ -444,7 +469,12 @@ export function injectGrokPwaHead(html, ctx = {}) {
 
   next = insertAfterHeadOpen(
     next,
-    grokOgHeadTags({ host, appName, site, documentTitle, cwd }).join(""),
+    grokOgHeadTags({ host, appName, site, documentTitle, cwd })
+      .filter((tag) => {
+        const key = metaKeyOf(tag);
+        return !(pageOwned.has(key) && pageKeys.has(key));
+      })
+      .join(""),
   );
 
   if (!next.includes("/grok-app-builder/extensions.js")) {
