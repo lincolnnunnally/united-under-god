@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/msg_logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MessengerAVL</title>             
+    <script type="module" crossorigin src="/assets/index-CVZ-x6LX.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BA-FPglc.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script>
+      window.fwSettings={
+      'widget_id':156000001389
+      };
+      !function(){if("function"!=typeof window.FreshworksWidget){var n=function(){n.q.push(arguments)};n.q=[],window.FreshworksWidget=n}}() 
+    </script>
+    <script type='text/javascript' src='https://widget.freshworks.com/widgets/156000001389.js' async defer></script>
+
+  </body>
+</html>
