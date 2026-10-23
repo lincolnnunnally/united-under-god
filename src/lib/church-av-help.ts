@@ -629,7 +629,11 @@ export function helpPath(page: HelpPage) {
 }
 
 /** Problems a church can pick in the planner: every help page except the building one. */
-export const PLANNER_PROBLEMS = HELP_PAGES.filter((p) => p.slug !== "planning-a-new-building");
+// Planner problems are symptoms a church is living with. A new building and a
+// traditional room are answered by their own planner questions, not listed here.
+export const PLANNER_PROBLEMS = HELP_PAGES.filter(
+  (p) => p.slug !== "planning-a-new-building" && p.slug !== "traditional-sanctuary-without-a-big-screen",
+);
 
 /** Help pages that fit a service id, for linking from state and city pages. */
 const SERVICE_HELP: Record<string, string[]> = {

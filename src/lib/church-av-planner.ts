@@ -97,8 +97,8 @@ export const EMPTY_ANSWERS: Answers = { problems: [] };
 
 export const STORAGE_KEY = "uug:church-av-planner:v1";
 
-/** Questions in the planner (worship, seats, room, problems, stream, building, decider). */
-export const PLANNER_STEP_COUNT = 7;
+/** Questions in the planner, one per screen (worship, seats, built, ceiling, surfaces, problems, stream, building, decider). */
+export const PLANNER_STEP_COUNT = 9;
 
 /** Reads saved answers; private windows and blocked storage just start fresh. */
 export function loadSaved(): { answers: Answers; step: number } | null {
