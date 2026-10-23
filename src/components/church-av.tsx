@@ -15,6 +15,7 @@ import {
   type NearbyProject,
   type Project,
 } from "@/lib/church-av";
+import type { ChurchConnectLink } from "@/lib/church-av-churchconnect";
 import { HELP_PAGES, type HelpPage } from "@/lib/church-av-help";
 import { cn } from "@/lib/utils";
 
@@ -363,6 +364,45 @@ export function HelpLinks({
           ))}
         </ul>
       </div>
+    </section>
+  );
+}
+
+/**
+ * "Already on ChurchConnect?" cross-link. ChurchConnect's own /church-av pages
+ * cover the livestream link on the church's page and the sound booth schedule;
+ * the room itself is planned here.
+ */
+export function ChurchConnectLinks({
+  links,
+  title = "Already on ChurchConnect?",
+}: {
+  links: ChurchConnectLink[];
+  title?: string;
+}) {
+  if (!links.length) return null;
+  return (
+    <section className="mx-auto max-w-6xl px-5 py-12 md:px-8">
+      <SectionIntro eyebrow="ChurchConnect" title={title}>
+        <p>
+          ChurchConnect, from the same family as United Under God, can show your watch-live link on
+          your church page and schedule the people who run sound, slides, and camera. The room
+          itself is planned here.
+        </p>
+      </SectionIntro>
+      <ul className="mt-6 grid gap-3">
+        {links.map((link) => (
+          <li key={link.href + link.label}>
+            <a
+              href={link.href}
+              className="inline-flex items-center gap-2 font-semibold text-forest underline-offset-4 hover:underline"
+            >
+              {link.label}
+              <ArrowRight className="size-4" />
+            </a>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

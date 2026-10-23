@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import type { ReactNode } from "react";
 import {
   CaseStudyCard,
+  ChurchConnectLinks,
   FaqSection,
   RequestSection,
   TestimonialQuote,
@@ -10,6 +11,7 @@ import {
 import { StageIllustration } from "@/components/church-av-stage";
 import { Button } from "@/components/ui/button";
 import { AV_PROCESS, INSTALLER_LINE } from "@/lib/church-av";
+import { churchConnectLinks, LANDING_CHURCHCONNECT } from "@/lib/church-av-churchconnect";
 import {
   getLanding,
   LANDING_OUTCOMES,
@@ -253,6 +255,7 @@ export function LandingBody({ page }: { page: LandingPage }) {
       <LandingPlanBand page={page} />
       <LandingFaq page={page} />
       <LandingOthers page={page} />
+      <ChurchConnectLinks links={churchConnectLinks(LANDING_CHURCHCONNECT[page.slug] ?? [])} />
       <LandingRequest page={page} />
     </>
   );

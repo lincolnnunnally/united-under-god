@@ -493,3 +493,81 @@ test("hub, help pages, and planner results link to the landing pages", () => {
   assert.match(planner, /initialStyle/);
   assert.match(read("src/routes/church-av/planner/index.tsx"), /initialStyle=\{search\.style\}/);
 });
+
+// Owner rules, 2026-10-23: no prices, no ranking promises, never say churches
+// are legally required to provide assistive listening, and hearing loops or
+// Auracast only alongside "we'll help you choose".
+function ownerRuleFailures(text) {
+  const out = [];
+  if (/\bfree\b/i.test(text)) out.push("free");
+  if (/\bAI\b/.test(text)) out.push("AI");
+  if (/\$\s?\d|\bUSD\b|\bper month\b/i.test(text)) out.push("price");
+  if (
+    /\brank(s|ed|ing|ings)?\b|first page of google|page one of google|top of google|#1 on/i.test(
+      text,
+    )
+  ) {
+    out.push("ranking promise");
+  }
+  // Questions ("Are churches legally required…?") are fine; statements are not.
+  const statements = text.replace(/[^.?!"]*\?/g, " ");
+  if (
+    /legally required|required by law|ADA requires|law requires|must provide assistive/i.test(
+      statements,
+    )
+  ) {
+    out.push("legal requirement");
+  }
+  if (/hearing loop|Auracast/i.test(text) && !/we['’]ll help you choose/i.test(text)) {
+    out.push("hearing loop or Auracast without 'we'll help you choose'");
+  }
+  return out;
+}
+
+test("the owner rule check catches each banned phrase", () => {
+  for (const sample of [
+    "A free checkup",
+    "AI powered",
+    "Only $99",
+    "We rank you first",
+    "Churches are legally required to provide assistive listening",
+    "Add a hearing loop",
+  ]) {
+    assert.ok(ownerRuleFailures(sample).length, sample);
+  }
+  assert.deepEqual(ownerRuleFailures("Auracast or a loop: we’ll help you choose."), []);
+  assert.deepEqual(
+    ownerRuleFailures("Are churches legally required to have assistive listening?"),
+    [],
+  );
+});
+
+test("every church AV source keeps the owner rules", () => {
+  // Page copy only: skip test files and code comments (which name the rules).
+  for (const file of SOURCES.filter((f) => !/\.test\.ts$/.test(f))) {
+    const code = readFileSync(file, "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, " ")
+      .replace(/(^|\s)\/\/.*$/gm, " ");
+    const problems = ownerRuleFailures(code);
+    assert.deepEqual(problems, [], `${file}: ${problems.join(", ")}`);
+  }
+});
+
+test("ChurchConnect cross-links point at real ChurchConnect AV pages", () => {
+  const lib = read("src/lib/church-av-churchconnect.ts");
+  const towns = [...lib.matchAll(/^\s+([a-z-]+): "([a-z-]+-ga)",$/gm)];
+  assert.ok(towns.length >= 7, "ChurchConnect town map is missing");
+  for (const [, city, town] of towns) {
+    assert.ok(
+      av.cities.some((c) => c.state === "georgia" && c.slug === city),
+      `${city} has no United Under God city page`,
+    );
+    assert.ok(town === `${city}-ga`, `${city} maps to ${town}`);
+  }
+  assert.ok(lib.includes('livestream: "church-livestreaming"'));
+  assert.ok(lib.includes('booth: "sanctuary-sound-lighting"'));
+  assert.ok(lib.includes('"https://www.churchconnect.cloud"'));
+  assert.ok(read("src/routes/church-av/$state/$city.tsx").includes("<ChurchConnectLinks"));
+  assert.ok(read("src/routes/church-av/help/$slug.tsx").includes("<ChurchConnectLinks"));
+  assert.ok(read("src/components/church-av-landing.tsx").includes("<ChurchConnectLinks"));
+});
