@@ -4,6 +4,7 @@ export const NAV = [
   { to: "/pantry", label: "Vidalia pantry" },
   { to: "/food-donors", label: "Stores" },
   { to: "/organizations", label: "For organizations" },
+  { to: "/membership", label: "Member churches" },
   { to: "/bible", label: "Bible" },
   { to: "/give", label: "Give" },
 ] as const;

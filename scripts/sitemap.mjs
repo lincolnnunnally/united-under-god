@@ -2,7 +2,7 @@
 /**
  * Writes public/sitemap.xml: every public, indexable page on the production
  * host (the apex 308s to www), each with the date its own source files last
- * changed. Private pages (/login, /account, /admin,
+ * changed. Private pages (/login, /account, /admin, /membership/welcome,
  * /buying/desk, /buying/bids/<id>, /buying/cases/<id>, /buying/mediate/<id>,
  * /buying/covenant, /buying/portal, /buying/review/<id>, /give/thanks) and redirects (/donate) stay out on purpose.
  *
@@ -27,6 +27,8 @@ export const STATIC_PATHS = [
   "/pantry",
   "/food-donors",
   "/buying",
+  "/membership",
+  "/fellowship",
   "/buying/vendors",
   "/buying/sell-to-churches",
   "/buying/vendor-terms",
@@ -120,6 +122,10 @@ export function sourcesFor(path, root = ROOT) {
   if (path === "/buying/how-vendors-are-ranked") {
     return ["src/routes/buying/how-vendors-are-ranked.tsx", "src/lib/vendor-rank.ts"];
   }
+  if (path === "/membership") {
+    return ["src/routes/membership/index.tsx", "src/lib/membership.ts", "src/components/member-gate.tsx"];
+  }
+  if (path === "/fellowship") return ["src/routes/fellowship.tsx", "src/lib/fellowship.ts"];
   if (path === "/buying/vendor-terms") return ["src/routes/buying/vendor-terms.tsx", "src/lib/vendor-terms.ts"];
   if (path.startsWith("/buying/")) {
     return ["src/data/church-spend.json", "src/lib/church-spend.ts", "src/routes/buying/$category.tsx"];

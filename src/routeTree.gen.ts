@@ -18,6 +18,7 @@ import { Route as BibleRouteRouteImport } from './routes/bible/route'
 import { Route as BuyingRouteRouteImport } from './routes/buying/route'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
 import { Route as DonateRouteImport } from './routes/donate'
+import { Route as FellowshipRouteImport } from './routes/fellowship'
 import { Route as FoodDonorsRouteImport } from './routes/food-donors'
 import { Route as GiveRouteImport } from './routes/give'
 import { Route as HappeningsRouteImport } from './routes/happenings'
@@ -31,6 +32,8 @@ import { Route as SitemapVerseDotxmlRouteImport } from './routes/sitemap-verse[.
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnderstandingTheBibleRouteImport } from './routes/understanding-the-bible'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminChurchesRouteImport } from './routes/admin/churches'
+import { Route as AdminFellowshipRouteImport } from './routes/admin/fellowship'
 import { Route as AdminMembersRouteImport } from './routes/admin/members'
 import { Route as AdminNotifyRouteImport } from './routes/admin/notify'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
@@ -53,10 +56,13 @@ import { Route as ChurchAvModernRouteImport } from './routes/church-av/modern'
 import { Route as ChurchAvNewBuildingRouteImport } from './routes/church-av/new-building'
 import { Route as ChurchAvTraditionalRouteImport } from './routes/church-av/traditional'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
+import { Route as MembershipIndexRouteImport } from './routes/membership/index'
+import { Route as MembershipWelcomeRouteImport } from './routes/membership/welcome'
 import { Route as VerseIndexRouteImport } from './routes/verse/index'
 import { Route as VerseSlugRouteImport } from './routes/verse/$slug'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiVendorFilesIndexRouteImport } from './routes/api/vendor-files/index'
 import { Route as ApiVendorFilesIdRouteImport } from './routes/api/vendor-files/$id'
 import { Route as BuyingBidsIdRouteImport } from './routes/buying/bids/$id'
@@ -114,6 +120,11 @@ const DoctrineRoute = DoctrineRouteImport.update({
 const DonateRoute = DonateRouteImport.update({
   id: '/donate',
   path: '/donate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FellowshipRoute = FellowshipRouteImport.update({
+  id: '/fellowship',
+  path: '/fellowship',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FoodDonorsRoute = FoodDonorsRouteImport.update({
@@ -179,6 +190,16 @@ const UnderstandingTheBibleRoute = UnderstandingTheBibleRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminChurchesRoute = AdminChurchesRouteImport.update({
+  id: '/churches',
+  path: '/churches',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminFellowshipRoute = AdminFellowshipRouteImport.update({
+  id: '/fellowship',
+  path: '/fellowship',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminMembersRoute = AdminMembersRouteImport.update({
@@ -293,6 +314,16 @@ const GiveThanksRoute = GiveThanksRouteImport.update({
   path: '/thanks',
   getParentRoute: () => GiveRoute,
 } as any)
+const MembershipIndexRoute = MembershipIndexRouteImport.update({
+  id: '/membership/',
+  path: '/membership/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembershipWelcomeRoute = MembershipWelcomeRouteImport.update({
+  id: '/membership/welcome',
+  path: '/membership/welcome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VerseIndexRoute = VerseIndexRouteImport.update({
   id: '/verse/',
   path: '/verse/',
@@ -311,6 +342,11 @@ const ApiAdminStatsRoute = ApiAdminStatsRouteImport.update({
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiVendorFilesIndexRoute = ApiVendorFilesIndexRouteImport.update({
@@ -389,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/assessment': typeof AssessmentRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/fellowship': typeof FellowshipRoute
   '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
@@ -401,6 +438,8 @@ export interface FileRoutesByFullPath {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/churches': typeof AdminChurchesRoute
+  '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -420,14 +459,17 @@ export interface FileRoutesByFullPath {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
+  '/membership/': typeof MembershipIndexRoute
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
@@ -449,6 +491,7 @@ export interface FileRoutesByTo {
   '/assessment': typeof AssessmentRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/fellowship': typeof FellowshipRoute
   '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
@@ -461,6 +504,8 @@ export interface FileRoutesByTo {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/churches': typeof AdminChurchesRoute
+  '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -480,14 +525,17 @@ export interface FileRoutesByTo {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
   '/admin': typeof AdminIndexRoute
   '/bible': typeof BibleIndexRoute
   '/buying': typeof BuyingIndexRoute
   '/church-av': typeof ChurchAvIndexRoute
+  '/membership': typeof MembershipIndexRoute
   '/verse': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
@@ -513,6 +561,7 @@ export interface FileRoutesById {
   '/assessment': typeof AssessmentRoute
   '/doctrine': typeof DoctrineRoute
   '/donate': typeof DonateRoute
+  '/fellowship': typeof FellowshipRoute
   '/food-donors': typeof FoodDonorsRoute
   '/give': typeof GiveRouteWithChildren
   '/happenings': typeof HappeningsRoute
@@ -525,6 +574,8 @@ export interface FileRoutesById {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/churches': typeof AdminChurchesRoute
+  '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -544,14 +595,17 @@ export interface FileRoutesById {
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
   '/give/thanks': typeof GiveThanksRoute
+  '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
+  '/membership/': typeof MembershipIndexRoute
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
@@ -578,6 +632,7 @@ export interface FileRouteTypes {
     | '/assessment'
     | '/doctrine'
     | '/donate'
+    | '/fellowship'
     | '/food-donors'
     | '/give'
     | '/happenings'
@@ -590,6 +645,8 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/churches'
+    | '/admin/fellowship'
     | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
@@ -609,14 +666,17 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/membership/welcome'
     | '/verse/$slug'
     | '/admin/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
+    | '/membership/'
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
@@ -638,6 +698,7 @@ export interface FileRouteTypes {
     | '/assessment'
     | '/doctrine'
     | '/donate'
+    | '/fellowship'
     | '/food-donors'
     | '/give'
     | '/happenings'
@@ -650,6 +711,8 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/churches'
+    | '/admin/fellowship'
     | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
@@ -669,14 +732,17 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/membership/welcome'
     | '/verse/$slug'
     | '/admin'
     | '/bible'
     | '/buying'
     | '/church-av'
+    | '/membership'
     | '/verse'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
@@ -701,6 +767,7 @@ export interface FileRouteTypes {
     | '/assessment'
     | '/doctrine'
     | '/donate'
+    | '/fellowship'
     | '/food-donors'
     | '/give'
     | '/happenings'
@@ -713,6 +780,8 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/churches'
+    | '/admin/fellowship'
     | '/admin/members'
     | '/admin/notify'
     | '/admin/staff'
@@ -732,14 +801,17 @@ export interface FileRouteTypes {
     | '/church-av/new-building'
     | '/church-av/traditional'
     | '/give/thanks'
+    | '/membership/welcome'
     | '/verse/$slug'
     | '/admin/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
+    | '/membership/'
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
@@ -765,6 +837,7 @@ export interface RootRouteChildren {
   AssessmentRoute: typeof AssessmentRoute
   DoctrineRoute: typeof DoctrineRoute
   DonateRoute: typeof DonateRoute
+  FellowshipRoute: typeof FellowshipRoute
   FoodDonorsRoute: typeof FoodDonorsRoute
   GiveRoute: typeof GiveRouteWithChildren
   HappeningsRoute: typeof HappeningsRoute
@@ -782,11 +855,14 @@ export interface RootRouteChildren {
   ChurchAvModernRoute: typeof ChurchAvModernRoute
   ChurchAvNewBuildingRoute: typeof ChurchAvNewBuildingRoute
   ChurchAvTraditionalRoute: typeof ChurchAvTraditionalRoute
+  MembershipWelcomeRoute: typeof MembershipWelcomeRoute
   VerseSlugRoute: typeof VerseSlugRoute
   ChurchAvIndexRoute: typeof ChurchAvIndexRoute
+  MembershipIndexRoute: typeof MembershipIndexRoute
   VerseIndexRoute: typeof VerseIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiVendorFilesIdRoute: typeof ApiVendorFilesIdRoute
   ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
   ChurchAvHelpSlugRoute: typeof ChurchAvHelpSlugRoute
@@ -860,6 +936,13 @@ declare module '@tanstack/react-router' {
       path: '/donate'
       fullPath: '/donate'
       preLoaderRoute: typeof DonateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fellowship': {
+      id: '/fellowship'
+      path: '/fellowship'
+      fullPath: '/fellowship'
+      preLoaderRoute: typeof FellowshipRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/food-donors': {
@@ -951,6 +1034,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/churches': {
+      id: '/admin/churches'
+      path: '/churches'
+      fullPath: '/admin/churches'
+      preLoaderRoute: typeof AdminChurchesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/fellowship': {
+      id: '/admin/fellowship'
+      path: '/fellowship'
+      fullPath: '/admin/fellowship'
+      preLoaderRoute: typeof AdminFellowshipRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/members': {
@@ -1107,6 +1204,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GiveThanksRouteImport
       parentRoute: typeof GiveRoute
     }
+    '/membership/': {
+      id: '/membership/'
+      path: '/membership'
+      fullPath: '/membership/'
+      preLoaderRoute: typeof MembershipIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/membership/welcome': {
+      id: '/membership/welcome'
+      path: '/membership/welcome'
+      fullPath: '/membership/welcome'
+      preLoaderRoute: typeof MembershipWelcomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/verse/': {
       id: '/verse/'
       path: '/verse'
@@ -1133,6 +1244,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/$'
       fullPath: '/api/auth/$'
       preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/vendor-files/': {
@@ -1230,6 +1348,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminChurchesRoute: typeof AdminChurchesRoute
+  AdminFellowshipRoute: typeof AdminFellowshipRoute
   AdminMembersRoute: typeof AdminMembersRoute
   AdminNotifyRoute: typeof AdminNotifyRoute
   AdminStaffRoute: typeof AdminStaffRoute
@@ -1237,6 +1357,8 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminChurchesRoute: AdminChurchesRoute,
+  AdminFellowshipRoute: AdminFellowshipRoute,
   AdminMembersRoute: AdminMembersRoute,
   AdminNotifyRoute: AdminNotifyRoute,
   AdminStaffRoute: AdminStaffRoute,
@@ -1321,6 +1443,7 @@ const rootRouteChildren: RootRouteChildren = {
   AssessmentRoute: AssessmentRoute,
   DoctrineRoute: DoctrineRoute,
   DonateRoute: DonateRoute,
+  FellowshipRoute: FellowshipRoute,
   FoodDonorsRoute: FoodDonorsRoute,
   GiveRoute: GiveRouteWithChildren,
   HappeningsRoute: HappeningsRoute,
@@ -1338,11 +1461,14 @@ const rootRouteChildren: RootRouteChildren = {
   ChurchAvModernRoute: ChurchAvModernRoute,
   ChurchAvNewBuildingRoute: ChurchAvNewBuildingRoute,
   ChurchAvTraditionalRoute: ChurchAvTraditionalRoute,
+  MembershipWelcomeRoute: MembershipWelcomeRoute,
   VerseSlugRoute: VerseSlugRoute,
   ChurchAvIndexRoute: ChurchAvIndexRoute,
+  MembershipIndexRoute: MembershipIndexRoute,
   VerseIndexRoute: VerseIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiVendorFilesIdRoute: ApiVendorFilesIdRoute,
   ChurchAvStateCityRoute: ChurchAvStateCityRoute,
   ChurchAvHelpSlugRoute: ChurchAvHelpSlugRoute,

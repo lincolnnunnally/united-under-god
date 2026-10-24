@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { CatalogVendors } from "@/components/catalog-vendors";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
+import { BecomeMemberCta, MemberGate, MemberLockedLine } from "@/components/member-gate";
 import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
   type CatalogItemView,
   type SpendCategory,
 } from "@/lib/church-spend";
-import { listCatalogBook } from "@/lib/source-actions";
+import { listCatalogBookForViewer } from "@/lib/membership-actions";
 import { absoluteUrl, pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/buying/$category")({
@@ -26,7 +27,9 @@ export const Route = createFileRoute("/buying/$category")({
     if (!category) throw notFound();
     // Sound, livestream, and lighting have their own pages.
     if (category.route) throw redirect({ href: category.route, statusCode: 301 });
-    const read = await listCatalogBook();
+    // Vendor names, prices, and notes come back only for a member church (or
+    // staff); for everyone else the server has already removed them.
+    const read = await listCatalogBookForViewer();
     return { categoryId: category.id, ...read };
   },
   component: CategoryPage,
@@ -75,7 +78,7 @@ const STATUS_TEXT: Record<CatalogItemView["status"], string> = {
 };
 
 function CategoryPage() {
-  const { categoryId, entries, bidding, unavailable } = Route.useLoaderData();
+  const { categoryId, entries, bidding, unavailable, member } = Route.useLoaderData();
   const category = getSpendCategory(categoryId) as SpendCategory;
   const view = catalogView(category, entries, bidding);
   const mix = modelMix(allItems(category));
@@ -154,7 +157,7 @@ function CategoryPage() {
               ) : null}
               <ul className="mt-4 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
                 {items.map((row) => (
-                  <CatalogRow key={row.item.id} row={row} />
+                  <CatalogRow key={row.item.id} row={row} member={member} />
                 ))}
               </ul>
             </div>
@@ -168,19 +171,31 @@ function CategoryPage() {
                 <li key={entry.id} className="px-5 py-4">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="font-medium">{entry.title}</p>
-                    <p className="text-sm font-medium text-forest">
-                      ${entry.unitPrice}
-                      {entry.unit ? ` / ${entry.unit}` : ""}
-                    </p>
+                    {entry.locked ? (
+                      <p className="text-sm text-forest">Group price</p>
+                    ) : (
+                      <p className="text-sm font-medium text-forest">
+                        ${entry.unitPrice}
+                        {entry.unit ? ` / ${entry.unit}` : ""}
+                      </p>
+                    )}
                   </div>
-                  <p className="mt-1 text-sm text-muted">{entry.vendorName}</p>
-                  {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
-                  {entry.notes ? <p className="mt-1 text-sm text-muted">{entry.notes}</p> : null}
+                  <MemberGate member={member && !entry.locked} compact className="mt-1">
+                    <p className="mt-1 text-sm text-muted">{entry.vendorName}</p>
+                    {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
+                    {entry.notes ? <p className="mt-1 text-sm text-muted">{entry.notes}</p> : null}
+                  </MemberGate>
                 </li>
               ))}
             </ul>
           </div>
         ) : null}
+        {member ? null : (
+          <BecomeMemberCta
+            what={`the vendors and prices for ${category.name.toLowerCase()}`}
+            className="mt-12"
+          />
+        )}
       </section>
 
       <CatalogVendors categoryId={category.id} categoryName={category.name} />
@@ -208,7 +223,7 @@ function CategoryPage() {
               </>
             )}
             <p className="mt-6 text-sm text-muted">
-              Joining group buying has no fee, and there is no minimum order.
+              Telling us what you buy costs nothing, and there is no minimum order.
             </p>
             <p className="mt-6">
               <Link to="/assessment" className="text-forest underline-offset-4 hover:underline">
@@ -241,7 +256,7 @@ function RequirementNote({ note }: { note: string }) {
   );
 }
 
-function CatalogRow({ row }: { row: CatalogItemView }) {
+function CatalogRow({ row, member }: { row: CatalogItemView; member: boolean }) {
   const { item, status, prices } = row;
   return (
     <li className="px-5 py-4">
@@ -256,7 +271,12 @@ function CatalogRow({ row }: { row: CatalogItemView }) {
       <p className="mt-1 text-sm text-muted">
         {MODEL_LABELS[item.model]} · unit: {item.unit} · {item.frequency}
       </p>
-      {prices.length ? (
+      {prices.length && (!member || prices.every((entry) => entry.locked)) ? (
+        <MemberLockedLine
+          what={prices.length > 1 ? "the prices and vendors" : "the price and vendor"}
+          className="mt-2"
+        />
+      ) : prices.length ? (
         <ul className="mt-2 grid gap-1 text-sm">
           {prices.map((entry) => (
             <li key={entry.id}>

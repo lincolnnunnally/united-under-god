@@ -125,6 +125,9 @@ test("new copy keeps the owner's rules", () => {
   assert.ok(!/guarantee/i.test(text), "no guaranteed refunds");
   assert.ok(!/legal advice/i.test(text.replace(/It is not legal advice\./g, "")), "no legal advice");
   for (const page of PUBLIC_PAGES) {
+    // Pages that render the member church gate say "member church" on
+    // purpose (owner, 2026-10-24); scripts/membership.test.mjs covers them.
+    if (/<(MemberLockedLine|BecomeMemberCta)\b/.test(read(page))) continue;
     // Import paths (e.g. member-actions) are code, not copy.
     const copy = read(page)
       .split("\n")

@@ -10,7 +10,9 @@ export type InvolvementIntent =
   | "food"
   | "org"
   | "buying"
-  | "av";
+  | "av"
+  | "member"
+  | "website";
 
 export type InvolvementRecord = {
   id: string;
@@ -120,7 +122,7 @@ export const INTENT_COPY: Record<
   { title: string; lead: string; submit: string; done?: string }
 > = {
   seal: {
-    title: "Make the statement of intent",
+    title: "Take the seal",
     lead: "Tell us about your church, business, charity, or civic body. Every application is reviewed personally — the seal means something because someone stands at the door.",
     submit: "Request the seal",
   },
@@ -174,6 +176,18 @@ export const INTENT_COPY: Record<
     title: "Live on mission",
     lead: "Raise your hand. We will help you take a first step this week — not a program to sit through. Mission is the cure for a comfortable, lonely life.",
     submit: "Count me in",
+  },
+  member: {
+    title: "Membership opens soon — tell us you’re interested",
+    lead: "Member churches are opening soon. Leave your church’s name and a way to reach you, and we will write the day you can sign up. Nothing is charged here.",
+    submit: "Tell me when it opens",
+    done: "We have your church on the list and will write the day membership opens.",
+  },
+  website: {
+    title: "Request your church website",
+    lead: "Your church website on a unitedundergod.org address is included with membership. Tell us the name you want and anything you already have, and we will start it with you.",
+    submit: "Request our website",
+    done: "We have your request and will be in touch to start your church’s website.",
   },
   hand: {
     title: "Raise your hand",
