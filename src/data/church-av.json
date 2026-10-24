@@ -854,7 +854,7 @@
         },
         {
           "q": "Our building is being rebuilt after storm damage. When should we talk about AV?",
-          "a": "Before walls and ceilings close, so rigging, power, and cable paths are in the plans. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul."
+          "a": "Before the walls and ceilings are finished, so rigging, power, and cable paths are in the plans. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul."
         }
       ]
     },
@@ -1064,7 +1064,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "A new building on the drawing board. Audio, video, and lighting designed with the architect before the walls close."
+          "text": "A new building on the drawing board. Audio, video, and lighting designed with the architect while the building is still on paper."
         },
         {
           "service": "church-led-wall",
@@ -1081,7 +1081,7 @@
       "faq": [
         {
           "q": "We are planning a new building. When should we call?",
-          "a": "Early. The Design phase covers rigging and electrical drawings, thermal calculations for HVAC, and coordination with the other trades, which is far easier before walls close. Lake Point in Eatonton and Lakeside in Greensboro were both new sanctuary builds."
+          "a": "Early. The Design phase covers rigging and electrical drawings, thermal calculations for HVAC, and coordination with the other trades, which is far easier while the building is still on paper than after the walls and ceilings are finished. Lake Point in Eatonton and Lakeside in Greensboro were both new sanctuary builds."
         }
       ]
     },
@@ -1526,7 +1526,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "A building being repaired or rebuilt after storm damage. A full system planned before walls and ceilings close."
+          "text": "A building being repaired or rebuilt after storm damage. A full system planned before the walls and ceilings are finished."
         },
         {
           "service": "church-stage-lighting",
@@ -1543,7 +1543,7 @@
       "faq": [
         {
           "q": "Our building was damaged in a storm and is being rebuilt. When should AV be planned?",
-          "a": "Before the walls and ceilings close. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul. Its tech director describes that process in his own words on this page."
+          "a": "Before the walls and ceilings are finished. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul. Its tech director describes that process in his own words on this page."
         }
       ]
     },
