@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
@@ -78,6 +79,7 @@ function BuyingPage() {
               <Link to="/assessment">Find your savings</Link>
             </Button>
           </div>
+          <FeeDisclosure className="mt-6" />
           <SignInNudge about="group buying" />
           <SourceDeskCta />
         </div>
@@ -156,6 +158,13 @@ function BuyingPage() {
             <p className="mt-6 text-sm text-muted">
               Joining is free, and there is no minimum order. Tell us what you buy and we will show
               you where you can save.
+            </p>
+            <p className="mt-4 text-sm text-muted">
+              Sell to churches?{" "}
+              <Link to="/buying/vendors" className="text-forest underline-offset-4 hover:underline">
+                Sign up as a vendor
+              </Link>
+              .
             </p>
           </div>
           <div id="join" className="scroll-mt-24">

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,7 @@ function CategoryPage() {
                 ? "Nothing in this catalog has been bid yet. Prices appear here only after a bid is awarded."
                 : `${view.pricedCount} of ${view.itemCount} items have a group price from an awarded bid.`}
           </p>
+          <FeeDisclosure className="mt-3" />
         </div>
       </section>
 
