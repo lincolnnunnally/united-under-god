@@ -1,6 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import type { Sql } from "./db.ts";
+import { isDbFailure } from "./db.ts";
 import {
+  noteDatabaseBack,
   recordDeskSkip,
   sendHardcodedOwnerEmail,
   sendResendBatch,
@@ -26,10 +28,12 @@ import {
   buildConfirmMail,
   buildDailyVerseMail,
   cleanSourcePath,
+  claimPowOnce,
   confirmDayBucket,
   confirmHardCeilings,
   confirmMonthBucket,
   confirmNetBucket,
+  confirmPowBits,
   confirmSendAllowed,
   fullPostalAddress,
   indexNowPayload,
@@ -188,10 +192,19 @@ async function unsentVerseMonthHold(sql: Sql, now: Date) {
   return todayHold + verseMonthSlotsToHold(perDay, futureDays);
 }
 
+async function letterSentToday(sql: Sql, now: Date) {
+  const dateKey = verseRunDateKey(now);
+  const runs = await sql<{ status: string }>`
+    select status from verse_mail_runs where date_key = ${dateKey}
+  `;
+  return runs[0]?.status === "sent";
+}
+
 async function verseHolds(sql: Sql, now: Date) {
   const verseHold = await unsentVerseHold(sql, now);
   const verseMonthHold = await unsentVerseMonthHold(sql, now);
-  return { verseHold, verseMonthHold };
+  const letterSent = await letterSentToday(sql, now);
+  return { verseHold, verseMonthHold, letterSent };
 }
 
 async function confirmSliceOpen(sql: Sql, now: Date) {
@@ -278,6 +291,84 @@ export async function guardInquirySubmit(
     values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
   `;
   return { ok: true, ignored: false };
+}
+
+/**
+ * Honeypot, then the signed challenge, with no database writes.
+ * The in-memory replay cache stands in for verse_pow_used.
+ */
+function guardInquiryOffline(input: {
+  hp?: string;
+  powChallenge?: string;
+  powNonce?: string;
+  ip?: string;
+  now?: Date;
+  secret?: string;
+}): { ok: true; ignored: boolean } | { ok: false; error: string } {
+  if (input.hp?.trim()) return { ok: true, ignored: true };
+  const secret = input.secret ?? verseLinkSecret();
+  if (!secret) return { ok: false, error: CHALLENGE_LATER };
+  const now = input.now ?? new Date();
+  const nowSec = Math.floor(now.getTime() / 1000);
+  const bucket = subscribeIpBucket(input.ip);
+  const challenge = input.powChallenge ?? "";
+  if (!verifyVersePow(challenge, input.powNonce ?? "", secret, nowSec, bucket)) {
+    return { ok: false, error: CHALLENGE_LATER };
+  }
+  if (!claimPowOnce(challenge, nowSec)) return { ok: false, error: CHALLENGE_LATER };
+  return { ok: true, ignored: false };
+}
+
+function offlineInquiry(input: {
+  hp?: string;
+  powChallenge?: string;
+  powNonce?: string;
+  ip?: string;
+  now?: Date;
+  secret?: string;
+}): { action: "ignore" } | { action: "error"; error: string } | { action: "unsaved" } {
+  const offline = guardInquiryOffline(input);
+  if (!offline.ok) return { action: "error", error: offline.error };
+  if (offline.ignored) return { action: "ignore" };
+  return { action: "unsaved" };
+}
+
+/**
+ * Save path when the database answers. Unsaved path when it does not.
+ * A database failure skips the guard writes and does not open a second connection.
+ */
+export async function planInquirySubmit(input: {
+  open: () => Promise<Sql>;
+  hp?: string;
+  powChallenge?: string;
+  powNonce?: string;
+  ip?: string;
+  now?: Date;
+  secret?: string;
+}): Promise<
+  | { action: "ignore" }
+  | { action: "error"; error: string }
+  | { action: "unsaved" }
+  | { action: "save"; sql: Sql }
+> {
+  if (input.hp?.trim()) return { action: "ignore" };
+  let sql: Sql;
+  try {
+    sql = await input.open();
+  } catch (error) {
+    if (!isDbFailure(error)) return { action: "error", error: CHALLENGE_LATER };
+    return offlineInquiry(input);
+  }
+  noteDatabaseBack();
+  try {
+    const guard = await guardInquirySubmit(sql, input);
+    if (!guard.ok) return { action: "error", error: guard.error };
+    if (guard.ignored) return { action: "ignore" };
+    return { action: "save", sql };
+  } catch (error) {
+    if (!isDbFailure(error)) return { action: "error", error: CHALLENGE_LATER };
+    return offlineInquiry(input);
+  }
 }
 
 async function reserveSharedMail(sql: Sql, now: Date, count: number) {
@@ -427,6 +518,19 @@ async function sendConfirmation(args: {
   return SAME_REPLY;
 }
 
+/** A signed challenge with no database. Base difficulty, because the confirm count is unknown. */
+export function issueOfflineVerseChallenge(
+  input: { ip?: string; secret?: string; postalAddress?: string; now?: Date } = {},
+): { ok: true; challenge: string; bits: number } | { ok: false; error: string } {
+  const secret = input.secret ?? verseLinkSecret();
+  const address = fullPostalAddress(input.postalAddress ?? process.env.VERSE_POSTAL_ADDRESS);
+  if (!secret || !address) return { ok: false, error: NOT_OPEN };
+  const now = input.now ?? new Date();
+  const bucket = subscribeIpBucket(input.ip);
+  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), VERSE_POW_BITS, bucket);
+  return { ok: true, challenge: issued.challenge, bits: issued.bits };
+}
+
 export async function issueVerseSignupChallenge(
   sql: Sql,
   input: { ip?: string; secret?: string; postalAddress?: string; now?: Date } = {},
@@ -480,10 +584,19 @@ export async function issueVerseSignupChallenge(
       console.error("[verse-mail] pow challenge table is not ready");
       return { ok: false, error: NOT_OPEN };
     }
+    if (isDbFailure(error)) return issueOfflineVerseChallenge(input);
     console.error("[verse-mail] pow challenge failed");
     return { ok: false, error: CHALLENGE_LATER };
   }
-  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), VERSE_POW_BITS, bucket);
+  let bits = VERSE_POW_BITS;
+  try {
+    bits = confirmPowBits(await budgetUsed(sql, confirmDayBucket(now)));
+  } catch (error) {
+    if (isDbFailure(error)) return issueOfflineVerseChallenge(input);
+    console.error("[verse-mail] pow difficulty fell back to the base");
+  }
+  noteDatabaseBack();
+  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), bits, bucket);
   return { ok: true, challenge: issued.challenge, bits: issued.bits };
 }
 
@@ -924,64 +1037,71 @@ export async function deliverDailyVerse(
     const mail = buildDailyVerseMail({ verse, token, site: opts.site, address });
     return { to: row.email, subject: mail.subject, text: mail.text, html: mail.html, headers: mail.headers };
   });
-  const sent = await sendResendBatch({
-    messages,
-    apiKey: opts.apiKey,
-    idempotencyKey,
-    fetchImpl: opts.fetchImpl,
-  });
-  if (!sent.ok) {
-    console.error(`[verse-mail] daily batch failed date=${dateKey}`);
-    if (sent.rejected || sent.error === "") await releaseSharedMail(sql, now, chosen.length);
-    if (sent.limited) {
-      await recordDeskSkip(sql, { lane: "verse", kind: "daily", reason: "provider cap" });
+  let keep = false;
+  try {
+    const sent = await sendResendBatch({
+      messages,
+      apiKey: opts.apiKey,
+      idempotencyKey,
+      fetchImpl: opts.fetchImpl,
+    });
+    if (!sent.ok) {
+      console.error(`[verse-mail] daily batch failed date=${dateKey}`);
+      if (sent.limited) {
+        await recordDeskSkip(sql, { lane: "verse", kind: "daily", reason: "provider cap" });
+      }
+      await finishRun(sql, dateKey, "partial", 0, skippedLive, "send failed");
+      return { ok: false, sent: 0, skipped: skippedLive, reason: "send failed", indexNow };
     }
-    await finishRun(sql, dateKey, "partial", 0, skippedLive, "send failed");
-    return { ok: false, sent: 0, skipped: skippedLive, reason: "send failed", indexNow };
-  }
+    keep = true;
 
-  let recorded = 0;
-  for (const row of chosen) {
-    const inserted = await sql<{ subscriber_id: string }>`
-      insert into verse_mail_deliveries (date_key, subscriber_id, status, sent_at)
-      values (${dateKey}, ${row.id}, 'sent', now())
-      on conflict (date_key, subscriber_id) do nothing
-      returning subscriber_id
+    let recorded = 0;
+    for (const row of chosen) {
+      const inserted = await sql<{ subscriber_id: string }>`
+        insert into verse_mail_deliveries (date_key, subscriber_id, status, sent_at)
+        values (${dateKey}, ${row.id}, 'sent', now())
+        on conflict (date_key, subscriber_id) do nothing
+        returning subscriber_id
+      `;
+      if (inserted.length === 0) continue;
+      recorded += 1;
+      await sql`
+        insert into verse_send_log (id, kind, subscriber_id, date_key, status)
+        values (${crypto.randomUUID()}, 'daily', ${row.id}, ${dateKey}, 'sent')
+      `;
+      await sql`
+        update verse_subscribers
+        set last_daily_sent_at = now(), updated_at = now()
+        where id = ${row.id}
+      `;
+    }
+    const left = await sql<{ n: number }>`
+      select count(*)::int as n from verse_subscribers
+      where status = 'confirmed'
+        and not exists (
+          select 1 from verse_mail_deliveries d
+          where d.subscriber_id = verse_subscribers.id
+            and d.date_key = ${dateKey}
+            and d.status = 'sent'
+        )
     `;
-    if (inserted.length === 0) continue;
-    recorded += 1;
-    await sql`
-      insert into verse_send_log (id, kind, subscriber_id, date_key, status)
-      values (${crypto.randomUUID()}, 'daily', ${row.id}, ${dateKey}, 'sent')
-    `;
-    await sql`
-      update verse_subscribers
-      set last_daily_sent_at = now(), updated_at = now()
-      where id = ${row.id}
-    `;
+    const stillHeld = asCount(left);
+    const reason = stillHeld > 0 ? budget.reason || "cap" : "";
+    await finishRun(
+      sql,
+      dateKey,
+      stillHeld > 0 ? "capped" : "sent",
+      recorded,
+      skippedLive + stillHeld,
+      reason,
+    );
+    console.info(`[verse-mail] sent date=${dateKey} count=${recorded} held=${stillHeld}`);
+    return { ok: true, sent: recorded, skipped: skippedLive + stillHeld, reason, indexNow };
+  } finally {
+    // A dropped batch connection did not send. Give the shared slots back.
+    // A sent batch keeps them. The run stays unsent, so the verse hold remains.
+    if (!keep) await releaseSharedMail(sql, now, chosen.length);
   }
-  const left = await sql<{ n: number }>`
-    select count(*)::int as n from verse_subscribers
-    where status = 'confirmed'
-      and not exists (
-        select 1 from verse_mail_deliveries d
-        where d.subscriber_id = verse_subscribers.id
-          and d.date_key = ${dateKey}
-          and d.status = 'sent'
-      )
-  `;
-  const stillHeld = asCount(left);
-  const reason = stillHeld > 0 ? budget.reason || "cap" : "";
-  await finishRun(
-    sql,
-    dateKey,
-    stillHeld > 0 ? "capped" : "sent",
-    recorded,
-    skippedLive + stillHeld,
-    reason,
-  );
-  console.info(`[verse-mail] sent date=${dateKey} count=${recorded} held=${stillHeld}`);
-  return { ok: true, sent: recorded, skipped: skippedLive + stillHeld, reason, indexNow };
 }
 
 export function cronSecretMatches(request: Request, env: { CRON_SECRET?: string } = process.env) {

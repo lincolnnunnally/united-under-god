@@ -12,6 +12,8 @@ export const RESEND_MONTHLY_CAP = 3000;
  * Left unused under the provider's 100-letter day. Every lane shares the
  * other 95. See SHARED_DAILY_CAP. The free plan rejects mail at the cap
  * rather than billing an overage.
+ * Inbound Resend mail counts toward that same 100. Receiving is not turned
+ * on. These 5 letters are the margin if it is, so the shared day stays 95.
  */
 export const DESK_DAILY_RESERVE = 5;
 /**
@@ -237,9 +239,19 @@ export function verseMonthSlotsToHold(perDay: number, openDays: number) {
   return daily * days;
 }
 
-/** Caps passed into the atomic reservation. The desk reserve is never given to confirmations. */
+/**
+ * Caps passed into the atomic reservation. The desk reserve is never given to confirmations.
+ * After the day's verse letter is sent, confirmations may use whatever shared room is left.
+ * The shared row still stops the day at 95.
+ */
 export function confirmHardCeilings(
-  input: { dailyCap?: number; monthlyCap?: number; verseHold?: number; verseMonthHold?: number } = {},
+  input: {
+    dailyCap?: number;
+    monthlyCap?: number;
+    verseHold?: number;
+    verseMonthHold?: number;
+    letterSent?: boolean;
+  } = {},
 ) {
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
@@ -247,7 +259,7 @@ export function confirmHardCeilings(
   const verseMonthHold = Math.max(0, input.verseMonthHold ?? 0);
   const sharedCap = input.dailyCap == null ? SHARED_DAILY_CAP : dailyCap - DESK_DAILY_RESERVE;
   return {
-    dayCap: CONFIRM_DAILY_CAP,
+    dayCap: input.letterSent ? sharedCap : CONFIRM_DAILY_CAP,
     monthCap: CONFIRM_MONTHLY_CAP,
     netCap: CONFIRM_PER_NETWORK_PER_DAY,
     dailyHard: sharedCap - verseHold,
@@ -271,6 +283,7 @@ export function confirmSendAllowed(input: {
   monthlyCap?: number;
   verseHold?: number;
   verseMonthHold?: number;
+  letterSent?: boolean;
 }) {
   const caps = confirmHardCeilings(input);
   if (input.confirmsToday >= caps.dayCap) return false;
@@ -302,7 +315,8 @@ export function confirmNetBucket(ip: string | undefined, now = new Date()) {
 
 /**
  * Network a confirmation counts against.
- * IPv4 is the /24. IPv6 is the /48. An empty or unreadable address uses the shared bucket.
+ * IPv4 is the /24. IPv6 is the /32, so many /48s inside one block share one lane.
+ * An empty or unreadable address uses the shared bucket.
  */
 export function confirmNetwork(ip: string | undefined) {
   let value = unwrapIp(ip);
@@ -320,9 +334,15 @@ export function confirmNetwork(ip: string | undefined) {
   const groups = expandIpv6(value);
   if (!groups) return SHARED_IP_BUCKET;
   return `${groups
-    .slice(0, 3)
+    .slice(0, 2)
     .map((group) => group.padStart(4, "0"))
-    .join(":")}::/48`;
+    .join(":")}::/32`;
+}
+
+/** Proof-of-work bits for the next confirmation. Harder as today's confirm lane fills, never above 24. */
+export function confirmPowBits(confirmsToday: number) {
+  const used = Math.max(0, Math.floor(confirmsToday));
+  return Math.min(24, VERSE_POW_BITS + used * 2);
 }
 
 /** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */
@@ -376,6 +396,42 @@ export function issueVersePow(secret: string, nowSec: number, bits = VERSE_POW_B
     }),
   ).toString("base64url");
   return { challenge: `${payload}.${signPowBody(payload, secret)}`, bits: width };
+}
+
+const spentChallenges = new Map<string, number>();
+
+/** Tests start with no remembered challenges. */
+export function resetSpentPow() {
+  spentChallenges.clear();
+}
+
+/**
+ * One use of a signed challenge on this process. The database replay table is
+ * the check when it is up. This map is the check when it is not.
+ * Expired entries are dropped. A repeated challenge is refused.
+ */
+export function claimPowOnce(challenge: string, nowSec: number) {
+  const exp = powExpiry(challenge);
+  if (exp == null || exp < nowSec) return false;
+  for (const [key, until] of spentChallenges) {
+    if (until < nowSec) spentChallenges.delete(key);
+  }
+  if (spentChallenges.has(challenge)) return false;
+  spentChallenges.set(challenge, exp);
+  return true;
+}
+
+function powExpiry(challenge: string) {
+  const dot = challenge.indexOf(".");
+  if (dot <= 0) return null;
+  try {
+    const parsed = JSON.parse(Buffer.from(challenge.slice(0, dot), "base64url").toString("utf8")) as {
+      x?: unknown;
+    };
+    return typeof parsed.x === "number" ? parsed.x : null;
+  } catch {
+    return null;
+  }
 }
 
 export function solveVersePow(challenge: string, bits: number) {

@@ -26,9 +26,14 @@ const tokenInput = z.object({
 });
 
 export const verseSignupChallenge = createServerFn({ method: "POST" }).handler(async () => {
-  const { getSql } = await import("@/lib/db");
-  const { issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
-  return issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+  const { getSql, isDbFailure } = await import("@/lib/db");
+  const { issueOfflineVerseChallenge, issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
+  try {
+    return await issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+  } catch (error) {
+    if (!isDbFailure(error)) throw error;
+    return issueOfflineVerseChallenge({ ip: callerIp() });
+  }
 });
 
 export const subscribeToDailyVerse = createServerFn({ method: "POST" })

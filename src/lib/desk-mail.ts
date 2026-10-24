@@ -15,6 +15,9 @@ export const RESEND_ERROR_LIMIT = 500;
  * Every lane reserves from this one UTC day: verse, confirmations, public
  * desk, owner notices, and church notes. 100 minus the 5-letter headroom.
  * Verse 80 + confirm 5 + desk 3 + owner 4 + church 3 = 95.
+ * Inbound Resend mail counts toward the provider's 100. Receiving is not
+ * turned on here. The unused 5 (DESK_DAILY_RESERVE) is that margin, so this
+ * cap stays 95 until inbound mail is enabled.
  */
 export const SHARED_DAILY_CAP = 95;
 
@@ -43,8 +46,11 @@ export const VERSE_HOLD_CEILING = 80;
  */
 export const DESK_FAMILY_MONTHLY_CAP = OWNER_MONTHLY_CAP + DESK_MONTHLY_CAP + AV_MONTHLY_CAP;
 
-/** Database-down fallback. One process, not one address. */
-export const UNSAVED_PER_HOUR = 3;
+/** Database-down fallback. One note an hour on this process, not one address. */
+export const UNSAVED_PER_HOUR = 1;
+
+/** After this many hours without the database, this process stops the fallback until a restart or the database answers. */
+export const UNSAVED_OUTAGE_HOURS = 4;
 
 export type DeskLane = "desk" | "owner" | "av";
 
@@ -243,24 +249,35 @@ export function resendMessage(args: {
 }
 
 const unsavedByHour = new Map<number, number>();
+let outageStartedAt: number | null = null;
 
-/** Tests start from an empty hour. */
+/** The database answered. The four-hour stop lifts. This hour's note is still spent. */
+export function noteDatabaseBack() {
+  outageStartedAt = null;
+}
+
+/** Tests start from an empty hour and a clear outage. */
 export function resetUnsavedSends() {
   unsavedByHour.clear();
+  outageStartedAt = null;
 }
 
 /**
- * Three notes per clock hour on this process. No database.
- * A different hour does not spend this hour's slots.
+ * One note per clock hour on this process. No database.
+ * Four hours after the outage starts, further notes wait for a restart or
+ * for noteDatabaseBack. A clock earlier than the recorded start does not move it.
  */
 export function claimUnsavedSend(now = Date.now()) {
-  const bucket = Math.floor(now / (60 * 60 * 1000));
+  const hour = 60 * 60 * 1000;
+  if (outageStartedAt == null) outageStartedAt = now;
+  if (now - outageStartedAt >= UNSAVED_OUTAGE_HOURS * hour) return false;
+  const bucket = Math.floor(now / hour);
   const used = unsavedByHour.get(bucket) ?? 0;
   if (used >= UNSAVED_PER_HOUR) return false;
   unsavedByHour.set(bucket, used + 1);
-  if (unsavedByHour.size > 3) {
+  if (unsavedByHour.size > UNSAVED_OUTAGE_HOURS + 2) {
     for (const key of unsavedByHour.keys()) {
-      if (key < bucket - 1) unsavedByHour.delete(key);
+      if (key < bucket - UNSAVED_OUTAGE_HOURS) unsavedByHour.delete(key);
     }
   }
   return true;
@@ -384,8 +401,8 @@ export async function sendResendBatch(args: {
  *
  * `unsaved` is the database-is-down fallback. It does not open a connection
  * and it does not claim a slot, even when a sql handle was passed in.
- * This process allows UNSAVED_PER_HOUR of those notes. The recipient is
- * always lincoln@, never an address from the form.
+ * This process allows one of those notes an hour, and stops after four hours
+ * of outage. The recipient is always lincoln@, never an address from the form.
  * `routes` uses the owner allowance. No reserved slot means no email.
  */
 export async function sendHardcodedOwnerEmail(args: {

@@ -19,9 +19,12 @@ import {
   listDeskMailSkips,
   OWNER_DAILY_CAP,
   OWNER_MONTHLY_CAP,
+  noteDatabaseBack,
+  resetUnsavedSends,
   sendHardcodedOwnerEmail,
   SHARED_DAILY_CAP,
   sharedDayBucket,
+  UNSAVED_OUTAGE_HOURS,
   UNSAVED_PER_HOUR,
   VERSE_HOLD_CEILING,
   verseHoldDateKey,
@@ -34,6 +37,7 @@ import {
   confirmMonthBucket,
   confirmNetBucket,
   confirmNetwork,
+  confirmPowBits,
   confirmSendAllowed,
   CONFIRM_CAP_MESSAGE,
   CONFIRM_MONTHLY_CAP,
@@ -53,11 +57,13 @@ import {
   SHARED_IP_BUCKET,
   SUBSCRIBE_IP_PER_HOUR,
   signVerseToken,
+  resetSpentPow,
   solveVersePow,
   subscribeIpBucket,
   verifyVersePow,
   verifyVerseToken,
   VERSE_DAILY_SEND_CEILING,
+  VERSE_POW_BITS,
   VERSE_POW_HMAC_PREFIX,
   verseLinkSecret,
   verseMonthSlotsToHold,
@@ -71,10 +77,13 @@ import {
   confirmVerseToken,
   deliverDailyVerse,
   guardInquirySubmit,
+  issueOfflineVerseChallenge,
   issueVerseSignupChallenge,
+  planInquirySubmit,
   requestVerseSubscription,
   unsubscribeVerseToken,
 } from "./verse-mail.server.ts";
+import { isDeskOwner, OWNER_EMAIL } from "./desk.ts";
 import type { VerseDay } from "./verse.ts";
 
 const SECRET = "test-link-secret";
@@ -270,7 +279,36 @@ describe("verse mail tokens and caps", () => {
     assert.notEqual(confirmNetwork("203.0.113.9"), confirmNetwork("203.0.114.9"));
     assert.equal(confirmNetwork("::ffff:203.0.113.9"), "203.0.113.0/24");
     assert.equal(confirmNetwork("2001:db8:85a3:1::1"), confirmNetwork("2001:db8:85a3:ffff::2"));
-    assert.notEqual(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
+    assert.equal(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
+    assert.notEqual(confirmNetwork("2001:db8::1"), confirmNetwork("2001:db9::1"));
+    assert.equal(confirmPowBits(0), VERSE_POW_BITS);
+    assert.equal(confirmPowBits(1), VERSE_POW_BITS + 2);
+    assert.equal(confirmPowBits(4), 24);
+    assert.equal(confirmPowBits(9), 24);
+    assert.equal(confirmHardCeilings({ letterSent: true }).dayCap, SHARED_DAILY_CAP);
+    assert.equal(confirmHardCeilings().dayCap, CONFIRM_DAILY_CAP);
+    assert.equal(
+      confirmSendAllowed({
+        confirmsToday: CONFIRM_DAILY_CAP,
+        confirmsThisMonth: 0,
+        otherToday: CONFIRM_DAILY_CAP,
+        otherThisMonth: 0,
+        letterSent: true,
+        verseHold: 0,
+      }),
+      true,
+    );
+    assert.equal(
+      confirmSendAllowed({
+        confirmsToday: 0,
+        confirmsThisMonth: 0,
+        otherToday: SHARED_DAILY_CAP,
+        otherThisMonth: 0,
+        letterSent: true,
+        verseHold: 0,
+      }),
+      false,
+    );
     assert.equal(confirmNetwork(""), SHARED_IP_BUCKET);
     assert.equal(confirmNetwork("999.1.1.1"), SHARED_IP_BUCKET);
   });
@@ -914,8 +952,8 @@ describe("verse subscription store", () => {
   });
 });
 
-describe("verse confirm defenses", () => {
-  it("stops a fourth confirmation from the same IPv4 /24 and the same IPv6 /48", async () => {
+describe("verse confirm defenses", { concurrency: false }, () => {
+  it("stops a fourth confirmation from the same IPv4 /24 and the same IPv6 /32", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T21:00:00Z");
     let calls = 0;
@@ -951,7 +989,7 @@ describe("verse confirm defenses", () => {
     const blockedV6 = await ask(sql, { ...v6base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::9" });
     assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
     assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
-    const otherV6 = await ask(sql, { ...v6base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
+    const otherV6 = await ask(sql, { ...v6base, email: "v6-other@example.com", ip: "2001:db9::1" });
     assert.equal(otherV6.ok, true);
     assert.equal(calls, 8);
     const nets = await sql<{ bucket: string; used: number }>`
@@ -963,7 +1001,7 @@ describe("verse confirm defenses", () => {
         `${confirmNetBucket("203.0.113.1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
         `${confirmNetBucket("203.0.114.8", now)}=1`,
         `${confirmNetBucket("2001:db8:85a3::1", nextDay)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
-        `${confirmNetBucket("2001:db8:85a4::1", nextDay)}=1`,
+        `${confirmNetBucket("2001:db9::1", nextDay)}=1`,
       ].sort(),
     );
     await pg.close();
@@ -1393,7 +1431,9 @@ describe("verse confirm defenses", () => {
   });
 
   it("sends the unsaved owner fallback when the database throws", async () => {
+    resetUnsavedSends();
     const now = new Date("2026-12-03T15:00:00.000Z");
+    const later = new Date(now.getTime() + 60 * 60 * 1000);
     let fetches = 0;
     let sqlCalls = 0;
     const bodies: string[] = [];
@@ -1442,7 +1482,7 @@ describe("verse confirm defenses", () => {
       logKind: "food",
       logLabel: "unsaved",
       sql: watching,
-      now,
+      now: later,
       fetchImpl,
     });
     assert.equal(still.sent, 1);
@@ -1477,14 +1517,15 @@ describe("verse confirm defenses", () => {
     await assert.rejects(() => claimDeskSend(throwingSql(), now, "desk"));
   });
 
-  it("stops the unsaved fallback at three an hour and only writes lincoln", async () => {
-    const now = new Date("2026-12-04T16:00:00.000Z");
+  it("stops the unsaved fallback at one an hour and after four hours, and only writes lincoln", async () => {
+    resetUnsavedSends();
+    const start = new Date("2026-12-04T16:00:00.000Z");
     const bodies: string[] = [];
     const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
       bodies.push(String(init?.body ?? ""));
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
-    for (let n = 0; n < UNSAVED_PER_HOUR; n += 1) {
+    for (let hour = 0; hour < UNSAVED_OUTAGE_HOURS; hour += 1) {
       const sent = await sendHardcodedOwnerEmail({
         subject: "NOT SAVED",
         text: "typed@example.com",
@@ -1492,25 +1533,47 @@ describe("verse confirm defenses", () => {
         logKind: "food",
         logLabel: "unsaved",
         sql: throwingSql(),
-        now,
+        now: new Date(start.getTime() + hour * 60 * 60 * 1000),
         fetchImpl,
       });
       assert.equal(sent.sent, 1);
     }
-    const fourth = await sendHardcodedOwnerEmail({
+    const sameHour = await sendHardcodedOwnerEmail({
       subject: "NOT SAVED",
       text: "typed@example.com",
       apiKey: "re_test",
       logKind: "food",
       logLabel: "unsaved",
-      now,
+      now: start,
       fetchImpl,
     });
-    assert.deepEqual(fourth, { sent: 0, attempted: 0 });
-    assert.equal(bodies.length, UNSAVED_PER_HOUR);
+    assert.deepEqual(sameHour, { sent: 0, attempted: 0 });
+    const stopped = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED",
+      text: "typed@example.com",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      now: new Date(start.getTime() + UNSAVED_OUTAGE_HOURS * 60 * 60 * 1000),
+      fetchImpl,
+    });
+    assert.deepEqual(stopped, { sent: 0, attempted: 0 });
+    noteDatabaseBack();
+    const resumed = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED",
+      text: "typed@example.com",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      now: new Date(start.getTime() + UNSAVED_OUTAGE_HOURS * 60 * 60 * 1000),
+      fetchImpl,
+    });
+    assert.equal(resumed.sent, 1);
+    assert.equal(bodies.length, UNSAVED_OUTAGE_HOURS + 1);
     for (const body of bodies) {
       assert.deepEqual((JSON.parse(body) as { to?: string[] }).to, ["lincoln@unitedundergod.org"]);
     }
+    assert.equal(UNSAVED_PER_HOUR, 1);
   });
 
   it("gives owner notices their own daily allowance and records the skip", async () => {
@@ -1715,9 +1778,19 @@ describe("verse confirm defenses", () => {
     assert.match(mailOwnerFn, /logLabel,\s*\n\s*sql,/);
     assert.match(actions, /sendAvConfirmation\(\{[^}]*sql: avSql/);
     assert.match(actions, /settled\.ok && kind === "av"[\s\S]{0,300}sendAvConfirmation\(/);
-    assert.match(actions, /guardInquirySubmit/);
+    assert.match(actions, /planInquirySubmit/);
+    assert.match(actions, /issueOfflineVerseChallenge/);
     assert.match(actions, /powChallenge/);
-    assert.match(actions, /ownerDesk = me\.email === OWNER_EMAIL/);
+    assert.match(actions, /ownerDesk = isDeskOwner\(me\)/);
+    assert.equal(isDeskOwner({ email: OWNER_EMAIL, staff: { role: "super", email: OWNER_EMAIL } }), true);
+    assert.equal(
+      isDeskOwner({
+        email: "lincoln.nunnally@gmail.com",
+        staff: { role: "super", email: "lincoln.nunnally@gmail.com" },
+      }),
+      false,
+    );
+    assert.equal(isDeskOwner({ email: "hand@example.com", staff: { role: "owner", email: "hand@example.com" } }), true);
     assert.match(actions, /listDeskMailSkips/);
     assert.equal(actions.includes("delete from desk_mail_skips"), false);
     assert.equal(actions.includes("update desk_mail_skips"), false);
@@ -2009,6 +2082,237 @@ describe("verse confirm defenses", () => {
     assert.equal(delivered.sent, VERSE_DAILY_SEND_CEILING);
     assert.equal(verseSends, VERSE_DAILY_SEND_CEILING);
     await pg.close();
+  });
+
+  it("does not let many /48s inside one /32 drain the confirm lane", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-25T21:00:00Z");
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    for (let n = 1; n <= 6; n += 1) {
+      const result = await ask(sql, { ...base, email: `wide-${n}@example.com`, ip: `2001:db8:${n}::1` });
+      if (n <= CONFIRM_PER_NETWORK_PER_DAY) assert.equal(result.ok, true);
+      else assert.equal(result.ok && result.message.includes("Check your inbox"), true);
+    }
+    assert.equal(calls, CONFIRM_PER_NETWORK_PER_DAY);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.ok(Number(day[0]?.used) < CONFIRM_DAILY_CAP);
+    assert.equal(Number(day[0]?.used), CONFIRM_PER_NETWORK_PER_DAY);
+    const other = await ask(sql, { ...base, email: "wide-other@example.com", ip: "2001:db9::1" });
+    assert.equal(other.ok, true);
+    assert.equal(calls, CONFIRM_PER_NETWORK_PER_DAY + 1);
+    await pg.close();
+  });
+
+  it("raises proof-of-work bits as the confirm lane fills", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-27T15:00:00Z");
+    await sql`
+      insert into verse_confirm_budget (bucket, used)
+      values (${confirmDayBucket(now)}, 3)
+    `;
+    const issued = await issueVerseSignupChallenge(sql, {
+      ip: "203.0.113.40",
+      secret: SECRET,
+      postalAddress: POSTAL,
+      now,
+    });
+    assert.equal(issued.ok, true);
+    if (issued.ok) assert.equal(issued.bits, confirmPowBits(3));
+    await pg.close();
+  });
+
+  it("lets confirmations borrow leftover shared room after the verse letter is sent", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-26T15:00:00Z");
+    const dateKey = verseRunDateKey(now);
+    await sql`
+      insert into verse_confirm_budget (bucket, used)
+      values (${confirmDayBucket(now)}, ${CONFIRM_DAILY_CAP})
+    `;
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body ?? ""));
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    const before = await ask(sql, { ...base, email: "borrow-before@example.com", ip: "198.51.100.21" });
+    assert.equal(before.ok, false);
+    if (!before.ok) assert.equal(before.error, CONFIRM_CAP_MESSAGE);
+    assert.equal(bodies.some((body) => body.includes("borrow-before@example.com")), false);
+
+    await sql`
+      insert into verse_mail_runs (date_key, status)
+      values (${dateKey}, 'sent')
+    `;
+    const borrowed = await ask(sql, { ...base, email: "borrow-after@example.com", ip: "198.51.100.22" });
+    assert.equal(borrowed.ok, true);
+    assert.equal(bodies.some((body) => body.includes("borrow-after@example.com")), true);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(day[0]?.used), CONFIRM_DAILY_CAP + 1);
+
+    await sql`
+      insert into desk_send_budget (bucket, used)
+      values (${sharedDayBucket(now)}, ${SHARED_DAILY_CAP})
+      on conflict (bucket) do update set used = ${SHARED_DAILY_CAP}
+    `;
+    const full = await ask(sql, { ...base, email: "borrow-full@example.com", ip: "198.51.100.23" });
+    assert.equal(full.ok, false);
+    if (!full.ok) assert.equal(full.error, CONFIRM_CAP_MESSAGE);
+    const shared = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    assert.equal(Number(shared[0]?.used), SHARED_DAILY_CAP);
+    assert.equal(bodies.some((body) => body.includes("borrow-full@example.com")), false);
+    await pg.close();
+  });
+
+  it("releases reserved verse slots when the batch connection drops", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T13:00:00Z");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      values ('sub-drop', ${QA}, 'confirmed', now())
+    `;
+    let attempt = 0;
+    const fetchImpl = (async () => {
+      attempt += 1;
+      if (attempt === 1) throw new Error("socket hang up");
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const failed = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-23")],
+      fetchImpl,
+    });
+    assert.equal(failed.ok, false);
+    const released = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    assert.equal(Number(released[0]?.used ?? 0), 0);
+    const retried = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-23")],
+      fetchImpl,
+    });
+    assert.equal(retried.sent, 1);
+    const kept = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    assert.equal(Number(kept[0]?.used), 1);
+    await pg.close();
+  });
+
+  it("emails lincoln when the inquiry database is down", async () => {
+    resetUnsavedSends();
+    resetSpentPow();
+    const now = new Date("2026-08-01T12:00:00.000Z");
+    const ip = "203.0.113.77";
+    let sqlCalls = 0;
+    const down = throwingSql(() => {
+      sqlCalls += 1;
+    });
+    const issued = await issueVerseSignupChallenge(down, {
+      ip,
+      secret: SECRET,
+      postalAddress: POSTAL,
+      now,
+    });
+    assert.equal(issued.ok, true);
+    if (!issued.ok) return;
+    assert.equal(issued.bits, VERSE_POW_BITS);
+    assert.ok(sqlCalls >= 1);
+    const nonce = solveVersePow(issued.challenge, issued.bits);
+    const open = async () => {
+      throw Object.assign(new Error("database is down"), { code: "57P01" });
+    };
+    const honeypot = await planInquirySubmit({
+      open,
+      hp: "http://spam.example",
+      powChallenge: issued.challenge,
+      powNonce: nonce,
+      ip,
+      now,
+      secret: SECRET,
+    });
+    assert.deepEqual(honeypot, { action: "ignore" });
+    const bad = await planInquirySubmit({
+      open,
+      powChallenge: issued.challenge,
+      powNonce: "1",
+      ip,
+      now,
+      secret: SECRET,
+    });
+    assert.equal(bad.action, "error");
+    const plan = await planInquirySubmit({
+      open,
+      powChallenge: issued.challenge,
+      powNonce: nonce,
+      ip,
+      now,
+      secret: SECRET,
+    });
+    assert.equal(plan.action, "unsaved");
+    const bodies: string[] = [];
+    const sent = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED — inquiry",
+      text: "from the form",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      sql: down,
+      now,
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        bodies.push(String(init?.body ?? ""));
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.deepEqual(sent, { sent: 1, attempted: 1 });
+    assert.deepEqual((JSON.parse(bodies[0] ?? "{}") as { to?: string[] }).to, ["lincoln@unitedundergod.org"]);
+    const callsBeforeReplay = sqlCalls;
+    const replay = await planInquirySubmit({
+      open,
+      powChallenge: issued.challenge,
+      powNonce: nonce,
+      ip,
+      now,
+      secret: SECRET,
+    });
+    assert.equal(replay.action, "error");
+    assert.equal(sqlCalls, callsBeforeReplay);
+    const offline = issueOfflineVerseChallenge({ ip, secret: SECRET, postalAddress: POSTAL, now });
+    assert.equal(offline.ok, true);
   });
 });
 

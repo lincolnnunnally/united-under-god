@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { getSql } from "@/lib/db";
+import { getSql, isDbFailure } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
 import { listDeskMailSkips, sendHardcodedOwnerEmail, type DeskMailSkip } from "@/lib/desk-mail";
@@ -17,10 +17,12 @@ import {
   type OpsStats,
 } from "@/lib/ops-report.server";
 import {
-  OWNER_EMAIL,
+  INQUIRY_UNREACHABLE,
   SUPER_EMAILS,
   coversKind,
+  isDeskOwner,
   kindsFromSubmission,
+  unsavedOwnerNotice,
   type InquiryInput,
 } from "@/lib/desk";
 
@@ -232,8 +234,15 @@ async function notifyInquiry(inquiry: InquiryRow, extra?: string[]) {
 }
 
 export const inquiryChallenge = createServerFn({ method: "POST" }).handler(async () => {
-  const { issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
-  return issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+  const { issueOfflineVerseChallenge, issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
+  try {
+    return await issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+  } catch (error) {
+    if (!isDbFailure(error)) {
+      return { ok: false as const, error: INQUIRY_LATER };
+    }
+    return issueOfflineVerseChallenge({ ip: callerIp() });
+  }
 });
 
 export const submitInquiry = createServerFn({ method: "POST" })
@@ -242,24 +251,19 @@ export const submitInquiry = createServerFn({ method: "POST" })
     if (data.hp) {
       return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
     }
-    let guardSql: Awaited<ReturnType<typeof getSql>>;
-    try {
-      guardSql = await getSql();
-    } catch {
-      return { ok: false as const, error: INQUIRY_LATER, saved: false as const, emailed: false as const };
-    }
-    const { guardInquirySubmit } = await import("@/lib/verse-mail.server");
-    const guard = await guardInquirySubmit(guardSql, {
+    const { planInquirySubmit } = await import("@/lib/verse-mail.server");
+    const plan = await planInquirySubmit({
+      open: () => getSql(),
       hp: data.hp,
       powChallenge: data.powChallenge,
       powNonce: data.powNonce,
       ip: callerIp(),
     });
-    if (!guard.ok) {
-      return { ok: false as const, error: guard.error, saved: false as const, emailed: false as const };
-    }
-    if (guard.ignored) {
+    if (plan.action === "ignore") {
       return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
+    }
+    if (plan.action === "error") {
+      return { ok: false as const, error: plan.error, saved: false as const, emailed: false as const };
     }
     const name = data.name.trim();
     const email = data.email.trim();
@@ -299,6 +303,18 @@ export const submitInquiry = createServerFn({ method: "POST" })
       assigned_name: null,
       assigned_email: null,
     };
+    if (plan.action === "unsaved") {
+      const mailed = await mailOwner(inquiry, unsavedOwnerNotice(inquiry), "unsaved");
+      if (mailed.sent > 0) {
+        return { ok: true as const, id, saved: false as const, emailed: true };
+      }
+      return {
+        ok: false as const,
+        error: INQUIRY_UNREACHABLE,
+        saved: false as const,
+        emailed: false as const,
+      };
+    }
     const settled = await settleInquirySubmit({
       inquiry,
       write: async () => {
@@ -359,7 +375,7 @@ export const readDeskGlance = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     const me = await requireDeskStaff(context.userId);
-    const ownerDesk = me.email === OWNER_EMAIL;
+    const ownerDesk = isDeskOwner(me);
     const [stats, skips] = await Promise.all([
       readOpsStats(),
       ownerDesk
