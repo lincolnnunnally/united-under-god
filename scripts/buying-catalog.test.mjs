@@ -67,7 +67,9 @@ test("catalog copy keeps the owner's rules", () => {
   assert.ok(!/\d\s?%|\bpercent\b|save up to/i.test(text), "no discount amounts");
   assert.ok(!/lead[- ]fee|referral fee|finder'?s fee|commission/i.test(text), "no lead-fee language");
   assert.ok(!/legally required|required by law|ADA requires/i.test(text), "no legal-duty claims");
-  assert.ok(!/\bmembership\b/i.test(text), "no 'membership'");
+  // "membership" is allowed since 2026-10-24 (owner: the paid member church
+  // program). The catalog pages gate vendor details and prices behind it;
+  // see scripts/membership.test.mjs.
   // No hard-coded dollar amounts: a price on the page comes from the buying book.
   assert.ok(!/\$\s?\d/.test(text), "no dollar amounts in catalog sources");
 });

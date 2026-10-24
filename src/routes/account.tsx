@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
+import { MemberStatusCard } from "@/components/member-status";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,6 +150,8 @@ function AccountPage() {
           <UserButton />
         </div>
       </section>
+
+      <MemberStatusCard />
 
       {place.isStaff ? (
         <section className="border-b border-rule">

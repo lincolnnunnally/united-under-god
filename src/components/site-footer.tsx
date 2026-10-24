@@ -60,6 +60,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/fellowship" className="text-muted hover:text-ink">
+                Pastor fellowship
+              </Link>
+            </li>
+            <li>
               <Link to="/give" className="text-muted hover:text-ink">
                 Give
               </Link>

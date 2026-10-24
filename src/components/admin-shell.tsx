@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 const ADMIN_NAV = [
   { to: "/admin", label: "Inbox" },
   { to: "/admin/members", label: "Members" },
+  { to: "/admin/churches", label: "Member churches" },
+  { to: "/admin/fellowship", label: "Fellowship" },
   { to: "/admin/staff", label: "People" },
   { to: "/admin/notify", label: "Email routes" },
   { to: "/buying/desk", label: "SOURCE" },

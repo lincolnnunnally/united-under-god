@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
+import { BecomeMemberCta, MemberLockedLine } from "@/components/member-gate";
 import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
@@ -9,17 +10,18 @@ import { Button } from "@/components/ui/button";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { SPEND_CATEGORIES, groupBookByCategory } from "@/lib/church-spend";
 import { readMyPlace } from "@/lib/member-actions";
-import { listPublishedBook, type PublicBookEntry } from "@/lib/source-actions";
+import { listPublishedBookForViewer, type ViewerBookEntry as PublicBookEntry } from "@/lib/membership-actions";
 import { pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/buying/")({
-  loader: () => listPublishedBook(),
+  // Vendor names and prices come back only for a member church (or staff).
+  loader: () => listPublishedBookForViewer(),
   component: BuyingPage,
   head: () =>
     pageHead({
       title: "Group buying for churches and charities | United Under God",
       description: "Churches, charities, and Christian-owned businesses pool their orders for toner, paper, and supplies so everyone pays less and more money goes to ministry.",
-      path: "/buying", jsonLd: [serviceJsonLd({ name: "Group buying for churches and charities", description: "Churches, charities, and Christian-owned businesses pool orders for toner, paper, and supplies to get group prices.", path: "/buying", serviceType: "Group purchasing", audience: "Churches, charities, and Christian-owned businesses", offers: { price: "0", description: "Joining is free, with no minimum order." } })],
+      path: "/buying", jsonLd: [serviceJsonLd({ name: "Group buying for churches and charities", description: "Churches, charities, and Christian-owned businesses pool orders for toner, paper, and supplies to get group prices.", path: "/buying", serviceType: "Group purchasing", audience: "Churches, charities, and Christian-owned businesses" })],
     }),
 });
 
@@ -54,7 +56,7 @@ const CATALOGS = [
 ];
 
 function BuyingPage() {
-  const { entries, unavailable } = Route.useLoaderData();
+  const { entries, unavailable, member } = Route.useLoaderData();
 
   return (
     <SiteShell>
@@ -74,11 +76,17 @@ function BuyingPage() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <a href="#join">Join group buying</a>
+              <a href="#join">Tell us what you buy</a>
             </Button>
-            <Button asChild variant="secondary">
-              <Link to="/assessment">Find your savings</Link>
-            </Button>
+            {member ? (
+              <Button asChild variant="secondary">
+                <Link to="/assessment">Find your savings</Link>
+              </Button>
+            ) : (
+              <Button asChild variant="secondary">
+                <Link to="/membership">Become a member church</Link>
+              </Button>
+            )}
           </div>
           <FeeDisclosure className="mt-6" />
           <ReportProblemLink className="mt-3" />
@@ -87,7 +95,7 @@ function BuyingPage() {
         </div>
       </section>
 
-      <BuyingBook entries={entries} unavailable={unavailable} />
+      <BuyingBook entries={entries} unavailable={unavailable} member={member} />
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8">
         <h2 className="max-w-2xl text-3xl">Where churches save first</h2>
@@ -158,8 +166,11 @@ function BuyingPage() {
               </li>
             </ul>
             <p className="mt-6 text-sm text-muted">
-              Joining is free, and there is no minimum order. Tell us what you buy and we will show
-              you where you can save.
+              Telling us what you buy costs nothing, and there is no minimum order. Member churches
+              see the vendors and the awarded prices, and can ask a vendor for a quote directly.{" "}
+              <Link to="/membership" className="text-forest underline-offset-4 hover:underline">
+                About membership
+              </Link>
             </p>
             <p className="mt-4 text-sm text-muted">
               Sell to churches?{" "}
@@ -188,9 +199,11 @@ function BuyingPage() {
 function BuyingBook({
   entries,
   unavailable,
+  member,
 }: {
   entries: PublicBookEntry[];
   unavailable: boolean;
+  member: boolean;
 }) {
   return (
     <section className="border-b border-rule">
@@ -202,9 +215,9 @@ function BuyingBook({
           </p>
         ) : entries.length === 0 ? (
           <p className="mt-3 max-w-2xl text-muted">
-            We are gathering our first group orders now. As prices are secured, they will be listed
-            here for every church. Join below and we will let you know as soon as savings are available
-            for the things you buy.
+            We are gathering our first group orders now. As bids are awarded, the prices are listed
+            here for member churches. Tell us what you buy below and we will let you know when the
+            things you buy have been bid.
           </p>
         ) : (
           <div className="mt-6 grid gap-8">
@@ -230,6 +243,7 @@ function BuyingBook({
                 <BookList entries={group.entries} />
               </div>
             ))}
+            {member ? null : <BecomeMemberCta />}
           </div>
         )}
       </div>
@@ -244,16 +258,24 @@ function BookList({ entries }: { entries: PublicBookEntry[] }) {
         <li key={entry.id} className="px-5 py-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h4 className="font-display text-lg">{entry.title}</h4>
-            <p className="text-sm font-medium text-forest">
-              {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
-              {entry.unit ? ` / ${entry.unit}` : ""}
-            </p>
+            {entry.locked ? (
+              <p className="text-sm text-forest">Group price</p>
+            ) : (
+              <p className="text-sm font-medium text-forest">
+                {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
+                {entry.unit ? ` / ${entry.unit}` : ""}
+              </p>
+            )}
           </div>
-          <p className="mt-1 text-sm text-muted">
-            {entry.vendorName}
-            {entry.quantity ? ` · ${entry.quantity}` : ""}
-            {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
-          </p>
+          {entry.locked ? (
+            <MemberLockedLine className="mt-1" />
+          ) : (
+            <p className="mt-1 text-sm text-muted">
+              {entry.vendorName}
+              {entry.quantity ? ` · ${entry.quantity}` : ""}
+              {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
+            </p>
+          )}
           {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
           {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
         </li>
