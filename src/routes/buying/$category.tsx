@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
+import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,6 +117,7 @@ function CategoryPage() {
                 : `${view.pricedCount} of ${view.itemCount} items have a group price from an awarded bid.`}
           </p>
           <FeeDisclosure className="mt-3" />
+          <ReportProblemLink className="mt-3" />
         </div>
       </section>
 
@@ -171,6 +173,7 @@ function CategoryPage() {
                     </p>
                   </div>
                   <p className="mt-1 text-sm text-muted">{entry.vendorName}</p>
+                  {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
                   {entry.notes ? <p className="mt-1 text-sm text-muted">{entry.notes}</p> : null}
                 </li>
               ))}
@@ -263,6 +266,7 @@ function CatalogRow({ row }: { row: CatalogItemView }) {
                 · {entry.vendorName}
                 {entry.notes ? ` · ${entry.notes}` : ""}
               </span>
+              {entry.covenant ? <CovenantBadge className="ml-1" /> : null}
             </li>
           ))}
         </ul>

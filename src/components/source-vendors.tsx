@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  previewCovenantLinkFn,
   previewSourceInvites,
+  sendCovenantLinkFn,
   sendSourceInvites,
   updateSourceVendor,
   type DeskView,
@@ -18,6 +20,8 @@ import {
   matchVendors,
   vendorCategoryOptions,
 } from "@/lib/vendor-store";
+import { vendorStanding } from "@/lib/case-store";
+import { CONSEQUENCE_LABELS, VENDOR_TERMS_VERSION } from "@/lib/vendor-terms";
 import { cn } from "@/lib/utils";
 
 type Run = (work: () => Promise<DeskView>) => Promise<boolean>;
@@ -32,6 +36,9 @@ export function VendorsSection({ desk, onRun }: { desk: DeskView; onRun: Run }) 
     .sort((a, b) => (STATUS_ORDER[a.status] ?? 9) - (STATUS_ORDER[b.status] ?? 9));
   const pending = desk.vendors.filter((vendor) => vendor.status === "pending").length;
   const approved = desk.vendors.filter((vendor) => vendor.status === "approved").length;
+  const behind = desk.vendors.filter(
+    (vendor) => vendor.status !== "removed" && vendor.needsCovenant,
+  ).length;
 
   return (
     <section className="mt-8 rounded-xl bg-cream p-5 shadow-[var(--shadow-border)]">
@@ -47,6 +54,9 @@ export function VendorsSection({ desk, onRun }: { desk: DeskView; onRun: Run }) 
             {desk.vendors.length === 0
               ? "No vendor sign-ups yet. Vendors sign up at /buying/vendors."
               : `${approved} approved, ${pending} waiting for review. Only approved vendors get invitations.`}
+            {behind
+              ? ` ${behind} ${behind === 1 ? "needs" : "need"} to accept the new covenant (version ${VENDOR_TERMS_VERSION}).`
+              : ""}
           </p>
           <label className="mt-3 flex min-h-11 items-center gap-2 text-sm">
             <input
@@ -59,7 +69,7 @@ export function VendorsSection({ desk, onRun }: { desk: DeskView; onRun: Run }) 
           </label>
           <ul className="mt-3 grid gap-3">
             {vendors.map((vendor) => (
-              <VendorCard key={vendor.id} vendor={vendor} onRun={onRun} />
+              <VendorCard key={vendor.id} vendor={vendor} desk={desk} onRun={onRun} />
             ))}
           </ul>
         </>
@@ -68,7 +78,7 @@ export function VendorsSection({ desk, onRun }: { desk: DeskView; onRun: Run }) 
   );
 }
 
-function VendorCard({ vendor, onRun }: { vendor: VendorRow; onRun: Run }) {
+function VendorCard({ vendor, desk, onRun }: { vendor: VendorRow; desk: DeskView; onRun: Run }) {
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -92,7 +102,10 @@ function VendorCard({ vendor, onRun }: { vendor: VendorRow; onRun: Run }) {
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="font-medium">{vendor.company}</p>
-          <p className="text-xs uppercase tracking-[0.14em] text-subtle">{vendor.status}</p>
+          <p className="text-xs uppercase tracking-[0.14em] text-subtle">
+            {vendor.status}
+            {vendor.consequence !== "none" ? ` · ${CONSEQUENCE_LABELS[vendor.consequence]}` : ""}
+          </p>
           <p className="mt-1 text-sm text-muted">
             {vendor.contactName} · {vendor.email} · {vendor.phone}
             {vendor.website ? (
@@ -122,6 +135,7 @@ function VendorCard({ vendor, onRun }: { vendor: VendorRow; onRun: Run }) {
             {vendor.termsAcceptedAt.slice(0, 16).replace("T", " ")} UTC
             {vendor.termsIp ? ` from ${vendor.termsIp}` : ""}
           </p>
+          {desk.casesReady ? <VendorStandingLine vendor={vendor} desk={desk} /> : null}
         </div>
         <div className="flex flex-wrap gap-2">
           {actions.map((action) => (
@@ -148,7 +162,117 @@ function VendorCard({ vendor, onRun }: { vendor: VendorRow; onRun: Run }) {
       {editing ? (
         <VendorEditor vendor={vendor} onRun={onRun} onDone={() => setEditing(false)} />
       ) : null}
+      {desk.casesReady && vendor.needsCovenant && vendor.status !== "removed" ? (
+        <CovenantResend vendor={vendor} desk={desk} onRun={onRun} />
+      ) : null}
     </li>
+  );
+}
+
+/** Covenant version, open cases, cases decided against, remedies on time, consequence. */
+function VendorStandingLine({ vendor, desk }: { vendor: VendorRow; desk: DeskView }) {
+  const standing = vendorStanding(vendor, desk.cases);
+  return (
+    <div className="mt-2 grid gap-1 text-sm" data-vendor-standing="">
+      {standing.needsCovenant ? (
+        <p className="font-medium text-ink">Needs to accept the new covenant</p>
+      ) : (
+        <p className="text-muted">Covenant accepted (version {standing.covenantVersion})</p>
+      )}
+      <p className="text-muted">
+        Standing: {standing.openCases} open {standing.openCases === 1 ? "case" : "cases"} ·{" "}
+        {standing.decidedAgainst} decided against · remedies done on time {standing.remediesOnTime}{" "}
+        of {standing.remediesOwed}
+        {standing.overdue ? ` · ${standing.overdue} overdue` : ""} ·{" "}
+        {CONSEQUENCE_LABELS[standing.consequence]}
+      </p>
+    </div>
+  );
+}
+
+type CovenantPreview = Awaited<ReturnType<typeof previewCovenantLinkFn>>;
+
+/** Preview the re-acceptance email, then Send. Nothing goes out until Send is pressed. */
+function CovenantResend({
+  vendor,
+  desk,
+  onRun,
+}: {
+  vendor: VendorRow;
+  desk: DeskView;
+  onRun: Run;
+}) {
+  const [preview, setPreview] = useState<CovenantPreview | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState("");
+  const last = desk.covenantLinks.find((link) => link.vendorId === vendor.id);
+
+  async function open() {
+    setBusy(true);
+    setNote("");
+    try {
+      setPreview(await previewCovenantLinkFn({ data: { vendorId: vendor.id } }));
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "The preview did not load.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function send() {
+    setBusy(true);
+    try {
+      let outcome = { ok: false, error: "" };
+      const ok = await onRun(async () => {
+        const out = await sendCovenantLinkFn({ data: { vendorId: vendor.id } });
+        outcome = out.result;
+        return out.desk;
+      });
+      if (ok) {
+        setPreview(null);
+        setNote(outcome.ok ? "Sent." : `Not sent: ${outcome.error}`);
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mt-3 border-t border-rule pt-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" variant="secondary" disabled={busy} onClick={() => void open()}>
+          Preview re-acceptance link
+        </Button>
+        {last ? (
+          <span className="text-xs text-subtle">
+            Last link {last.emailStatus} {last.sentAt.slice(0, 16).replace("T", " ")} UTC
+            {last.emailError ? ` (${last.emailError})` : ""}
+          </span>
+        ) : null}
+        {note ? (
+          <span className="text-sm text-ink" role="status">
+            {note}
+          </span>
+        ) : null}
+      </div>
+      {preview ? (
+        <div className="mt-3 grid gap-2 rounded-lg bg-cream p-4 shadow-[var(--shadow-border)]">
+          <p className="text-sm font-medium">To: {preview.vendor.email}</p>
+          <p className="text-sm font-medium">Subject: {preview.email.subject}</p>
+          <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-paper p-3 text-sm text-ink shadow-[var(--shadow-border)]">
+            {preview.email.text}
+          </pre>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" disabled={busy} onClick={() => void send()}>
+              {busy ? "Sending…" : "Send"}
+            </Button>
+            <Button type="button" variant="ghost" disabled={busy} onClick={() => setPreview(null)}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -290,8 +414,13 @@ export function InvitePanel({ bid, desk, onRun }: { bid: SourceBid; desk: DeskVi
     try {
       const next = await previewSourceInvites({ data: { bidId: bid.id } });
       setPreview(next);
+      // A vendor on probation is invited only when staff tick it.
       setChosen(
-        new Set(next.vendors.filter((vendor) => !vendor.invited).map((vendor) => vendor.id)),
+        new Set(
+          next.vendors
+            .filter((vendor) => !vendor.invited && !vendor.probation)
+            .map((vendor) => vendor.id),
+        ),
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "The preview did not load.");
@@ -381,6 +510,8 @@ export function InvitePanel({ bid, desk, onRun }: { bid: SourceBid; desk: DeskVi
                   />
                   {vendor.company} · {vendor.email}
                   {vendor.invited ? " · already invited" : ""}
+                  {vendor.probation ? " · on probation (tick to invite)" : ""}
+                  {vendor.needsCovenant ? " · needs to accept the new covenant" : ""}
                 </label>
               </li>
             ))}

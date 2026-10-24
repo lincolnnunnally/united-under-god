@@ -1,5 +1,6 @@
 import type { Sql } from "@/lib/db";
 import { checkBidCategory } from "./church-spend.ts";
+import { acceptedCovenant } from "./vendor-terms.ts";
 
 /** Canonical money text: digits with an optional decimal, up to two places. */
 const PRICE = /^(?:\d+)(?:\.\d{1,2})?$/;
@@ -125,6 +126,11 @@ export type PublicBookEntry = {
   /** The church-spend item the awarded line came from ('' when typed by hand). */
   catalogItem: string;
   publishedAt: string;
+  /**
+   * The awarded vendor is an approved program vendor that accepted the Vendor
+   * Covenant. The only standing fact a public page shows; never case details.
+   */
+  covenant: boolean;
 };
 
 /** A church-spend item that is on a bid still open for quotes. No prices, no vendors. */
@@ -572,24 +578,69 @@ export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
       b.id, b.title, b.vendor_name, b.unit_price, b.unit, b.quantity, b.notes,
       b.published_at,
       coalesce(to_jsonb(r) ->> 'category', '') as category,
-      coalesce(to_jsonb(i) ->> 'catalog_item', '') as catalog_item
+      coalesce(to_jsonb(i) ->> 'catalog_item', '') as catalog_item,
+      coalesce(to_jsonb(q) ->> 'vendor_id', '') as vendor_id
     from source_buying_book b
     left join source_bid_requests r on r.id = b.bid_id
     left join source_bid_items i on i.id = b.item_id
+    left join source_awards a on a.id = b.award_id
+    left join source_quotes q on q.id = a.quote_id
     order by b.published_at desc
   `;
-  return rows.map((row) => ({
-    id: text(row.id),
-    title: text(row.title),
-    vendorName: text(row.vendor_name),
-    unitPrice: text(row.unit_price),
-    unit: text(row.unit),
-    quantity: text(row.quantity),
-    notes: text(row.notes),
-    category: text(row.category),
-    catalogItem: text(row.catalog_item),
-    publishedAt: iso(row.published_at),
-  }));
+  const standing = await vendorListing(
+    sql,
+    [...new Set(rows.map((row) => text(row.vendor_id)).filter(Boolean))],
+  );
+  return rows
+    .filter((row) => standing.get(text(row.vendor_id))?.listed ?? true)
+    .map((row) => ({
+      id: text(row.id),
+      title: text(row.title),
+      vendorName: text(row.vendor_name),
+      unitPrice: text(row.unit_price),
+      unit: text(row.unit),
+      quantity: text(row.quantity),
+      notes: text(row.notes),
+      category: text(row.category),
+      catalogItem: text(row.catalog_item),
+      publishedAt: iso(row.published_at),
+      covenant: standing.get(text(row.vendor_id))?.covenant ?? false,
+    }));
+}
+
+/**
+ * For program vendors behind book entries: whether their prices stay listed
+ * (not removed, and not paused by a suspension decision) and whether they
+ * stand behind the Vendor Covenant. Reads only status, terms version, and
+ * consequence; safe before 0007/0008 (everything stays listed, no line).
+ */
+async function vendorListing(
+  sql: Sql,
+  ids: string[],
+): Promise<Map<string, { listed: boolean; covenant: boolean }>> {
+  const out = new Map<string, { listed: boolean; covenant: boolean }>();
+  if (ids.length === 0) return out;
+  let rows: Record<string, unknown>[];
+  try {
+    rows = await sql`
+      select id, status, terms_version, coalesce(to_jsonb(v) ->> 'consequence', '') as consequence
+      from source_vendors v where id = any(${ids})
+    `;
+  } catch (err) {
+    if (err && typeof err === "object" && "code" in err && String(err.code) === "42P01") return out;
+    throw err;
+  }
+  for (const row of rows) {
+    const status = text(row.status);
+    const consequence = text(row.consequence);
+    const suspended =
+      consequence === "revocation" || (status === "paused" && consequence === "suspension");
+    out.set(text(row.id), {
+      listed: status !== "removed" && !suspended,
+      covenant: status === "approved" && acceptedCovenant(text(row.terms_version)),
+    });
+  }
+  return out;
 }
 
 /** List items on bids that are open right now. Safe before 0006 (returns blanks). */

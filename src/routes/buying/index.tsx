@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
+import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,7 @@ function BuyingPage() {
             </Button>
           </div>
           <FeeDisclosure className="mt-6" />
+          <ReportProblemLink className="mt-3" />
           <SignInNudge about="group buying" />
           <SourceDeskCta />
         </div>
@@ -245,6 +247,7 @@ function BookList({ entries }: { entries: PublicBookEntry[] }) {
             {entry.quantity ? ` · ${entry.quantity}` : ""}
             {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
           </p>
+          {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
           {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
         </li>
       ))}
