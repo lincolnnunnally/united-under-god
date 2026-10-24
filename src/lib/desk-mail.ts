@@ -1,3 +1,4 @@
+import type { Sql } from "./db.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 
 /** Verified Resend sending domain for this account: emails.unitedundergod.org */
@@ -9,6 +10,59 @@ export const DESK_REPLY_TO = OWNER_EMAIL;
 
 /** email_log stores the provider body, clipped so a Cloudflare HTML page cannot fill the row. */
 export const RESEND_ERROR_LIMIT = 500;
+
+/** Hard stop for desk mail, including the owner note. Same width as the verse reserve. */
+export const DESK_DAILY_CAP = 5;
+
+export function deskDayBucket(now = new Date()) {
+  const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    .toISOString()
+    .slice(0, 10);
+  return `day:${day}`;
+}
+
+export function deskSendAllowed(sentToday: number, cap = DESK_DAILY_CAP) {
+  return Math.max(0, sentToday) < cap;
+}
+
+function missingRelation(error: unknown) {
+  return (error as { code?: string })?.code === "42P01";
+}
+
+/**
+ * Claim one desk letter for this UTC day. The counter moves in this statement
+ * only while it is still under the cap. A missing table means the manual
+ * migration is not applied yet, and the send is allowed.
+ */
+export async function claimDeskSend(sql: Sql, now = new Date()) {
+  try {
+    const rows = await sql<{ used: number }>`
+      insert into desk_send_budget (bucket, used)
+      values (${deskDayBucket(now)}, 1)
+      on conflict (bucket) do update
+      set used = desk_send_budget.used + 1, updated_at = now()
+      where desk_send_budget.used < ${DESK_DAILY_CAP}
+      returning used
+    `;
+    return rows.length > 0;
+  } catch (error) {
+    if (missingRelation(error)) return true;
+    throw error;
+  }
+}
+
+export async function releaseDeskSend(sql: Sql, now = new Date()) {
+  try {
+    await sql`
+      update desk_send_budget
+      set used = greatest(used - 1, 0), updated_at = now()
+      where bucket = ${deskDayBucket(now)}
+    `;
+  } catch (error) {
+    if (missingRelation(error)) return;
+    throw error;
+  }
+}
 
 export function deskFromAddress(env: { RESEND_FROM?: string } = process.env) {
   const override = env.RESEND_FROM?.trim();
@@ -148,7 +202,17 @@ export async function sendHardcodedOwnerEmail(args: {
   fetchImpl?: typeof fetch;
   logKind: string;
   logLabel: "unsaved" | "routes";
+  sql?: Sql;
+  now?: Date;
 }): Promise<{ sent: number; attempted: number }> {
+  const now = args.now ?? new Date();
+  if (args.sql) {
+    const claimed = await claimDeskSend(args.sql, now);
+    if (!claimed) {
+      console.error(`[desk-mail] daily cap reached kind=${args.logKind}`);
+      return { sent: 0, attempted: 0 };
+    }
+  }
   const result = await sendResendText({
     to: OWNER_EMAIL,
     subject: args.subject,
@@ -157,6 +221,9 @@ export async function sendHardcodedOwnerEmail(args: {
     from: args.from ?? deskFromAddress(),
     fetchImpl: args.fetchImpl,
   });
+  if (!result.ok && args.sql && (result.rejected || result.error === "")) {
+    await releaseDeskSend(args.sql, now);
+  }
   if (!result.ok) {
     console.error(
       `[desk-mail] ${args.logLabel} email failed kind=${args.logKind}`,

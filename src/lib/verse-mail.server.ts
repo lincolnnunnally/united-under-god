@@ -35,9 +35,11 @@ import {
   signVerseToken,
   subscribeIpBucket,
   usableIndexNowKey,
+  remainingVerseRunDateKeys,
   utcDayStart,
   utcMonthStart,
   verseLinkSecret,
+  verseMonthSlotsToHold,
   verseRunDateKey,
   verseSendAllowance,
   verseSlotsToHold,
@@ -92,17 +94,11 @@ async function countKind(sql: Sql, sinceIso: string, kind: "confirm" | "daily") 
   return asCount(rows);
 }
 
-async function countDesk(sql: Sql, sinceIso: string) {
-  try {
-    const rows = await sql<{ n: number }>`
-      select count(*)::int as n from email_log
-      where status = 'sent' and created_at >= ${sinceIso}::timestamptz
-    `;
-    return asCount(rows);
-  } catch (error) {
-    if (!isMissingRelation(error)) throw error;
-    return 0;
-  }
+async function confirmedSubscribers(sql: Sql) {
+  const rows = await sql<{ n: number }>`
+    select count(*)::int as n from verse_subscribers where status = 'confirmed'
+  `;
+  return asCount(rows);
 }
 
 function confirmsUsedToday(row: Subscriber, now: Date) {
@@ -133,10 +129,12 @@ async function budgetUsed(sql: Sql, bucket: string) {
 }
 
 async function otherMail(sql: Sql, now: Date) {
+  // Verse letters already sent. Desk mail has its own 5-a-day cap inside the
+  // reserve, so it is not subtracted here and cannot shrink the letter.
   const dayStart = utcDayStart(now);
   const monthStart = utcMonthStart(now);
-  const otherToday = (await countKind(sql, dayStart, "daily")) + (await countDesk(sql, dayStart));
-  const otherThisMonth = (await countKind(sql, monthStart, "daily")) + (await countDesk(sql, monthStart));
+  const otherToday = await countKind(sql, dayStart, "daily");
+  const otherThisMonth = await countKind(sql, monthStart, "daily");
   return { otherToday, otherThisMonth };
 }
 
@@ -159,18 +157,40 @@ async function unsentVerseHold(sql: Sql, now: Date) {
   return verseSlotsToHold(asCount(rows), false);
 }
 
+async function unsentVerseMonthHold(sql: Sql, now: Date) {
+  const keys = remainingVerseRunDateKeys(now);
+  const todayKey = keys[0] ?? verseRunDateKey(now);
+  const lastKey = keys[keys.length - 1] ?? todayKey;
+  const runs = await sql<{ date_key: string; status: string }>`
+    select date_key, status from verse_mail_runs
+    where date_key >= ${todayKey} and date_key <= ${lastKey}
+  `;
+  const sent = new Set(runs.filter((row) => row.status === "sent").map((row) => row.date_key));
+  const todayHold = sent.has(todayKey) ? 0 : await unsentVerseHold(sql, now);
+  const futureDays = keys.filter((key) => key !== todayKey && !sent.has(key)).length;
+  if (futureDays === 0) return todayHold;
+  const perDay = verseSlotsToHold(await confirmedSubscribers(sql), false);
+  return todayHold + verseMonthSlotsToHold(perDay, futureDays);
+}
+
+async function verseHolds(sql: Sql, now: Date) {
+  const verseHold = await unsentVerseHold(sql, now);
+  const verseMonthHold = await unsentVerseMonthHold(sql, now);
+  return { verseHold, verseMonthHold };
+}
+
 async function confirmSliceOpen(sql: Sql, now: Date) {
   const confirmsToday = await budgetUsed(sql, confirmDayBucket(now));
   const confirmsThisMonth = await budgetUsed(sql, confirmMonthBucket(now));
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
-  const verseHold = await unsentVerseHold(sql, now);
-  return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth, verseHold });
+  const holds = await verseHolds(sql, now);
+  return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth, ...holds });
 }
 
 async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
-  const verseHold = await unsentVerseHold(sql, now);
-  const caps = confirmHardCeilings({ verseHold });
+  const holds = await verseHolds(sql, now);
+  const caps = confirmHardCeilings(holds);
   const rows = await sql<{ result: string }>`
     select verse_reserve_confirm(
       ${confirmDayBucket(now)},
@@ -232,6 +252,8 @@ async function noteConfirmCap(sql: Sql, now: Date, apiKey?: string, fetchImpl?: 
     fetchImpl,
     logKind: "verse-confirm-cap",
     logLabel: "unsaved",
+    sql,
+    now,
   });
 }
 
@@ -346,14 +368,31 @@ export async function issueVerseSignupChallenge(
       delete from verse_pow_issued where created_at < ${pruneBefore}::timestamptz
     `;
     const id = crypto.randomUUID();
+    const issuedAt = now.toISOString();
+    // One counter row. Each query on this connection commits by itself, so a
+    // lock taken in an earlier statement would already be released. The upsert
+    // moves `used` only while this hour is still under the cap.
     const inserted = await sql<{ id: string }>`
+      with claim as (
+        insert into verse_pow_rate (bucket, window_start, used)
+        values (${bucket}, ${issuedAt}::timestamptz, 1)
+        on conflict (bucket) do update
+        set
+          used = case
+            when verse_pow_rate.window_start <= ${hourAgo}::timestamptz then 1
+            else verse_pow_rate.used + 1
+          end,
+          window_start = case
+            when verse_pow_rate.window_start <= ${hourAgo}::timestamptz then ${issuedAt}::timestamptz
+            else verse_pow_rate.window_start
+          end
+        where verse_pow_rate.window_start <= ${hourAgo}::timestamptz
+           or verse_pow_rate.used < ${POW_ISSUE_PER_HOUR}
+        returning bucket
+      )
       insert into verse_pow_issued (id, ip, created_at)
-      select ${id}, ${bucket}, ${now.toISOString()}::timestamptz
-      from (select pg_advisory_xact_lock(hashtextextended(${`verse-pow:${bucket}`}, 0))) as locked
-      where (
-        select count(*)::int from verse_pow_issued
-        where ip = ${bucket} and created_at >= ${hourAgo}::timestamptz
-      ) < ${POW_ISSUE_PER_HOUR}
+      select ${id}, claim.bucket, ${issuedAt}::timestamptz
+      from claim
       returning id
     `;
     if (inserted.length === 0) {
@@ -751,8 +790,10 @@ export async function deliverDailyVerse(
   }
   const dayStart = utcDayStart(now);
   const monthStart = utcMonthStart(now);
-  const sentToday = (await countKind(sql, dayStart, "daily")) + (await countDesk(sql, dayStart));
-  const sentThisMonth = (await countKind(sql, monthStart, "daily")) + (await countDesk(sql, monthStart));
+  // Desk mail stays inside its own cap and the fixed reserve. Counting it
+  // here as well would shrink today's letter by every desk note already sent.
+  const sentToday = await countKind(sql, dayStart, "daily");
+  const sentThisMonth = await countKind(sql, monthStart, "daily");
   const budget = verseSendAllowance({
     sentToday,
     sentThisMonth,

@@ -1,5 +1,5 @@
 import { getSql } from "@/lib/db";
-import { sendResendText } from "@/lib/desk-mail";
+import { claimDeskSend, releaseDeskSend, sendResendText } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -8,14 +8,18 @@ type SendArgs = {
   text: string;
 };
 
-async function sendOne(to: string, subject: string, text: string): Promise<{ status: string; error: string }> {
+async function sendOne(
+  to: string,
+  subject: string,
+  text: string,
+): Promise<{ status: string; error: string; rejected: boolean }> {
   const key = process.env.RESEND_API_KEY?.trim();
 
   if (key) {
     const result = await sendResendText({ to, subject, text, apiKey: key });
     return result.ok
-      ? { status: "sent", error: "" }
-      : { status: "failed", error: result.error };
+      ? { status: "sent", error: "", rejected: false }
+      : { status: "failed", error: result.error, rejected: result.rejected || result.error === "" };
   }
 
   const res = await fetch(
@@ -36,9 +40,9 @@ async function sendOne(to: string, subject: string, text: string): Promise<{ sta
   );
   if (!res.ok) {
     const body = await res.text();
-    return { status: "failed", error: body.slice(0, 400) };
+    return { status: "failed", error: body.slice(0, 400), rejected: true };
   }
-  return { status: "sent", error: "" };
+  return { status: "sent", error: "", rejected: false };
 }
 
 export async function sendDeskEmails(args: SendArgs) {
@@ -46,15 +50,24 @@ export async function sendDeskEmails(args: SendArgs) {
     ...new Set(args.to.map((e) => e.trim().toLowerCase()).filter(Boolean)),
   ];
   const sql = await getSql();
+  const now = new Date();
   let sent = 0;
   for (const to of unique) {
     let status = "failed";
     let error = "";
     try {
-      const result = await sendOne(to, args.subject, args.text);
-      status = result.status;
-      error = result.error;
-      if (status === "sent") sent += 1;
+      const claimed = await claimDeskSend(sql, now);
+      if (!claimed) {
+        console.error(`[desk-mail] daily cap reached inquiry=${args.inquiryId}`);
+        status = "skipped";
+        error = "desk daily cap";
+      } else {
+        const result = await sendOne(to, args.subject, args.text);
+        status = result.status;
+        error = result.error;
+        if (status === "sent") sent += 1;
+        else if (result.rejected) await releaseDeskSend(sql, now);
+      }
     } catch (err) {
       error = err instanceof Error ? err.message : "send failed";
     }

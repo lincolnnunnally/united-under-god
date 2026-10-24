@@ -160,17 +160,24 @@ async function requireDeskStaff(userId: string): Promise<DeskMe> {
   };
 }
 
-function mailOwner(
+async function mailOwner(
   inquiry: InquiryRow,
   notice: { subject: string; text: string },
   logLabel: "unsaved" | "routes",
 ) {
+  let sql: Awaited<ReturnType<typeof getSql>> | undefined;
+  try {
+    sql = await getSql();
+  } catch {
+    sql = undefined;
+  }
   return sendHardcodedOwnerEmail({
     subject: notice.subject,
     text: notice.text,
     apiKey: process.env.RESEND_API_KEY,
     logKind: inquiry.kind,
     logLabel,
+    sql,
   });
 }
 

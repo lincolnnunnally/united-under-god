@@ -119,6 +119,23 @@ create table if not exists verse_pow_issued (
 create index if not exists verse_pow_issued_ip_idx
   on verse_pow_issued (ip, created_at);
 
+-- One row per IP bucket. used moves only while the hour window is open and still under 30.
+-- A separate count-then-insert cannot do that: each app query commits on its own.
+create table if not exists verse_pow_rate (
+  bucket text primary key,
+  window_start timestamptz not null,
+  used integer not null,
+  constraint verse_pow_rate_used_check check (used >= 0)
+);
+
+-- Desk mail, including the owner note. One UTC day. The app stops at 5.
+create table if not exists desk_send_budget (
+  bucket text primary key,
+  used integer not null,
+  updated_at timestamptz not null default now(),
+  constraint desk_send_budget_used_check check (used >= 0)
+);
+
 -- Atomic confirm reservations. used increases only while it is still under the cap.
 -- bucket is day:YYYY-MM-DD, month:YYYY-MM, or net:<network>:YYYY-MM-DD.
 create table if not exists verse_confirm_budget (
@@ -136,7 +153,9 @@ alter table verse_indexnow_log enable row level security;
 alter table verse_subscribe_hits enable row level security;
 alter table verse_pow_used enable row level security;
 alter table verse_pow_issued enable row level security;
+alter table verse_pow_rate enable row level security;
 alter table verse_confirm_budget enable row level security;
+alter table desk_send_budget enable row level security;
 
 revoke all on table verse_subscribers from public;
 revoke all on table verse_mail_runs from public;
@@ -146,7 +165,9 @@ revoke all on table verse_indexnow_log from public;
 revoke all on table verse_subscribe_hits from public;
 revoke all on table verse_pow_used from public;
 revoke all on table verse_pow_issued from public;
+revoke all on table verse_pow_rate from public;
 revoke all on table verse_confirm_budget from public;
+revoke all on table desk_send_budget from public;
 
 -- One statement, so a day, a month, and a network are reserved together or not at all.
 -- security invoker (the default): the caller still needs table privileges.
@@ -228,7 +249,9 @@ begin
         'verse_subscribe_hits',
         'verse_pow_used',
         'verse_pow_issued',
-        'verse_confirm_budget'
+        'verse_pow_rate',
+        'verse_confirm_budget',
+        'desk_send_budget'
       ] loop
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;

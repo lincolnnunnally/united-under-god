@@ -210,20 +210,44 @@ export function verseRunDateKey(now = new Date()) {
   return ministryToday(new Date(`${utcDate}T13:00:00.000Z`));
 }
 
+/**
+ * UTC days from today through the end of the month, including today.
+ * Each of those days still owes a verse letter until that day's run is sent.
+ */
+export function remainingVerseRunDateKeys(now = new Date()) {
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth();
+  const last = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const keys: string[] = [];
+  for (let day = now.getUTCDate(); day <= last; day += 1) {
+    keys.push(verseRunDateKey(new Date(Date.UTC(year, month, day, 13, 0, 0))));
+  }
+  return keys;
+}
+
+/** Letters still owed on later days this month. Today's partial list is added by the caller. */
+export function verseMonthSlotsToHold(perDay: number, openDays: number) {
+  const daily = Math.max(0, Math.floor(perDay));
+  const days = Math.max(0, Math.floor(openDays));
+  return daily * days;
+}
+
 /** Caps passed into the atomic reservation. The desk reserve is never given to confirmations. */
 export function confirmHardCeilings(
-  input: { dailyCap?: number; monthlyCap?: number; verseHold?: number } = {},
+  input: { dailyCap?: number; monthlyCap?: number; verseHold?: number; verseMonthHold?: number } = {},
 ) {
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
   const verseHold = Math.max(0, input.verseHold ?? 0);
+  const verseMonthHold = Math.max(0, input.verseMonthHold ?? 0);
   return {
     dayCap: CONFIRM_DAILY_CAP,
     monthCap: CONFIRM_MONTHLY_CAP,
     netCap: CONFIRM_PER_NETWORK_PER_DAY,
     dailyHard: dailyCap - DESK_DAILY_RESERVE - verseHold,
-    monthlyHard: monthlyCap - DESK_MONTHLY_RESERVE,
+    monthlyHard: monthlyCap - DESK_MONTHLY_RESERVE - verseMonthHold,
     verseHold,
+    verseMonthHold,
   };
 }
 
@@ -240,6 +264,7 @@ export function confirmSendAllowed(input: {
   dailyCap?: number;
   monthlyCap?: number;
   verseHold?: number;
+  verseMonthHold?: number;
 }) {
   const caps = confirmHardCeilings(input);
   if (input.confirmsToday >= caps.dayCap) return false;
