@@ -54,9 +54,9 @@ export async function sendResendText(args: {
   from?: string;
   idempotencyKey?: string;
   fetchImpl?: typeof fetch;
-}): Promise<{ ok: boolean; error: string }> {
+}): Promise<{ ok: true; error: "" } | { ok: false; rejected: boolean; error: string }> {
   const key = args.apiKey?.trim();
-  if (!key) return { ok: false, error: "" };
+  if (!key) return { ok: false, rejected: false, error: "" };
   try {
     const res = await (args.fetchImpl ?? fetch)("https://api.resend.com/emails", {
       method: "POST",
@@ -78,11 +78,13 @@ export async function sendResendText(args: {
     });
     if (!res.ok) {
       const error = clipResendError(await res.text());
-      return { ok: false, error: error || "resend rejected" };
+      return { ok: false, rejected: true, error: error || "resend rejected" };
     }
     return { ok: true, error: "" };
   } catch {
-    return { ok: false, error: "resend request failed" };
+    // A timeout or a dropped connection may still have been accepted. Callers
+    // that reserved a slot must keep it. Only a non-2xx answer is a rejection.
+    return { ok: false, rejected: false, error: "resend request failed" };
   }
 }
 

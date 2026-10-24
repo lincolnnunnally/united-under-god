@@ -8,6 +8,7 @@ import {
   buildConfirmMail,
   buildDailyVerseMail,
   confirmDayBucket,
+  confirmHardCeilings,
   confirmMonthBucket,
   confirmNetBucket,
   confirmNetwork,
@@ -15,6 +16,8 @@ import {
   CONFIRM_CAP_MESSAGE,
   CONFIRM_MONTHLY_CAP,
   CONFIRM_PER_NETWORK_PER_DAY,
+  DESK_DAILY_RESERVE,
+  DESK_MONTHLY_RESERVE,
   fullPostalAddress,
   indexNowKeyFile,
   ipSubscribeLimited,
@@ -23,7 +26,6 @@ import {
   POW_ISSUE_PER_HOUR,
   recipientAllowed,
   RESEND_DAILY_CAP,
-  RESEND_DAILY_HEADROOM,
   RESEND_MONTHLY_CAP,
   SHARED_IP_BUCKET,
   signVerseToken,
@@ -35,7 +37,9 @@ import {
   VERSE_POW_HMAC_PREFIX,
   verseLinkSecret,
   versePowKey,
+  verseRunDateKey,
   verseSendAllowance,
+  verseSlotsToHold,
   CONFIRM_DAILY_CAP,
 } from "./verse-mail.ts";
 import {
@@ -127,12 +131,15 @@ describe("verse mail tokens and caps", () => {
   it("stops verse sends below the free-plan caps", () => {
     assert.equal(verseSendAllowance({ sentToday: 0, sentThisMonth: 0 }).allowance, VERSE_DAILY_SEND_CEILING);
     assert.equal(VERSE_DAILY_SEND_CEILING < RESEND_DAILY_CAP, true);
-    assert.equal(verseSendAllowance({ sentToday: 85, sentThisMonth: 0 }).allowance, 0);
-    assert.equal(verseSendAllowance({ sentToday: 0, sentThisMonth: 2700 }).allowance, 0);
+    assert.equal(verseSendAllowance({ sentToday: RESEND_DAILY_CAP - DESK_DAILY_RESERVE, sentThisMonth: 0 }).allowance, 0);
+    assert.equal(
+      verseSendAllowance({ sentToday: 0, sentThisMonth: RESEND_MONTHLY_CAP - DESK_MONTHLY_RESERVE }).allowance,
+      0,
+    );
     const withDesk = verseSendAllowance({ sentToday: 10, sentThisMonth: 171 });
-    assert.equal(withDesk.allowance, 75);
-    assert.ok(withDesk.allowance + 10 < RESEND_DAILY_CAP);
-    assert.ok(80 * 30 < RESEND_MONTHLY_CAP);
+    assert.equal(withDesk.allowance, VERSE_DAILY_SEND_CEILING);
+    assert.ok(withDesk.allowance + 10 + DESK_DAILY_RESERVE <= RESEND_DAILY_CAP);
+    assert.ok(VERSE_DAILY_SEND_CEILING * 30 + CONFIRM_MONTHLY_CAP <= RESEND_MONTHLY_CAP - DESK_MONTHLY_RESERVE);
   });
 
   it("requires its own link secret and a street or PO box", () => {
@@ -152,21 +159,50 @@ describe("verse mail tokens and caps", () => {
   });
 
   it("keeps confirmations in their own slice", () => {
-    assert.equal(CONFIRM_DAILY_CAP, 40);
-    assert.equal(CONFIRM_MONTHLY_CAP, CONFIRM_DAILY_CAP * 30);
+    assert.equal(CONFIRM_DAILY_CAP, 15);
+    assert.equal(CONFIRM_MONTHLY_CAP, 450);
     assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 3);
+    assert.equal(confirmHardCeilings().dailyHard, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
+    assert.equal(confirmHardCeilings().monthlyHard, RESEND_MONTHLY_CAP - DESK_MONTHLY_RESERVE);
+    assert.equal(
+      confirmHardCeilings({ verseHold: VERSE_DAILY_SEND_CEILING }).dailyHard,
+      RESEND_DAILY_CAP - DESK_DAILY_RESERVE - VERSE_DAILY_SEND_CEILING,
+    );
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), true);
     assert.equal(confirmSendAllowed({ confirmsToday: CONFIRM_DAILY_CAP, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), false);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: CONFIRM_MONTHLY_CAP, otherToday: 0, otherThisMonth: 0 }), false);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 80, otherThisMonth: 0 }), true);
+    assert.equal(
+      confirmSendAllowed({
+        confirmsToday: 0,
+        confirmsThisMonth: 0,
+        otherToday: 0,
+        otherThisMonth: 0,
+        verseHold: VERSE_DAILY_SEND_CEILING,
+      }),
+      true,
+    );
+    assert.equal(
+      confirmSendAllowed({
+        confirmsToday: CONFIRM_DAILY_CAP,
+        confirmsThisMonth: 0,
+        otherToday: 0,
+        otherThisMonth: 0,
+        verseHold: VERSE_DAILY_SEND_CEILING,
+      }),
+      false,
+    );
     const withConfirms = verseSendAllowance({
       sentToday: 0,
       sentThisMonth: 0,
       confirmsToday: CONFIRM_DAILY_CAP,
       confirmsThisMonth: 0,
     });
-    assert.equal(withConfirms.allowance, RESEND_DAILY_CAP - RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
-    assert.ok(withConfirms.allowance > 0);
+    assert.equal(withConfirms.allowance, VERSE_DAILY_SEND_CEILING);
+    assert.ok(CONFIRM_DAILY_CAP + withConfirms.allowance + DESK_DAILY_RESERVE <= RESEND_DAILY_CAP);
+    assert.equal(verseSlotsToHold(120, false), VERSE_DAILY_SEND_CEILING);
+    assert.equal(verseSlotsToHold(12, false), 12);
+    assert.equal(verseSlotsToHold(120, true), 0);
     assert.equal(ipSubscribeLimited(5, 0), true);
     assert.equal(ipSubscribeLimited(4, 20), true);
     assert.equal(ipSubscribeLimited(4, 19), false);
@@ -373,7 +409,7 @@ describe("verse subscription store", () => {
     await sql`
       insert into verse_send_log (id, kind, status, created_at)
       select 'log-' || g, 'daily', 'sent', ${now.toISOString()}::timestamptz
-      from generate_series(1, 90) as g
+      from generate_series(1, ${RESEND_DAILY_CAP - DESK_DAILY_RESERVE}) as g
     `;
     await sql`
       insert into verse_subscribers (id, email, status, confirmed_at)
@@ -1083,6 +1119,130 @@ describe("verse confirm defenses", () => {
     } finally {
       console.error = original;
     }
+    await pg.close();
+  });
+
+  it("keeps the morning verse and the desk reserve after the 8 PM Eastern rollover", async () => {
+    const { pg, sql } = await db();
+    // 8:30 PM EDT is 00:30 UTC the next day. The UTC quota just reset.
+    // The 9 AM Eastern verse run (13:00 UTC) has not happened yet.
+    const overnight = new Date("2026-10-24T00:30:00.000Z");
+    assert.equal(overnight.getUTCHours() === 0 && ministryToday(overnight) === "2026-10-23", true);
+    assert.equal(verseRunDateKey(overnight), "2026-10-24");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      select 'reader-' || g, 'reader-' || g || '@example.com', 'confirmed', ${overnight.toISOString()}::timestamptz
+      from generate_series(1, ${VERSE_DAILY_SEND_CEILING}) as g
+    `;
+    let confirmSends = 0;
+    let deskSends = 0;
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const payload = JSON.parse(String(init?.body ?? "{}")) as { to?: string[] };
+      const to = payload.to ?? [];
+      if (to.includes("lincoln@unitedundergod.org")) deskSends += 1;
+      else confirmSends += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    for (let n = 0; n < 40; n += 1) {
+      await ask(sql, {
+        email: `night-${n}@example.com`,
+        sourcePath: "/verse",
+        now: overnight,
+        ip: `203.0.${n}.1`,
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: true,
+        fetchImpl,
+      });
+    }
+    assert.equal(confirmSends, CONFIRM_DAILY_CAP);
+    assert.ok(confirmSends < 40);
+    const morning = new Date("2026-10-24T13:00:00.000Z");
+    assert.equal(ministryToday(morning), "2026-10-24");
+    let verseSends = 0;
+    const delivered = await deliverDailyVerse(sql, {
+      now: morning,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-24")],
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        const batch = JSON.parse(String(init?.body ?? "[]")) as unknown[];
+        verseSends += batch.length;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(delivered.sent, VERSE_DAILY_SEND_CEILING);
+    assert.equal(verseSends, VERSE_DAILY_SEND_CEILING);
+    // 15 confirms + 80 verse letters fill the provider cap minus the 5-letter
+    // desk reserve, and they do not go past it. The cap-hit note is the one
+    // desk send. It spends one reserved slot, so the three together stay
+    // inside the provider cap and inside the cap minus the reserve still unused.
+    assert.equal(deskSends, 1);
+    assert.equal(confirmSends + verseSends, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
+    assert.ok(deskSends <= DESK_DAILY_RESERVE);
+    assert.ok(confirmSends + verseSends + deskSends <= RESEND_DAILY_CAP);
+    assert.ok(
+      confirmSends + verseSends + deskSends <=
+        RESEND_DAILY_CAP - (DESK_DAILY_RESERVE - deskSends),
+    );
+    assert.ok(confirmSends + verseSends + DESK_DAILY_RESERVE <= RESEND_DAILY_CAP);
+    assert.ok(CONFIRM_MONTHLY_CAP + VERSE_DAILY_SEND_CEILING * 30 + DESK_MONTHLY_RESERVE <= RESEND_MONTHLY_CAP);
+    await pg.close();
+  });
+
+  it("releases a refused confirmation in bucket order and keeps the slot when the network fails", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-11-06T15:00:00Z");
+    const releaseOrder: string[] = [];
+    const watching = (async <T = Record<string, unknown>>(
+      strings: TemplateStringsArray,
+      ...values: unknown[]
+    ): Promise<T[]> => {
+      const text = strings.join(" ");
+      if (text.includes("greatest(used - 1")) {
+        const bucket = values.find((value) => typeof value === "string" && /^(day|month|net):/.test(value));
+        if (typeof bucket === "string") releaseOrder.push(bucket);
+      }
+      return sql<T>(strings, ...values);
+    }) as Sql;
+    watching.query = (text, params) => sql.query(text, params);
+    const refused = await ask(watching, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.118.4",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => new Response("no", { status: 500 })) as typeof fetch,
+    });
+    assert.equal(refused.ok, false);
+    const expectedOrder = [confirmDayBucket(now), confirmMonthBucket(now), confirmNetBucket("203.0.118.4", now)].sort();
+    assert.deepEqual(releaseOrder, expectedOrder);
+    const afterRefusal = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(afterRefusal[0]?.used), 0);
+
+    const dropped = await ask(sql, {
+      email: "bounced@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.119.4",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => {
+        throw new Error("socket hang up");
+      }) as typeof fetch,
+    });
+    assert.equal(dropped.ok, false);
+    const kept = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(kept[0]?.used), 1);
     await pg.close();
   });
 });

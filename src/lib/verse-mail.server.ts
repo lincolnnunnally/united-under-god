@@ -38,7 +38,9 @@ import {
   utcDayStart,
   utcMonthStart,
   verseLinkSecret,
+  verseRunDateKey,
   verseSendAllowance,
+  verseSlotsToHold,
   verifyVersePow,
   verifyVerseToken,
 } from "./verse-mail.ts";
@@ -138,16 +140,37 @@ async function otherMail(sql: Sql, now: Date) {
   return { otherToday, otherThisMonth };
 }
 
+async function unsentVerseHold(sql: Sql, now: Date) {
+  const dateKey = verseRunDateKey(now);
+  const runs = await sql<{ status: string }>`
+    select status from verse_mail_runs where date_key = ${dateKey}
+  `;
+  if (runs[0]?.status === "sent") return verseSlotsToHold(0, true);
+  const rows = await sql<{ n: number }>`
+    select count(*)::int as n from verse_subscribers s
+    where s.status = 'confirmed'
+      and not exists (
+        select 1 from verse_mail_deliveries d
+        where d.subscriber_id = s.id
+          and d.date_key = ${dateKey}
+          and d.status = 'sent'
+      )
+  `;
+  return verseSlotsToHold(asCount(rows), false);
+}
+
 async function confirmSliceOpen(sql: Sql, now: Date) {
   const confirmsToday = await budgetUsed(sql, confirmDayBucket(now));
   const confirmsThisMonth = await budgetUsed(sql, confirmMonthBucket(now));
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
-  return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth });
+  const verseHold = await unsentVerseHold(sql, now);
+  return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth, verseHold });
 }
 
 async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
-  const caps = confirmHardCeilings();
+  const verseHold = await unsentVerseHold(sql, now);
+  const caps = confirmHardCeilings({ verseHold });
   const rows = await sql<{ result: string }>`
     select verse_reserve_confirm(
       ${confirmDayBucket(now)},
@@ -166,14 +189,16 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
 }
 
 async function releaseConfirm(sql: Sql, now: Date, ip: string | undefined) {
-  const day = confirmDayBucket(now);
-  const month = confirmMonthBucket(now);
-  const net = confirmNetBucket(ip, now);
-  await sql`
-    update verse_confirm_budget
-    set used = greatest(used - 1, 0), updated_at = now()
-    where bucket = ${day} or bucket = ${month} or bucket = ${net}
-  `;
+  // Same order as verse_reserve_confirm (order by bucket), one row at a time,
+  // so a release cannot deadlock with a reservation that holds the other rows.
+  const buckets = [confirmDayBucket(now), confirmMonthBucket(now), confirmNetBucket(ip, now)].sort();
+  for (const bucket of buckets) {
+    await sql`
+      update verse_confirm_budget
+      set used = greatest(used - 1, 0), updated_at = now()
+      where bucket = ${bucket}
+    `;
+  }
 }
 
 async function spendPow(sql: Sql, challenge: string, now: Date) {
@@ -275,7 +300,9 @@ async function sendConfirmation(args: {
     idempotencyKey: `verse-confirm/${args.row.id}/${dayStart.slice(0, 10)}/${usedToday + 1}`,
     fetchImpl: args.fetchImpl,
   });
-  if (!result.ok) {
+  // A non-2xx is a refusal: the slot comes back. A timeout or a network error
+  // may have been accepted, so the slot stays. A missing key never left this process.
+  if (!result.ok && (result.rejected || result.error === "")) {
     await releaseConfirm(args.sql, args.now, args.ip);
   }
   await args.sql`
@@ -318,18 +345,21 @@ export async function issueVerseSignupChallenge(
     await sql`
       delete from verse_pow_issued where created_at < ${pruneBefore}::timestamptz
     `;
-    const rows = await sql<{ n: number }>`
-      select count(*)::int as n from verse_pow_issued
-      where ip = ${bucket} and created_at >= ${hourAgo}::timestamptz
+    const id = crypto.randomUUID();
+    const inserted = await sql<{ id: string }>`
+      insert into verse_pow_issued (id, ip, created_at)
+      select ${id}, ${bucket}, ${now.toISOString()}::timestamptz
+      from (select pg_advisory_xact_lock(hashtextextended(${`verse-pow:${bucket}`}, 0))) as locked
+      where (
+        select count(*)::int from verse_pow_issued
+        where ip = ${bucket} and created_at >= ${hourAgo}::timestamptz
+      ) < ${POW_ISSUE_PER_HOUR}
+      returning id
     `;
-    if (asCount(rows) >= POW_ISSUE_PER_HOUR) {
+    if (inserted.length === 0) {
       console.error(`[verse-mail] pow challenge limit reached bucket=${bucket}`);
       return { ok: false, error: CHALLENGE_LATER };
     }
-    await sql`
-      insert into verse_pow_issued (id, ip, created_at)
-      values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
-    `;
   } catch (error) {
     const code = (error as { code?: string })?.code;
     if (isMissingRelation(error) || code === "42883") {

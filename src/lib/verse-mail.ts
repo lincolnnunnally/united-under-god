@@ -8,27 +8,29 @@ export const RESEND_DAILY_CAP = 100;
 export const RESEND_MONTHLY_CAP = 3000;
 
 /**
- * Verse letters stop this far under the cap so desk mail and other apps on the
- * same key still fit. Confirmation notes have their own slice. A verse run
- * counts confirmations already reserved that day and month, so a full confirm
- * day still leaves a morning send inside the free plan. The free plan rejects
- * mail at the cap rather than billing an overage.
+ * Left unused on purpose. Desk mail and any other app on this key still fit,
+ * and confirmations are not allowed to spend it. The free plan rejects mail
+ * at the cap rather than billing an overage.
  */
-export const RESEND_DAILY_HEADROOM = 15;
-export const RESEND_MONTHLY_HEADROOM = 300;
+export const DESK_DAILY_RESERVE = 5;
+export const DESK_MONTHLY_RESERVE = 150;
+
+/** @deprecated Use DESK_DAILY_RESERVE. Kept so older call sites still compile. */
+export const RESEND_DAILY_HEADROOM = DESK_DAILY_RESERVE;
+/** @deprecated Use DESK_MONTHLY_RESERVE. Kept so older call sites still compile. */
+export const RESEND_MONTHLY_HEADROOM = DESK_MONTHLY_RESERVE;
 
 /** Never more than this many verse letters in one day, even if headroom remains. */
 export const VERSE_DAILY_SEND_CEILING = 80;
 
 /**
  * Confirmations, across every address.
- * 40 a day leaves the other half of the 80-letter verse ceiling for the morning
- * send. 1,200 a month is that same daily cap across 30 days. The free plan is
- * still 100 a day and 3,000 a month; reserved confirmations are subtracted from
- * the verse allowance so the two together stay inside it.
+ * 15 a day is what remains of a 100-letter day after the 5-letter desk reserve
+ * and an 80-letter verse run. 450 a month is 15 × 30, which fits under the
+ * 3,000-letter month after the 150-letter desk reserve and 80 letters × 30 days.
  */
-export const CONFIRM_DAILY_CAP = 40;
-export const CONFIRM_MONTHLY_CAP = 1_200;
+export const CONFIRM_DAILY_CAP = 15;
+export const CONFIRM_MONTHLY_CAP = 450;
 
 /** One address may receive this many confirmation notes per UTC day. */
 export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
@@ -169,12 +171,12 @@ export function verseSendAllowance(input: {
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
   const dailyLeft =
     dailyCap -
-    RESEND_DAILY_HEADROOM -
+    DESK_DAILY_RESERVE -
     Math.max(0, input.sentToday) -
     Math.max(0, input.confirmsToday ?? 0);
   const monthlyLeft =
     monthlyCap -
-    RESEND_MONTHLY_HEADROOM -
+    DESK_MONTHLY_RESERVE -
     Math.max(0, input.sentThisMonth) -
     Math.max(0, input.confirmsThisMonth ?? 0);
   const allowance = Math.max(0, Math.min(dailyLeft, monthlyLeft, VERSE_DAILY_SEND_CEILING));
@@ -189,18 +191,39 @@ export function verseSendAllowance(input: {
   return { allowance, reason };
 }
 
-/** Caps passed into the atomic reservation. Hard ceilings still stop short of the plan limit. */
-export function confirmHardCeilings(input: { dailyCap?: number; monthlyCap?: number } = {}) {
+/**
+ * Slots the morning verse still needs. Zero once that UTC day's letter has
+ * been sent. Otherwise the confirmed list, and never more than the 80-letter ceiling.
+ */
+export function verseSlotsToHold(activeSubscribers: number, letterSent: boolean) {
+  if (letterSent) return 0;
+  return Math.min(Math.max(0, Math.floor(activeSubscribers)), VERSE_DAILY_SEND_CEILING);
+}
+
+/**
+ * The ministry date whose verse letter spends this UTC day's provider quota.
+ * The cron is 13:00 UTC, which is 9 AM Eastern during daylight time and 8 AM
+ * when standard time is in effect — still the same calendar date.
+ */
+export function verseRunDateKey(now = new Date()) {
+  const utcDate = utcDayStart(now).slice(0, 10);
+  return ministryToday(new Date(`${utcDate}T13:00:00.000Z`));
+}
+
+/** Caps passed into the atomic reservation. The desk reserve is never given to confirmations. */
+export function confirmHardCeilings(
+  input: { dailyCap?: number; monthlyCap?: number; verseHold?: number } = {},
+) {
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
-  const dailyReserve = Math.max(0, RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
-  const monthlyReserve = Math.max(0, RESEND_MONTHLY_HEADROOM - CONFIRM_MONTHLY_CAP);
+  const verseHold = Math.max(0, input.verseHold ?? 0);
   return {
     dayCap: CONFIRM_DAILY_CAP,
     monthCap: CONFIRM_MONTHLY_CAP,
     netCap: CONFIRM_PER_NETWORK_PER_DAY,
-    dailyHard: dailyCap - dailyReserve,
-    monthlyHard: monthlyCap - monthlyReserve,
+    dailyHard: dailyCap - DESK_DAILY_RESERVE - verseHold,
+    monthlyHard: monthlyCap - DESK_MONTHLY_RESERVE,
+    verseHold,
   };
 }
 
@@ -216,6 +239,7 @@ export function confirmSendAllowed(input: {
   otherThisMonth: number;
   dailyCap?: number;
   monthlyCap?: number;
+  verseHold?: number;
 }) {
   const caps = confirmHardCeilings(input);
   if (input.confirmsToday >= caps.dayCap) return false;
