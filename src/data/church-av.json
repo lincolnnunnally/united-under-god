@@ -8,21 +8,21 @@
       "step": "Dream",
       "lead": "Uncover or refine the vision for your room, so everything after it has a foundation.",
       "bullets": [
-        "Clarify the vision",
-        "3D renderings of design choices",
-        "Initial budgets",
-        "A clear program report that explains the system in non-technical language"
+        "Talk through what you want the room to do",
+        "3D pictures of the design choices",
+        "First budgets",
+        "A plain-language report that explains the system"
       ]
     },
     {
       "step": "Design",
       "lead": "A solution built for your room and your needs, not a catalog package.",
       "bullets": [
-        "Detailed equipment schematics",
-        "Thermal calculations for HVAC",
-        "Drawings for rigging and electrical",
+        "Detailed equipment drawings",
+        "Heat figures for your air conditioning contractor",
+        "Drawings of what hangs from the ceiling and the power it needs",
         "Complete equipment lists",
-        "Coordination with the other trades",
+        "Working alongside your architect and builder",
         "A full set of plans"
       ]
     },
@@ -30,21 +30,21 @@
       "step": "Deliver",
       "lead": "The system is installed with care, in phases, around your services.",
       "bullets": [
-        "A dedicated project manager",
-        "A detailed checklist that verifies every system",
-        "Systems pre-built and pre-programmed to reduce time on site",
-        "Sunday is always coming: minimal downtime and disruption",
-        "Phased installation: rough-in, equipment setup, commissioning, final verification"
+        "One project manager as your contact",
+        "A checklist that tests every system",
+        "Equipment built and set up ahead of time, so less time in your building",
+        "Sunday is always coming: work is scheduled around your services",
+        "Done in stages: wiring, equipment, testing, final check"
       ]
     },
     {
       "step": "Dedication",
       "lead": "Support that continues after the install.",
       "bullets": [
-        "Training after commissioning and verification",
-        "On-site training the first Sunday",
+        "Training once everything is tested",
+        "On-site help the first Sunday",
         "1-year parts and labor warranty",
-        "Extended service plans are available"
+        "Longer service plans are available"
       ]
     }
   ],
@@ -70,14 +70,14 @@
     "freedom-church": {
       "name": "Freedom Church",
       "city": "Acworth, GA",
-      "summary": "A new-build auditorium with every audio, video, LED, lighting, and broadcast system across the building designed and delivered as one production environment, from the room to the stream.",
+      "summary": "A new auditorium where every sound, video, screen, lighting, and livestream system in the building was planned and delivered together, from the room to the stream.",
       "highlights": [
-        "Ground-up audio, video, and lighting design and integration for the new auditorium",
-        "Building-wide audio system deployment and tuning",
-        "Video, LED, and display infrastructure across the facility",
-        "Production lighting and control for worship and support spaces",
-        "Broadcast system for capture, switching, recording, and streaming",
-        "Coordinated racks, signal flow, commissioning, and operator handoff"
+        "Sound, video, and lighting planned from the ground up for the new auditorium",
+        "Sound throughout the building, tuned room by room",
+        "Screens and video walls throughout the building",
+        "Lighting for worship and for the other rooms",
+        "Cameras, recording, and livestreaming",
+        "Equipment racks and wiring organized, tested, and handed over with training"
       ],
       "tech": [
         "Audio system",
@@ -241,14 +241,14 @@
     "lakeside-church": {
       "name": "Lakeside Church",
       "city": "Greensboro, GA",
-      "summary": "New sanctuary construction with a new audio system, broadcast video, LED walls, production lighting, and acoustic panels, designed, integrated, and commissioned end to end.",
+      "summary": "A new sanctuary with a new sound system, cameras for the livestream, large video walls, stage lighting, and sound panels on the walls, planned and set up from start to finish.",
       "highlights": [
-        "Ground-up sanctuary audio, video, and lighting design and integration",
-        "Broadcast video system (cameras, switching, sync, capture) for live and archive",
-        "LED walls: specification, rigging, mapping, and calibration",
-        "Production lighting with showfile presets and cueing",
-        "Acoustic paneling layout with measurement-based tuning",
-        "Operator training and documentation handoff"
+        "Sound, video, and lighting planned from the ground up for the new sanctuary",
+        "Cameras and recording for the livestream and for keeping sermons",
+        "Large video walls chosen, hung, and adjusted",
+        "Stage lighting with saved looks, set with one button",
+        "Sound panels placed where measurements showed they were needed",
+        "Volunteer training and written instructions"
       ],
       "tech": [
         "Audio system",
@@ -335,14 +335,14 @@
     "lake-point-community-church": {
       "name": "Lake Point Community Church",
       "city": "Eatonton, GA",
-      "summary": "New sanctuary construction with a new audio system, video projection, production lighting, and a distributed AV backbone tying the other rooms together.",
+      "summary": "A new sanctuary with a new sound system, projectors and screens, stage lighting, and the service carried to the other rooms of the building.",
       "highlights": [
-        "Ground-up sanctuary audio, video, and lighting design and integration",
-        "Audio system install with alignment and tuning",
-        "Video projection specification, rigging, and calibration",
-        "Production lighting with showfile presets and cueing",
-        "Distributed AV to lobbies and classrooms with clear routing",
-        "Operator training and documentation handoff"
+        "Sound, video, and lighting planned from the ground up for the new sanctuary",
+        "Sound system put in and tuned to the room",
+        "Projectors and screens chosen, hung, and adjusted",
+        "Stage lighting with saved looks, set with one button",
+        "The service carried to the lobbies and classrooms",
+        "Volunteer training and written instructions"
       ],
       "tech": ["Audio system", "Video projection", "Production lighting", "Distributed AV"]
     },
@@ -368,13 +368,13 @@
     "central-church": {
       "name": "Central Church",
       "city": "Covington, GA",
-      "summary": "New sanctuary construction that relocated the church’s existing audio and lighting, plus a new digital audio console, a new DMX lighting console, and LED house lighting.",
+      "summary": "A new sanctuary that reused the church’s own sound and lighting equipment, plus a new mixing board, a new lighting control board, and new LED room lights.",
       "highlights": [
-        "New sanctuary build reusing the church’s own equipment where appropriate",
-        "Relocation, rehang, and recommissioning of existing audio and lighting",
-        "Digital audio console with showfile templates and training",
-        "DMX lighting console programming, patch, and cues",
-        "New LED house lighting with zones, dimming, and presets"
+        "Reused the church’s own equipment where it made sense",
+        "Moved, rehung, and retested the existing sound and lighting",
+        "A new mixing board, set up with training",
+        "A new lighting control board, programmed with saved looks",
+        "New LED room lights with separate areas and dimming"
       ],
       "tech": [
         "Digital audio console",

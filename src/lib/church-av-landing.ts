@@ -49,7 +49,7 @@ export type LandingPage = {
 
 const WARRANTY_FAQ: Faq = {
   q: "What happens after the installation?",
-  a: "Every installation includes training after commissioning and verification, on-site training the first Sunday, and a 1-year parts and labor warranty. Extended service plans are available.",
+  a: "Every installation includes training once everything is tested, on-site help the first Sunday, and a 1-year parts and labor warranty. Longer service plans are available.",
 };
 
 const PRICE_FAQ: Faq = {
@@ -156,7 +156,7 @@ export const LANDING_PAGES: LandingPage[] = [
     stages: ["modern"],
     stageTitle: "A stage built for atmosphere",
     stageBody:
-      "An LED wall across the back of the stage, lighting on a truss above the band, and the cross still at the center.",
+      "A large video wall across the back of the stage, lights hung on a frame above the band, and the cross still at the center.",
     caseStudies: ["word-of-faith", "rock-springs", "church-unlimited", "mountain-view-baptist"],
     testimonial: "tony-yang",
     planner: { style: "modern" },
@@ -303,36 +303,36 @@ export const LANDING_PAGES: LandingPage[] = [
     label: "New buildings",
     title: "Church AV Design for New Buildings & Renovations | United Under God",
     description:
-      "Building or remodeling a church? Plan sound, video, and lighting with your architect while the building is still on paper: speaker and camera positions, rigging, power, wiring, and acoustics.",
+      "Building or remodeling a church? Plan the sound system, screens, cameras, and lighting with your architect while the building is still on paper, so nothing has to be cut into a finished wall.",
     serviceName: "Audio, video, and lighting design for new church buildings",
-    eyebrow: "New building or remodel · Plan it while it’s still on paper",
+    eyebrow: "New building or remodel",
     h1: "Building or remodeling? Plan the sound now.",
-    lead: "Speaker, camera, and screen positions, rigging points, power, conduit, cooling, and the room’s acoustics all belong in the building plans. Once the walls and ceilings are finished, adding them means cutting into new walls. Bring audio, video, and lighting to the table with your architect now, while it is still easy to change.",
+    lead: "Where the speakers hang, where the screens and cameras go, and how the wires reach them all need to be in the building plans. Once the walls and ceilings are finished, adding them means cutting into new walls. We sit down with your architect now, while changes are still easy.",
     cardTitle: "Planning a new building",
-    cardBody: "Bring audio, video, and lighting into the drawings with your architect.",
+    cardBody: "Plan the sound, screens, and lighting with your architect before anything is built.",
     benefitsTitle: "A building that serves the ministry from the first Sunday",
     benefits: [
       {
-        title: "In the drawings, not added later.",
-        body: "Rigging, power, conduit, and equipment positions coordinated with the architect and the other trades, so nothing is cut into a finished wall.",
+        title: "In the plans, not added later.",
+        body: "Speakers, screens, cameras, and the wiring for them are drawn into the plans with your architect and builder, so nothing has to be cut into a finished wall.",
       },
       {
         title: "A room shaped for speech and song.",
-        body: "Acoustics planned with the shape and the surfaces of the room, so the sermon is clear and the singing still feels full.",
+        body: "The shape of the room and what its walls are made of decide how it sounds. We plan them with you, so the sermon is clear and the singing still feels full.",
       },
       {
         title: "Every room connected.",
-        body: "The sanctuary, the lobby, the classrooms, and the nursery tied together, so the service reaches every part of the building.",
+        body: "The service can be heard and seen in the lobby, the classrooms, and the nursery, not only in the sanctuary.",
       },
       {
         title: "Ready for opening day.",
-        body: "Systems commissioned and verified, and your volunteers trained before the doors open.",
+        body: "Everything is tested before the doors open, and your volunteers know how to run it on the first Sunday.",
       },
     ],
     stages: ["traditional", "blended", "modern"],
     stageTitle: "Whatever the platform will be",
     stageBody:
-      "A pulpit and a choir, side screens, or an LED wall: each one needs its own rigging, power, and sightlines, and each is far easier to plan on paper than to add later.",
+      "A pulpit and a choir, screens at the sides, or a large video wall behind the stage: each needs its own mounting, power, and clear view from the seats, and each is far easier to plan on paper than to add later.",
     caseStudies: [
       "lake-point-community-church",
       "lakeside-church",
@@ -344,16 +344,16 @@ export const LANDING_PAGES: LandingPage[] = [
     plannerLabel: "Plan your new room",
     faq: [
       {
-        q: "When should we bring in audio, video, and lighting?",
-        a: "As early as the design stage, while the architect is still drawing. Speaker and camera positions, rigging, power, conduit, and cooling are far easier to plan than to retrofit.",
+        q: "When should we bring in sound, video, and lighting?",
+        a: "As early as you can, while the architect is still drawing. Where the speakers, cameras, and screens go, and how power and wires reach them, is easy to plan now and hard to add once the walls are finished.",
       },
       {
         q: "Can you work with our architect and builder?",
-        a: "Yes. The Design phase includes rigging and electrical drawings, thermal calculations for HVAC, complete equipment lists, and coordination with the other trades.",
+        a: "Yes. We give your architect and builder what they need: drawings of what hangs from the ceiling and the power it needs, how much heat the equipment gives off for the air conditioning, and a complete equipment list. Then we work alongside the other trades.",
       },
       {
         q: "Can we reuse equipment we already own?",
-        a: "Often, yes. Central Church in Covington, Georgia moved its existing audio and lighting into the new sanctuary, alongside a new console and house lighting.",
+        a: "Often, yes. Central Church in Covington, Georgia moved its own sound and lighting equipment into the new sanctuary and added a new mixing board and new room lights.",
       },
       WARRANTY_FAQ,
       PRICE_FAQ,

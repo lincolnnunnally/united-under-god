@@ -170,8 +170,8 @@ export function LandingProcess() {
           ))}
         </ol>
         <p className="av-l-warranty">
-          Every installation comes with a 1-year parts and labor warranty, training after
-          commissioning, and on-site training the first Sunday.
+          Every installation comes with a 1-year parts and labor warranty, training once everything
+          is tested, and on-site help the first Sunday.
         </p>
       </div>
     </section>
