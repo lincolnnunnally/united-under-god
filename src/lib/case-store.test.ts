@@ -676,6 +676,7 @@ test("sample emails keep the owner's copy rules", () => {
   assert.match(emails[1]!.text, /keep the details of the case private/);
   assert.match(emails[2]!.text, /It is not legal advice\./);
   assert.match(emails[2]!.text, /partly at fault/);
+  assert.ok(!/\.\./.test(emails[2]!.text), "a name ending in a period does not double it");
 });
 
 // --- covenant re-acceptance -------------------------------------------------------

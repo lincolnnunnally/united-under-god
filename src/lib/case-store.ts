@@ -1161,15 +1161,17 @@ export function churchDecisionEmail(
 ) {
   if (!row.finding) throw new Error("Record the decision first.");
   const remedyKind = row.remedyKind || "none";
+  // "Co." at the end of a sentence must not become "Co.."
+  const plain = row.vendorName.replace(/\.$/, "");
   const heard = row.mediators.length
     ? `We heard from you, from ${row.vendorName}, and from the mediators who reviewed the case.`
-    : `We heard from you and from ${row.vendorName}.`;
+    : `We heard from you and from ${plain}.`;
   return {
     subject: `Our decision on your concern with ${row.vendorName}`,
     text: [
       row.contactName ? `Hello ${row.contactName},` : "Hello,",
       "",
-      `Thank you for telling us about the problem with ${row.purchase} from ${row.vendorName}. ${heard}`,
+      `Thank you for telling us about the problem with ${row.purchase} from ${plain}. ${heard}`,
       "",
       findingSentence(row.finding, row.vendorName),
       remedyKind === "none"
