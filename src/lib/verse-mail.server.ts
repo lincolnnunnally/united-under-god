@@ -227,10 +227,15 @@ async function confirmSliceOpen(sql: Sql, now: Date) {
   });
 }
 
-async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
+async function reserveInputs(sql: Sql, now: Date, ip: string | undefined) {
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
   const holds = await verseHolds(sql, now);
   const caps = confirmHardCeilings(holds);
+  return { otherToday, otherThisMonth, caps };
+}
+
+async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
+  const { otherToday, otherThisMonth, caps } = await reserveInputs(sql, now, ip);
   const rows = await sql<{ result: string }>`
     select verse_reserve_confirm(
       ${confirmDayBucket(now)},
@@ -253,6 +258,67 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
     ) as result
   `;
   return rows[0]?.result ?? "global";
+}
+
+/**
+ * The budget locks and the address read commit together.
+ * A confirmed address takes a slot, same as a new one. A reserve that loses
+ * the last slot is refused for both, so the pair of answers does not say
+ * which address was already on the list.
+ */
+async function reserveConfirmForAddress(sql: Sql, now: Date, ip: string | undefined, email: string) {
+  const { otherToday, otherThisMonth, caps } = await reserveInputs(sql, now, ip);
+  const rows = await sql<{
+    result: string;
+    id: string | null;
+    email: string | null;
+    status: string | null;
+    confirm_sent_at: unknown;
+    confirm_send_count: number | null;
+    confirm_window_started_at: unknown;
+  }>`
+    with claim as (
+      select verse_reserve_confirm(
+        ${confirmDayBucket(now)},
+        ${caps.dayCap},
+        ${confirmMonthBucket(now)},
+        ${caps.monthCap},
+        ${confirmNetBucket(ip, now)},
+        ${caps.netCap},
+        ${confirmWideNetBucket(ip, now)},
+        ${confirmWideCap(ip)},
+        ${otherToday},
+        ${otherThisMonth},
+        ${caps.dailyHard},
+        ${caps.monthlyHard},
+        ${sharedDayBucket(now)},
+        ${SHARED_DAILY_CAP},
+        ${verseRunDateKey(now)},
+        ${VERSE_HOLD_CEILING},
+        ${LANE_DAILY_RESERVE}
+      ) as result
+    )
+    select claim.result,
+           sub.id,
+           sub.email,
+           sub.status,
+           sub.confirm_sent_at,
+           sub.confirm_send_count,
+           sub.confirm_window_started_at
+    from claim
+    left join verse_subscribers sub on sub.email = ${email}
+  `;
+  const found = rows[0];
+  if (!found?.id) return { result: found?.result ?? "global", row: undefined };
+  const row: Subscriber = {
+    id: found.id,
+    email: found.email ?? email,
+    status: found.status ?? "",
+    confirm_sent_at: found.confirm_sent_at,
+    confirm_send_count: Number(found.confirm_send_count ?? 0),
+    confirm_window_started_at: found.confirm_window_started_at,
+  };
+  return { result: found.result, row };
 }
 
 async function releaseConfirm(sql: Sql, now: Date, ip: string | undefined) {
@@ -464,23 +530,29 @@ async function sendConfirmation(args: {
   site?: string;
   address: string;
   ip?: string;
+  /** The caller already reserved this confirmation in the same statement as the address read. */
+  slotHeld?: boolean;
 }): Promise<SubscribeState> {
   if (!recipientAllowed(args.row.email, args.allowLive)) {
     console.error("[verse-mail] confirmation skipped; recipient is not allowed on this host");
+    if (args.slotHeld) await releaseConfirm(args.sql, args.now, args.ip);
     return { ok: false, error: TRY_LATER };
   }
   if (!args.address) {
     console.error("[verse-mail] confirmation skipped; VERSE_POSTAL_ADDRESS is not a street or PO box");
+    if (args.slotHeld) await releaseConfirm(args.sql, args.now, args.ip);
     return { ok: false, error: NOT_OPEN };
   }
-  const reserved = await reserveConfirm(args.sql, args.now, args.ip);
-  if (reserved !== "ok") {
-    if (reserved === "net") {
-      console.error("[verse-mail] confirm network cap reached");
+  if (!args.slotHeld) {
+    const reserved = await reserveConfirm(args.sql, args.now, args.ip);
+    if (reserved !== "ok") {
+      if (reserved === "net") {
+        console.error("[verse-mail] confirm network cap reached");
+        return REFUSED;
+      }
+      await noteConfirmCap(args.sql, args.now, args.apiKey, args.fetchImpl);
       return REFUSED;
     }
-    await noteConfirmCap(args.sql, args.now, args.apiKey, args.fetchImpl);
-    return REFUSED;
   }
   const dayStart = utcDayStart(args.now);
   const exp = Math.floor(args.now.getTime() / 1000);
@@ -677,10 +749,23 @@ export async function requestVerseSubscription(
       await noteConfirmCap(sql, now, input.apiKey, input.fetchImpl);
       return REFUSED;
     }
-    let row = await findSubscriber(sql, email);
-    // Same inbox reply as a new sign-up. The cap checks above already refused
-    // this request for a full network or a full day, so this branch does not
-    // tell a caller that the address is on the list.
+    if (!recipientAllowed(email, allowLive)) {
+      console.error("[verse-mail] confirmation skipped; recipient is not allowed on this host");
+      return { ok: false, error: TRY_LATER };
+    }
+    // Reserve and read the address in one statement. A confirmed address takes
+    // the slot and still gets the inbox sentence. Losing the last slot is
+    // refused for a confirmed address and a new one alike.
+    const claimed = await reserveConfirmForAddress(sql, now, input.ip, email);
+    if (claimed.result !== "ok") {
+      if (claimed.result === "net") {
+        console.error("[verse-mail] confirm network cap reached");
+        return REFUSED;
+      }
+      await noteConfirmCap(sql, now, input.apiKey, input.fetchImpl);
+      return REFUSED;
+    }
+    let row = claimed.row;
     if (row?.status === "confirmed") return SAME_REPLY;
     if (row && confirmsUsedToday(row, now) >= CONFIRM_PER_ADDRESS_PER_DAY) return SAME_REPLY;
     if (!row) {
@@ -716,7 +801,10 @@ export async function requestVerseSubscription(
         where id = ${row.id}
       `;
     }
-    if (!row) return { ok: false, error: TRY_LATER };
+    if (!row) {
+      await releaseConfirm(sql, now, input.ip);
+      return { ok: false, error: TRY_LATER };
+    }
     return sendConfirmation({
       sql,
       row,
@@ -728,6 +816,7 @@ export async function requestVerseSubscription(
       site: input.site,
       address,
       ip: input.ip,
+      slotHeld: true,
     });
   } catch (error) {
     if (input.hp?.trim()) return SAME_REPLY;

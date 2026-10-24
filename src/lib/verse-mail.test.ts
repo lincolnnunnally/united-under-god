@@ -1071,6 +1071,95 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     await pg.close();
   });
 
+  it("a confirmed address consumes a slot the same way a new address does", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-29T16:00:00Z");
+    const known = "known-slot@example.com";
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      values ('known-slot', ${known}, 'confirmed', ${now.toISOString()}::timestamptz)
+    `;
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body ?? ""));
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    const again = await ask(sql, { ...base, email: known, ip: "203.0.80.1" });
+    assert.equal(again.ok && again.message.includes("Check your inbox"), true);
+    assert.equal(isSignupRefused(again), false);
+    assert.equal(bodies.some((body) => body.includes(known)), false);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(day[0]?.used), 1);
+    const net = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmNetBucket("203.0.80.1", now)}
+    `;
+    assert.equal(Number(net[0]?.used), CONFIRM_PER_NETWORK_PER_DAY);
+    const blocked = await ask(sql, { ...base, email: "fresh-slot@example.com", ip: "203.0.80.2" });
+    assertRefused(blocked);
+    assert.equal(bodies.some((body) => body.includes("fresh-slot@example.com")), false);
+    const other = await ask(sql, { ...base, email: "other-slot@example.com", ip: "203.0.81.1" });
+    assert.equal(other.ok, true);
+    assert.equal(bodies.filter((body) => body.includes("other-slot@example.com")).length, 1);
+    await pg.close();
+  });
+
+  it("gives the last slot to one sign-up whether or not the address is already confirmed", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-29T18:00:00Z");
+    const known = "known-race@example.com";
+    const fresh = "fresh-race@example.com";
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      values ('known-race', ${known}, 'confirmed', ${now.toISOString()}::timestamptz)
+    `;
+    await sql`
+      insert into verse_confirm_budget (bucket, used)
+      values (${confirmDayBucket(now)}, ${CONFIRM_DAILY_CAP - 1})
+    `;
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body ?? ""));
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    const [knownResult, freshResult] = await Promise.all([
+      ask(sql, { ...base, email: known, ip: "198.51.10.1" }),
+      ask(sql, { ...base, email: fresh, ip: "198.51.11.1" }),
+    ]);
+    const results = [knownResult, freshResult];
+    assert.equal(results.filter((result) => result.ok).length, 1);
+    assert.equal(results.filter((result) => isSignupRefused(result)).length, 1);
+    const refused = results.find((result) => !result.ok);
+    if (refused) assertRefused(refused);
+    const won = results.find((result) => result.ok);
+    assert.equal(won?.ok && won.message.includes("Check your inbox"), true);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(day[0]?.used), CONFIRM_DAILY_CAP);
+    const subscriberBodies = bodies.filter((body) => !body.includes("lincoln@unitedundergod.org"));
+    assert.equal(subscriberBodies.some((body) => body.includes(known)), false);
+    assert.equal(subscriberBodies.filter((body) => body.includes(fresh)).length, freshResult.ok ? 1 : 0);
+    await pg.close();
+  });
+
   it("reserves the last global confirm before sending, and a failed send gives the slot back", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T22:00:00Z");
