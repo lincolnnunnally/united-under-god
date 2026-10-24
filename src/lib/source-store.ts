@@ -1,4 +1,5 @@
 import type { Sql } from "@/lib/db";
+import { checkBidCategory } from "./church-spend.ts";
 
 /** Canonical money text: digits with an optional decimal, up to two places. */
 const PRICE = /^(?:\d+)(?:\.\d{1,2})?$/;
@@ -7,12 +8,17 @@ export type BidItemInput = {
   description: string;
   quantity?: string;
   unit?: string;
+  /** The church-spend list item this line came from (a template line). */
+  catalogItem?: string;
 };
 
 export type CreateBidInput = {
   title: string;
   summary?: string;
   neededBy?: string;
+  /** A church-spend category id, or blank for an untagged bid. */
+  category?: string;
+  subcategory?: string;
   items: BidItemInput[];
 };
 
@@ -35,6 +41,7 @@ export type SourceItem = {
   description: string;
   quantity: string;
   unit: string;
+  catalogItem: string;
   sortOrder: number;
 };
 
@@ -81,6 +88,8 @@ export type SourceBid = {
   title: string;
   summary: string;
   neededBy: string;
+  category: string;
+  subcategory: string;
   status: string;
   createdAt: string;
   items: SourceItem[];
@@ -102,7 +111,17 @@ export type PublicBookEntry = {
   unit: string;
   quantity: string;
   notes: string;
+  /** The bid's church-spend category ('' when untagged). */
+  category: string;
+  /** The church-spend item the awarded line came from ('' when typed by hand). */
+  catalogItem: string;
   publishedAt: string;
+};
+
+/** A church-spend item that is on a bid still open for quotes. No prices, no vendors. */
+export type BiddingItem = {
+  category: string;
+  catalogItem: string;
 };
 
 function text(value: unknown) {
@@ -134,11 +153,16 @@ export async function createBid(sql: Sql, input: CreateBidInput, userId: string)
   const title = requireText(input.title, "Name the bid.", 160);
   const summary = (input.summary ?? "").trim().slice(0, 2000);
   const neededBy = (input.neededBy ?? "").trim().slice(0, 40);
+  const { category, subcategory } = checkBidCategory(
+    input.category ?? "",
+    input.subcategory ?? "",
+  );
   const items = input.items
     .map((item) => ({
       description: item.description.trim(),
       quantity: (item.quantity ?? "").trim().slice(0, 40) || "1",
       unit: (item.unit ?? "").trim().slice(0, 40),
+      catalogItem: (item.catalogItem ?? "").trim().slice(0, 80),
     }))
     .filter((item) => item.description);
   if (items.length === 0) {
@@ -150,29 +174,52 @@ export async function createBid(sql: Sql, input: CreateBidInput, userId: string)
   }
 
   const bidId = crypto.randomUUID();
-  await sql`
-    insert into source_bid_requests (
-      id, title, summary, needed_by, status, created_by
-    ) values (
-      ${bidId}, ${title}, ${summary}, ${neededBy}, ${"open"}, ${userId}
-    )
-  `;
-  for (let index = 0; index < items.length; index += 1) {
-    const item = items[index];
+  try {
     await sql`
-      insert into source_bid_items (
-        id, bid_id, description, quantity, unit, sort_order
+      insert into source_bid_requests (
+        id, title, summary, needed_by, category, subcategory, status, created_by
       ) values (
-        ${crypto.randomUUID()},
-        ${bidId},
-        ${item.description},
-        ${item.quantity},
-        ${item.unit},
-        ${index}
+        ${bidId}, ${title}, ${summary}, ${neededBy}, ${category}, ${subcategory},
+        ${"open"}, ${userId}
       )
     `;
+    for (let index = 0; index < items.length; index += 1) {
+      const item = items[index];
+      await sql`
+        insert into source_bid_items (
+          id, bid_id, description, quantity, unit, catalog_item, sort_order
+        ) values (
+          ${crypto.randomUUID()},
+          ${bidId},
+          ${item.description},
+          ${item.quantity},
+          ${item.unit},
+          ${item.catalogItem},
+          ${index}
+        )
+      `;
+    }
+  } catch (err) {
+    throw missingCategoryColumns(err) ?? err;
   }
   return bidId;
+}
+
+/**
+ * Postgres 42703 (undefined column) on a bid write means
+ * migrations/manual/0006_source_bid_category.sql has not been applied to this
+ * database. Say so instead of a bare SQL error.
+ */
+export function missingCategoryColumns(err: unknown): Error | null {
+  const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+  const message = err instanceof Error ? err.message : "";
+  if (code && code !== "42703") return null;
+  if (!/column "(?:category|subcategory|catalog_item)"(?: of relation "\w+")? does not exist/.test(message)) {
+    return null;
+  }
+  return new Error(
+    "The bid category columns are not in the database yet. Apply migrations/manual/0006_source_bid_category.sql, then try again.",
+  );
 }
 
 export async function setBidStatus(sql: Sql, bidId: string, status: string) {
@@ -378,6 +425,7 @@ function mapItem(row: Record<string, unknown>): SourceItem {
     description: text(row.description),
     quantity: text(row.quantity),
     unit: text(row.unit),
+    catalogItem: text(row.catalog_item),
     sortOrder: Number(row.sort_order ?? 0),
   };
 }
@@ -444,6 +492,8 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
         title: text(bid.title),
         summary: text(bid.summary),
         neededBy: text(bid.needed_by),
+        category: text(bid.category),
+        subcategory: text(bid.subcategory),
         status: text(bid.status),
         createdAt: iso(bid.created_at),
         items: items.filter((row) => text(row.bid_id) === bidId).map(mapItem),
@@ -469,10 +519,18 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
 }
 
 export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
+  // to_jsonb(...) ->> reads the category columns without naming them, so the
+  // public page keeps working on a database where 0006 is not applied yet.
   const rows = await sql`
-    select id, title, vendor_name, unit_price, unit, quantity, notes, published_at
-    from source_buying_book
-    order by published_at desc
+    select
+      b.id, b.title, b.vendor_name, b.unit_price, b.unit, b.quantity, b.notes,
+      b.published_at,
+      coalesce(to_jsonb(r) ->> 'category', '') as category,
+      coalesce(to_jsonb(i) ->> 'catalog_item', '') as catalog_item
+    from source_buying_book b
+    left join source_bid_requests r on r.id = b.bid_id
+    left join source_bid_items i on i.id = b.item_id
+    order by b.published_at desc
   `;
   return rows.map((row) => ({
     id: text(row.id),
@@ -482,8 +540,25 @@ export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
     unit: text(row.unit),
     quantity: text(row.quantity),
     notes: text(row.notes),
+    category: text(row.category),
+    catalogItem: text(row.catalog_item),
     publishedAt: iso(row.published_at),
   }));
+}
+
+/** List items on bids that are open right now. Safe before 0006 (returns blanks). */
+export async function listBidding(sql: Sql): Promise<BiddingItem[]> {
+  const rows = await sql`
+    select distinct
+      coalesce(to_jsonb(r) ->> 'category', '') as category,
+      coalesce(to_jsonb(i) ->> 'catalog_item', '') as catalog_item
+    from source_bid_items i
+    join source_bid_requests r on r.id = i.bid_id
+    where r.status = 'open'
+  `;
+  return rows
+    .map((row) => ({ category: text(row.category), catalogItem: text(row.catalog_item) }))
+    .filter((row) => row.category && row.catalogItem);
 }
 
 const DB_DOWN =
@@ -529,6 +604,10 @@ export type BuyingBookRead = {
   unavailable: boolean;
 };
 
+export type BuyingCatalogRead = BuyingBookRead & {
+  bidding: BiddingItem[];
+};
+
 /**
  * Public SOURCE book read. A missing or broken database is an empty book, not
  * a thrown error — the vision page stays up. Unrelated failures still throw.
@@ -540,6 +619,21 @@ export async function readBuyingBook(open: () => Promise<Sql>): Promise<BuyingBo
     if (!isBuyingDbUnavailable(err)) throw err;
     console.error("[source] buying book unavailable:", err);
     return { entries: [], unavailable: true };
+  }
+}
+
+/**
+ * The /buying/<category> read: the published book plus which list items are
+ * on an open bid. Same failure rule as {@link readBuyingBook}.
+ */
+export async function readBuyingCatalog(open: () => Promise<Sql>): Promise<BuyingCatalogRead> {
+  try {
+    const sql = await open();
+    return { entries: await listBook(sql), bidding: await listBidding(sql), unavailable: false };
+  } catch (err) {
+    if (!isBuyingDbUnavailable(err)) throw err;
+    console.error("[source] buying catalog unavailable:", err);
+    return { entries: [], bidding: [], unavailable: true };
   }
 }
 

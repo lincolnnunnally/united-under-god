@@ -34,12 +34,20 @@ function toSql(pg: PGlite): Sql {
   return sql;
 }
 
-async function fresh() {
+async function fresh({ categories = true } = {}) {
   const pg = new PGlite();
   await pg.waitReady;
   await pg.exec(
     readFileSync(new URL("../../migrations/0004_source_buying.sql", import.meta.url), "utf8"),
   );
+  if (categories) {
+    await pg.exec(
+      readFileSync(
+        new URL("../../migrations/manual/0006_source_bid_category.sql", import.meta.url),
+        "utf8",
+      ),
+    );
+  }
   return toSql(pg);
 }
 
