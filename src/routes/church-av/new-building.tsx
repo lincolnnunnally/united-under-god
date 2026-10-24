@@ -18,19 +18,19 @@ export const Route = createFileRoute("/church-av/new-building")({
 /** A sanctuary floor plan in blueprint line work, with AV positions marked. */
 function FloorPlan() {
   const marks = [
-    { x: 70, y: 52, label: "SPK L" },
-    { x: 250, y: 52, label: "SPK R" },
-    { x: 160, y: 44, label: "RIG" },
-    { x: 160, y: 196, label: "CAM 1" },
-    { x: 60, y: 150, label: "CAM 2" },
-    { x: 160, y: 228, label: "FOH" },
+    { x: 70, y: 52, label: "Speaker" },
+    { x: 250, y: 52, label: "Speaker" },
+    { x: 160, y: 44, label: "Hanging point" },
+    { x: 160, y: 196, label: "Camera" },
+    { x: 60, y: 150, label: "Camera" },
+    { x: 160, y: 228, label: "Sound booth" },
   ];
   return (
     <figure className="av-nb-plan">
       <svg
         viewBox="0 0 320 260"
         role="img"
-        aria-label="A sanctuary floor plan with speaker, rigging, camera, and sound booth positions marked"
+        aria-label="A sanctuary floor plan with speaker, hanging point, camera, and sound booth positions marked"
       >
         <rect x="30" y="20" width="260" height="225" className="av-nb-wall" />
         <path d="M100 20 V70 H220 V20" className="av-nb-line" />
@@ -53,7 +53,8 @@ function FloorPlan() {
         ))}
       </svg>
       <figcaption className="av-nb-caption">
-        Planned on paper first: speakers, rigging, cameras, and the sound booth.
+        Planned on paper first: where the speakers, cameras, and sound booth go, and what hangs from
+        the ceiling.
       </figcaption>
     </figure>
   );
