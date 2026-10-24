@@ -28,6 +28,7 @@ import {
 } from "@/lib/source-actions";
 import { VendorsSection, InvitePanel } from "@/components/source-vendors";
 import { CasesSection } from "@/components/source-cases";
+import { ProgramSection } from "@/components/source-program";
 import { cn } from "@/lib/utils";
 import { pageHead } from "@/lib/seo";
 
@@ -130,6 +131,8 @@ function SourceDesk() {
       {desk ? <VendorsSection desk={desk} onRun={run} /> : null}
 
       {desk ? <CasesSection desk={desk} onRun={run} /> : null}
+
+      {desk?.vendorsReady ? <ProgramSection /> : null}
 
       <CreateBidForm
         disabled={loading}

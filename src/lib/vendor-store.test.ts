@@ -482,8 +482,10 @@ test("invitation email: link, terms, fees from config, and the owner's copy rule
   });
   assert.match(email.text, /\/buying\/bids\/b1\?t=TOKEN/);
   assert.match(email.text, /\/buying\/vendor-terms/);
-  assert.match(email.text, /2% rebate/);
-  assert.match(email.text, /10% referral fee/);
+  assert.match(email.text, /rebate of at least 2%/);
+  assert.match(email.text, /referral fee of at least 10%/);
+  assert.match(email.text, /These are minimums; you may offer more by category/);
+  assert.match(email.text, /https:\/\/www\.unitedundergod\.org\/buying\/portal/);
   assert.match(email.text, /Needed by: 2026-11-15/);
   assert.ok(!/\bAI\b/.test(email.text));
   assert.ok(!/lowest|cheapest|best price|guarantee/i.test(email.text));

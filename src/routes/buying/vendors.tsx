@@ -58,6 +58,13 @@ function VendorSignupPage() {
             when a church and a vendor can’t settle a problem, United Under God hears both sides and
             decides.
           </p>
+          <p className="mt-4 max-w-2xl text-sm text-muted">
+            Already in the program?{" "}
+            <Link to="/buying/portal" search={{ t: "" }} className="text-forest underline-offset-4 hover:underline">
+              Sign in to your vendor portal
+            </Link>{" "}
+            to update your profile, prices, and files, and send your monthly report.
+          </p>
           <p className="mt-4 max-w-2xl text-muted">
             Vendors pay a rebate or a referral fee on program sales, as set out in the{" "}
             <Link

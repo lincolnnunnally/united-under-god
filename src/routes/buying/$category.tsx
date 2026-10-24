@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { CatalogVendors } from "@/components/catalog-vendors";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
 import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
@@ -181,6 +182,8 @@ function CategoryPage() {
           </div>
         ) : null}
       </section>
+
+      <CatalogVendors categoryId={category.id} categoryName={category.name} />
 
       <section className="border-t border-rule">
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:px-8 md:py-20">

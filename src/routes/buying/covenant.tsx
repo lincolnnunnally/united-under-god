@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CovenantBlock } from "@/components/vendor-covenant";
 import { acceptCovenantFn, readCovenantLinkFn } from "@/lib/case-actions";
 import { pageHead } from "@/lib/seo";
-import { AGREE_LABEL, VENDOR_TERMS_VERSION, vendorCovenant } from "@/lib/vendor-terms";
+import { AGREE_LABEL, VENDOR_TERMS_VERSION, termsChange, vendorCovenant } from "@/lib/vendor-terms";
 import type { CovenantLinkView } from "@/lib/vendor-store";
 
 /** A vendor's private page to accept a new version of the covenant and terms. */
@@ -119,8 +119,7 @@ function Body({
         {view.acceptedVersion
           ? `You accepted the Vendor Terms version ${view.acceptedVersion}. `
           : ""}
-        The terms now begin with the Vendor Covenant, the standard every vendor in the program
-        agrees to keep. The rates have not changed.
+        {termsChange()}
       </p>
       <div className="mt-8">
         <CovenantBlock section={vendorCovenant()} />
