@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { verseEyebrow } from "@/components/verse-of-the-day";
 import { solveVersePowInBrowser } from "@/lib/verse-pow";
+import { SIGNUP_ALERT_CLASS, SIGNUP_STATUS_CLASS, verseSignupFeedback } from "@/lib/verse-signup-copy";
 import { subscribeToDailyVerse, verseSignupChallenge } from "@/lib/verse-subscribe";
 
 export function VerseSignup({ sourcePath }: { sourcePath: string }) {
@@ -42,11 +43,12 @@ export function VerseSignup({ sourcePath }: { sourcePath: string }) {
           powNonce,
         },
       });
-      if (result.ok) {
-        setMessage(result.message);
+      const feedback = verseSignupFeedback(result);
+      if (feedback.role === "status") {
+        setMessage(feedback.text);
         setEmail("");
       } else {
-        setError(result.error);
+        setError(feedback.text);
       }
     } catch {
       setError("We could not take that just now. Please try again in a little while.");
@@ -93,12 +95,12 @@ export function VerseSignup({ sourcePath }: { sourcePath: string }) {
         {working ? "Sending…" : "Send me the daily verse"}
       </Button>
       {message ? (
-        <p className="mt-4 text-ink" role="status">
+        <p className={SIGNUP_STATUS_CLASS} role="status">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="mt-4 text-mission" role="alert">
+        <p className={SIGNUP_ALERT_CLASS} role="alert">
           {error}
         </p>
       ) : null}

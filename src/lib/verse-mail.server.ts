@@ -14,10 +14,9 @@ import {
 import { groupVerseDays, type VerseDay } from "./verse.ts";
 import { isMissingRelation, loadVerseDays } from "./verse-feed.ts";
 import {
-  CONFIRM_CAP_MESSAGE,
   CONFIRM_PER_ADDRESS_PER_DAY,
-  CONFIRM_PER_IPV6_32_PER_DAY,
   CONFIRM_PER_NETWORK_PER_DAY,
+  confirmWideCap,
   CONFIRM_TTL_SEC,
   LANE_DAILY_RESERVE,
   POW_ISSUE_PER_HOUR,
@@ -61,11 +60,14 @@ import {
   verifyVersePow,
   verifyVerseToken,
 } from "./verse-mail.ts";
+import { SIGNUP_LIMIT_MESSAGE } from "./verse-signup-copy.ts";
 const NOT_OPEN = VERSE_NOT_OPEN;
 const TRY_LATER = "We could not send the confirmation email. Please try again in a little while.";
 const CHALLENGE_LATER = "We could not take that just now. Please try again in a little while.";
 const CHECK_INBOX = "Check your inbox for a note from United Under God. Open it and confirm, and the daily verse will start.";
 const SAME_REPLY = { ok: true as const, state: "pending" as const, message: CHECK_INBOX };
+/** A cap refused the note. The form says so. An address already on the list still gets SAME_REPLY. */
+const REFUSED = { ok: false as const, state: "refused" as const, error: SIGNUP_LIMIT_MESSAGE };
 
 type Subscriber = {
   id: string;
@@ -78,6 +80,7 @@ type Subscriber = {
 
 export type SubscribeState =
   | { ok: true; state: "pending" | "confirmed"; message: string }
+  | { ok: false; state: "refused"; error: string }
   | { ok: false; error: string };
 
 export type TokenState = { ok: true; message: string } | { ok: false; message: string };
@@ -237,7 +240,7 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
       ${confirmNetBucket(ip, now)},
       ${caps.netCap},
       ${confirmWideNetBucket(ip, now)},
-      ${confirmWideNetBucket(ip, now) ? CONFIRM_PER_IPV6_32_PER_DAY : 0},
+      ${confirmWideCap(ip)},
       ${otherToday},
       ${otherThisMonth},
       ${caps.dailyHard},
@@ -474,10 +477,10 @@ async function sendConfirmation(args: {
   if (reserved !== "ok") {
     if (reserved === "net") {
       console.error("[verse-mail] confirm network cap reached");
-      return SAME_REPLY;
+      return REFUSED;
     }
     await noteConfirmCap(args.sql, args.now, args.apiKey, args.fetchImpl);
-    return { ok: false, error: CONFIRM_CAP_MESSAGE };
+    return REFUSED;
   }
   const dayStart = utcDayStart(args.now);
   const exp = Math.floor(args.now.getTime() / 1000);
@@ -662,18 +665,22 @@ export async function requestVerseSubscription(
     `;
     if ((await budgetUsed(sql, confirmNetBucket(input.ip, now))) >= CONFIRM_PER_NETWORK_PER_DAY) {
       console.error("[verse-mail] confirm network cap reached");
-      return SAME_REPLY;
+      return REFUSED;
     }
     const wideBucket = confirmWideNetBucket(input.ip, now);
-    if (wideBucket && (await budgetUsed(sql, wideBucket)) >= CONFIRM_PER_IPV6_32_PER_DAY) {
+    const wideCap = confirmWideCap(input.ip);
+    if (wideBucket && wideCap > 0 && (await budgetUsed(sql, wideBucket)) >= wideCap) {
       console.error("[verse-mail] confirm network cap reached");
-      return SAME_REPLY;
+      return REFUSED;
     }
     if (!(await confirmSliceOpen(sql, now))) {
       await noteConfirmCap(sql, now, input.apiKey, input.fetchImpl);
-      return { ok: false, error: CONFIRM_CAP_MESSAGE };
+      return REFUSED;
     }
     let row = await findSubscriber(sql, email);
+    // Same inbox reply as a new sign-up. The cap checks above already refused
+    // this request for a full network or a full day, so this branch does not
+    // tell a caller that the address is on the list.
     if (row?.status === "confirmed") return SAME_REPLY;
     if (row && confirmsUsedToday(row, now) >= CONFIRM_PER_ADDRESS_PER_DAY) return SAME_REPLY;
     if (!row) {

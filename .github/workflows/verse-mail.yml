@@ -16,4 +16,4 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run typecheck
-      - run: node --experimental-strip-types --test src/lib/verse-mail.test.ts
+      - run: node --experimental-strip-types --test src/lib/verse-mail.test.ts src/lib/verse-signup-copy.test.ts

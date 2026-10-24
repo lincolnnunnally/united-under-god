@@ -58,8 +58,20 @@ export const CONFIRM_PER_NETWORK_PER_DAY = 1;
 /**
  * A looser cap on one IPv6 /32. That block is often a whole provider,
  * so three /48s inside it can confirm, and the fourth waits until tomorrow.
+ * Prefixes in CARRIER_IPV6_32_ALLOWLIST use the carrier cap instead.
  */
 export const CONFIRM_PER_IPV6_32_PER_DAY = 3;
+
+/**
+ * IPv6 /32 blocks that are one mobile carrier, not one household.
+ * Many readers share the prefix, so the ordinary provider cap would turn
+ * them away. Ten confirmations a day. The site-wide cap still applies.
+ * T-Mobile is 2607:fb90::/32.
+ */
+export const CARRIER_IPV6_32_ALLOWLIST = ["2607:fb90::/32"] as const;
+
+/** Confirmations one allowlisted carrier /32 may take in a UTC day. */
+export const CONFIRM_PER_CARRIER_IPV6_32_PER_DAY = 10;
 
 /**
  * Desk, owner, and church letters stay reserved all day.
@@ -91,7 +103,7 @@ export const VERSE_POW_BITS = 16;
 export const VERSE_POW_TTL_SEC = 10 * 60;
 
 export const VERSE_NOT_OPEN = `The daily verse email is not open just yet. Write ${OWNER_EMAIL} and we will add you.`;
-export const CONFIRM_CAP_MESSAGE = "Sign-ups are full for today. Please try again tomorrow.";
+export { SIGNUP_LIMIT_MESSAGE, SIGNUP_LIMIT_MESSAGE as CONFIRM_CAP_MESSAGE } from "./verse-signup-copy.ts";
 
 export const CONFIRM_TTL_SEC = 48 * 60 * 60;
 export const UNSUBSCRIBE_TTL_SEC = 400 * 24 * 60 * 60;
@@ -384,6 +396,31 @@ export function confirmWideNetwork(ip: string | undefined) {
     .slice(0, 2)
     .map((group) => group.padStart(4, "0"))
     .join(":")}::/32`;
+}
+
+/** How many confirmations this IPv6 /32 may take today. Zero when there is no /32. */
+export function confirmWideCap(ip: string | undefined) {
+  const network = confirmWideNetwork(ip);
+  if (!network) return 0;
+  return carrierWideNetworks().has(network)
+    ? CONFIRM_PER_CARRIER_IPV6_32_PER_DAY
+    : CONFIRM_PER_IPV6_32_PER_DAY;
+}
+
+function carrierWideNetworks() {
+  const found = new Set<string>();
+  for (const entry of CARRIER_IPV6_32_ALLOWLIST) {
+    const network = canonicalCarrierPrefix(entry);
+    if (network) found.add(network);
+  }
+  return found;
+}
+
+/** "2607:fb90::/32" and the same block written out in full become one /32. */
+function canonicalCarrierPrefix(entry: string) {
+  const body = entry.trim().toLowerCase().replace(/\/\d+$/, "");
+  const probe = body.endsWith("::") ? `${body}1` : body;
+  return confirmWideNetwork(probe);
 }
 
 /** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */

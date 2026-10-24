@@ -38,11 +38,14 @@ import {
   confirmNetBucket,
   confirmDayCeiling,
   confirmNetwork,
+  confirmWideCap,
   confirmWideNetBucket,
   confirmWideNetwork,
   confirmSendAllowed,
+  CARRIER_IPV6_32_ALLOWLIST,
   CONFIRM_CAP_MESSAGE,
   CONFIRM_MONTHLY_CAP,
+  CONFIRM_PER_CARRIER_IPV6_32_PER_DAY,
   CONFIRM_PER_IPV6_32_PER_DAY,
   CONFIRM_PER_NETWORK_PER_DAY,
   DESK_DAILY_RESERVE,
@@ -88,6 +91,7 @@ import {
   unsubscribeVerseToken,
 } from "./verse-mail.server.ts";
 import { isDeskOwner, OWNER_EMAIL } from "./desk.ts";
+import { isSignupRefused, SIGNUP_LIMIT_MESSAGE, verseSignupFeedback } from "./verse-signup-copy.ts";
 import type { VerseDay } from "./verse.ts";
 
 const SECRET = "test-link-secret";
@@ -106,6 +110,13 @@ function gate(now: Date, ip?: string) {
 function ask(sql: Sql, input: Parameters<typeof requestVerseSubscription>[1]) {
   const now = input.now ?? new Date();
   return requestVerseSubscription(sql, { ...gate(now, input.ip), ...input });
+}
+
+function assertRefused(result: { ok: boolean; state?: string; error?: string; message?: string }) {
+  assert.equal(result.ok, false);
+  assert.equal(result.state, "refused");
+  assert.equal(result.error, SIGNUP_LIMIT_MESSAGE);
+  assert.equal(result.message, undefined);
 }
 
 function throwingSql(onCall?: () => void): Sql {
@@ -225,6 +236,17 @@ describe("verse mail tokens and caps", () => {
     );
     assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 1);
     assert.equal(CONFIRM_PER_IPV6_32_PER_DAY, 3);
+    assert.deepEqual([...CARRIER_IPV6_32_ALLOWLIST], ["2607:fb90::/32"]);
+    assert.equal(CONFIRM_PER_CARRIER_IPV6_32_PER_DAY, 10);
+    assert.equal(confirmWideNetwork("2607:fb90::1"), "2607:fb90::/32");
+    assert.equal(confirmWideNetwork("2607:FB90:0:0:0:0:0:1"), "2607:fb90::/32");
+    assert.equal(confirmWideCap("2607:fb90:abcd::5"), 10);
+    assert.equal(confirmWideCap("2607:fb91::1"), CONFIRM_PER_IPV6_32_PER_DAY);
+    assert.equal(confirmWideCap("2001:db8::1"), CONFIRM_PER_IPV6_32_PER_DAY);
+    assert.equal(confirmWideCap("203.0.113.1"), 0);
+    assert.equal(confirmWideCap("::ffff:203.0.113.1"), 0);
+    assert.equal(SIGNUP_LIMIT_MESSAGE, "We're at today's sign-up limit. Please try again tomorrow.");
+    assert.equal(CONFIRM_CAP_MESSAGE, SIGNUP_LIMIT_MESSAGE);
     assert.equal(LANE_DAILY_RESERVE, DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP);
     assert.equal(SHARED_DAILY_CAP - VERSE_DAILY_SEND_CEILING - LANE_DAILY_RESERVE, CONFIRM_DAILY_CAP);
     assert.equal(confirmDayCeiling(false, 0), CONFIRM_DAILY_CAP);
@@ -545,7 +567,7 @@ describe("verse subscription store", () => {
     await pg.close();
   });
 
-  it("gives one reply for a new address, a confirmed address, and a rate limit", async () => {
+  it("gives the inbox reply for a new address and a confirmed address, and refuses a full day", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T13:05:00Z");
     const calls: string[] = [];
@@ -573,12 +595,34 @@ describe("verse subscription store", () => {
       email: QA,
       sourcePath: "/verse",
       now,
-      ip: "203.0.113.20",
+      ip: "203.0.114.20",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
       fetchImpl,
     });
+    const knownOnFullNet = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.21",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    const strangerOnFullNet = await ask(sql, {
+      email: "bounced@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.22",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assertRefused(knownOnFullNet);
+    assertRefused(strangerOnFullNet);
     await sql`
       update verse_confirm_budget
       set used = ${CONFIRM_DAILY_CAP}
@@ -595,8 +639,17 @@ describe("verse subscription store", () => {
       fetchImpl,
     });
     assert.equal(again.ok && again.message, first.ok ? first.message : "");
-    assert.equal(capped.ok, false);
-    assert.equal(capped.ok === false && capped.error, CONFIRM_CAP_MESSAGE);
+    assert.equal(isSignupRefused(again), false);
+    assert.equal(again.ok && again.message.includes("Check your inbox"), true);
+    assert.equal(isSignupRefused(first), false);
+    assertRefused(capped);
+    const refusedForm = verseSignupFeedback(capped);
+    assert.equal(refusedForm.role, "alert");
+    assert.equal(refusedForm.text, "We're at today's sign-up limit. Please try again tomorrow.");
+    assert.equal(refusedForm.text.includes("Check your inbox"), false);
+    const keptForm = verseSignupFeedback(again);
+    assert.equal(keptForm.role, "status");
+    assert.equal(keptForm.text.includes("Check your inbox"), true);
     assert.equal(calls.length, 2);
     const owner = JSON.parse(calls[1] ?? "{}") as { to?: string[] };
     assert.deepEqual(owner.to, ["lincoln@unitedundergod.org"]);
@@ -989,7 +1042,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     const firstV4 = await ask(sql, { ...base, email: "v4-1@example.com", ip: "203.0.113.1" });
     assert.equal(firstV4.ok, true);
     const blockedV4 = await ask(sql, { ...base, email: "v4-more@example.com", ip: "203.0.113.200" });
-    assert.equal(blockedV4.ok && blockedV4.message.includes("Check your inbox"), true);
+    assertRefused(blockedV4);
     assert.equal(calls, 1);
     const otherV4 = await ask(sql, { ...base, email: "v4-other@example.com", ip: "203.0.114.8" });
     assert.equal(otherV4.ok, true);
@@ -998,8 +1051,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     const firstV6 = await ask(sql, { ...base, email: "v6-1@example.com", ip: "2001:db8:85a3::1" });
     assert.equal(firstV6.ok, true);
     const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::1" });
-    assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
-    assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
+    assertRefused(blockedV6);
     const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
     assert.equal(otherV6.ok, true);
     assert.equal(calls, 4);
@@ -1055,7 +1107,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     ]);
     const outcomes = [first, second];
     assert.equal(outcomes.filter((result) => result.ok).length, 1);
-    assert.equal(outcomes.filter((result) => !result.ok && result.error === CONFIRM_CAP_MESSAGE).length, 1);
+    assert.equal(outcomes.filter((result) => isSignupRefused(result) && result.error === SIGNUP_LIMIT_MESSAGE).length, 1);
     const subscriberSends = bodies.filter((body) => body.includes(QA) || body.includes("bounced@resend.dev"));
     assert.equal(subscriberSends.length, 1);
     const day = await sql<{ used: number }>`
@@ -1090,7 +1142,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       allowLive: false,
       fetchImpl,
     });
-    assert.equal(monthBlocked.ok === false && monthBlocked.error, CONFIRM_CAP_MESSAGE);
+    assertRefused(monthBlocked);
 
     let fail = true;
     let releasedCalls = 0;
@@ -2073,8 +2125,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
         return new Response("{}", { status: 200 });
       }) as typeof fetch,
     });
-    assert.equal(blocked.ok, false);
-    if (!blocked.ok) assert.equal(blocked.error, CONFIRM_CAP_MESSAGE);
+    assertRefused(blocked);
     assert.equal(confirmFetches, 0);
     assert.equal(ownerFetches, 1);
     let verseSends = 0;
@@ -2115,7 +2166,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     for (let n = 1; n <= 6; n += 1) {
       const result = await ask(sql, { ...base, email: `wide-${n}@example.com`, ip: `2001:db8:${n}::1` });
       if (n <= CONFIRM_PER_IPV6_32_PER_DAY) assert.equal(result.ok, true);
-      else assert.equal(result.ok && result.message.includes("Check your inbox"), true);
+      else assertRefused(result);
     }
     assert.equal(calls, CONFIRM_PER_IPV6_32_PER_DAY);
     const day = await sql<{ used: number }>`
@@ -2130,6 +2181,69 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     const other = await ask(sql, { ...base, email: "wide-other@example.com", ip: "2001:db9::1" });
     assert.equal(other.ok, true);
     assert.equal(calls, CONFIRM_PER_IPV6_32_PER_DAY + 1);
+    await pg.close();
+  });
+
+  it("allows ten confirmations a day on an allowlisted carrier /32 and refuses the next", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-28T21:00:00Z");
+    const verseSent = VERSE_DAILY_SEND_CEILING - 20;
+    await sql`
+      insert into verse_mail_runs (date_key, status, sent_count)
+      values (${verseRunDateKey(now)}, 'sent', ${verseSent})
+    `;
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    for (let n = 1; n <= CONFIRM_PER_CARRIER_IPV6_32_PER_DAY + 1; n += 1) {
+      const result = await ask(sql, {
+        ...base,
+        email: `carrier-${n}@example.com`,
+        ip: `2607:fb90:${n.toString(16)}::1`,
+      });
+      if (n <= CONFIRM_PER_CARRIER_IPV6_32_PER_DAY) assert.equal(result.ok, true);
+      else {
+        assertRefused(result);
+        assert.equal(verseSignupFeedback(result).text, SIGNUP_LIMIT_MESSAGE);
+      }
+    }
+    assert.equal(calls, CONFIRM_PER_CARRIER_IPV6_32_PER_DAY);
+    const block = await sql<{ used: number }>`
+      select used from verse_confirm_budget
+      where bucket = ${confirmWideNetBucket("2607:fb90::1", now)}
+    `;
+    assert.equal(Number(block[0]?.used), CONFIRM_PER_CARRIER_IPV6_32_PER_DAY);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(day[0]?.used), CONFIRM_PER_CARRIER_IPV6_32_PER_DAY);
+    assert.ok(Number(day[0]?.used) < confirmDayCeiling(true, verseSent));
+
+    for (let n = 1; n <= CONFIRM_PER_IPV6_32_PER_DAY + 1; n += 1) {
+      const result = await ask(sql, {
+        ...base,
+        email: `plain-${n}@example.com`,
+        ip: `2001:db9:${n.toString(16)}::1`,
+      });
+      if (n <= CONFIRM_PER_IPV6_32_PER_DAY) assert.equal(result.ok, true);
+      else assertRefused(result);
+    }
+    assert.equal(calls, CONFIRM_PER_CARRIER_IPV6_32_PER_DAY + CONFIRM_PER_IPV6_32_PER_DAY);
+    const plain = await sql<{ used: number }>`
+      select used from verse_confirm_budget
+      where bucket = ${confirmWideNetBucket("2001:db9::1", now)}
+    `;
+    assert.equal(Number(plain[0]?.used), CONFIRM_PER_IPV6_32_PER_DAY);
     await pg.close();
   });
 
@@ -2178,8 +2292,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       assert.equal(filled.ok, true);
     }
     const before = await ask(sql, { ...base, email: "fill-more@example.com", ip: "203.0.20.1" });
-    assert.equal(before.ok, false);
-    if (!before.ok) assert.equal(before.error, CONFIRM_CAP_MESSAGE);
+    assertRefused(before);
 
     await sql`
       insert into verse_mail_runs (date_key, status, sent_count)
@@ -2206,8 +2319,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     assert.equal(desk.ok, true);
     assert.equal(desk.reserved, true);
     const past = await ask(sql, { ...base, email: "borrow-past@example.com", ip: "192.0.2.1" });
-    assert.equal(past.ok, false);
-    if (!past.ok) assert.equal(past.error, CONFIRM_CAP_MESSAGE);
+    assertRefused(past);
     const deskAgain = await claimDeskSend(sql, now, "desk", "inquiry");
     assert.equal(deskAgain.ok, true);
     const shared = await sql<{ used: number }>`
