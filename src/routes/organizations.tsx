@@ -123,6 +123,16 @@ function OrganizationsPage() {
               <Link to="/happenings">See what’s happening</Link>
             </Button>
           </div>
+          <p className="mt-6 text-sm text-muted">
+            A business that sells to churches?{" "}
+            <Link
+              to="/buying/sell-to-churches"
+              className="text-forest underline-offset-4 hover:underline"
+            >
+              See the church vendor program
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </SiteShell>

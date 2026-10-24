@@ -28,6 +28,7 @@ export const STATIC_PATHS = [
   "/food-donors",
   "/buying",
   "/buying/vendors",
+  "/buying/sell-to-churches",
   "/buying/vendor-terms",
   "/buying/report",
   "/church-av",
@@ -106,6 +107,14 @@ export function sourcesFor(path, root = ROOT) {
   const av = ["src/data/church-av.json", "src/lib/church-av.ts", "src/components/church-av.tsx"];
   if (path === "/") return ["src/routes/index.tsx"];
   if (path === "/buying/vendors") return ["src/routes/buying/vendors.tsx", "src/lib/vendor-terms.ts"];
+  if (path === "/buying/sell-to-churches") {
+    return [
+      "src/routes/buying/sell-to-churches.tsx",
+      "src/lib/sell-to-churches.ts",
+      "src/lib/church-market.ts",
+      "src/lib/vendor-terms.ts",
+    ];
+  }
   if (path === "/buying/report") return ["src/routes/buying/report.tsx"];
   if (path === "/buying/vendor-terms") return ["src/routes/buying/vendor-terms.tsx", "src/lib/vendor-terms.ts"];
   if (path.startsWith("/buying/")) {

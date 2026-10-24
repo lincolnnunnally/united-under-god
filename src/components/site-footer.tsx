@@ -98,6 +98,13 @@ export function SiteFooter() {
               Group buying
             </Link>
             {" · "}
+            <Link
+              to="/buying/sell-to-churches"
+              className="text-forest underline-offset-4 hover:underline"
+            >
+              Sell to churches
+            </Link>
+            {" · "}
             <Link to="/church-av" className="text-forest underline-offset-4 hover:underline">
               Church sound & video
             </Link>

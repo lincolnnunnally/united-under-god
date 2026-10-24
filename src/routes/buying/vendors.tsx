@@ -71,6 +71,20 @@ function VendorSignupPage() {
           <FeeDisclosure className="mt-4" />
         </div>
       </section>
+      <section className="border-b border-rule">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-5 py-8 sm:flex-row sm:items-center sm:justify-between md:px-8">
+          <div>
+            <h2 className="font-display text-xl">Sell to churches</h2>
+            <p className="mt-1 max-w-2xl text-sm text-muted">
+              See how many churches our church directory lists in the states you serve, how bids
+              work, and what the program costs before you sign up.
+            </p>
+          </div>
+          <Button asChild variant="secondary" className="shrink-0">
+            <Link to="/buying/sell-to-churches">See the vendor program</Link>
+          </Button>
+        </div>
+      </section>
       <section className="mx-auto max-w-3xl px-5 py-12 md:px-8">
         <VendorSignupForm />
       </section>
