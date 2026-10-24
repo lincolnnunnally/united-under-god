@@ -9,10 +9,29 @@ import type { BuyingModel } from "./church-spend.ts";
  */
 
 /** Bump when the terms text or a rate changes. Stored with each acceptance. */
-export const VENDOR_TERMS_VERSION = "2026-10-25";
+export const VENDOR_TERMS_VERSION = "2026-10-26";
 
-/** The first terms version that carries the Vendor Covenant. */
+/**
+ * The first terms version that carries the Vendor Covenant. The covenant's
+ * words have not changed since, so a vendor that accepted this version or
+ * later has accepted the current covenant.
+ */
 export const COVENANT_SINCE = "2026-10-25";
+
+/**
+ * What changed in each terms version, in one plain sentence. The re-acceptance
+ * email and page say this, so a vendor knows why it is asked again.
+ */
+export const TERMS_CHANGES: Record<string, string> = {
+  "2026-10-25":
+    "The terms now begin with the Vendor Covenant, the standard every vendor in the program agrees to keep. The rates have not changed.",
+  "2026-10-26":
+    "The rebate and referral fee are now minimum rates. You may offer a higher rate in any category, in your vendor portal. The covenant has not changed.",
+};
+
+export function termsChange(version = VENDOR_TERMS_VERSION): string {
+  return TERMS_CHANGES[version] ?? "The Vendor Terms were updated.";
+}
 
 export const VENDOR_TERMS_PATH = "/buying/vendor-terms";
 
@@ -72,6 +91,36 @@ export const FEES: FeeConfig = {
 };
 
 export type FeeKind = "rebate" | "referral";
+
+/**
+ * The most a vendor may offer, in percent. Not a target: a sanity limit so a
+ * typo (25 for 2.5) cannot be saved.
+ */
+export const FEE_OFFER_MAX = 40;
+
+/** The floor for a fee kind. A vendor may offer this or more, never less. */
+export function feeFloor(kind: FeeKind, config: FeeConfig = FEES): number {
+  return kind === "rebate" ? config.rebate.percent : config.referral.percent;
+}
+
+/**
+ * Check one offered rate: a number with at most two decimals, at or above the
+ * floor, and under the sanity limit. Blank means the floor. Throws a sentence
+ * the vendor can act on.
+ */
+export function cleanFeeOffer(raw: string | number, kind: FeeKind, config: FeeConfig = FEES): number {
+  const floor = feeFloor(kind, config);
+  const value = String(raw ?? "").trim().replace(/%$/, "").trim();
+  if (!value) return floor;
+  if (!/^\d+(?:\.\d{1,2})?$/.test(value)) {
+    throw new Error("Enter a rate like 2.5, with at most two decimals.");
+  }
+  const rate = Number(value);
+  const name = kind === "rebate" ? "rebate" : "referral fee";
+  if (rate < floor) throw new Error(`The ${name} is at least ${floor}%.`);
+  if (rate > FEE_OFFER_MAX) throw new Error(`Offer ${FEE_OFFER_MAX}% or less.`);
+  return rate;
+}
 
 /**
  * The fee on an item with this buying model. Licensed referral-only parts
@@ -193,13 +242,20 @@ export function vendorTerms(config: FeeConfig = FEES, covenant = COVENANT): Term
     {
       heading: `The ${rebate} rebate`,
       body: [
-        `On catalog items and recurring service contracts, you pay United Under God a rebate of ${rebate} of your sales made through the program. Examples: toner and ink, paper and office supplies, janitorial supplies, and recurring services such as cleaning, lawn care, or pest control.`,
+        `On catalog items and recurring service contracts, you pay United Under God a rebate of at least ${rebate} of your sales made through the program. Examples: toner and ink, paper and office supplies, janitorial supplies, and recurring services such as cleaning, lawn care, or pest control.`,
       ],
     },
     {
       heading: `The ${referral} referral fee`,
       body: [
-        `On project and referral work, you pay United Under God a referral fee of ${referral} of each job from a church introduced to you through the program. Examples: sound, livestream, and lighting, and building and facilities projects such as roofing, HVAC replacement, paving, or renovation.`,
+        `On project and referral work, you pay United Under God a referral fee of at least ${referral} of each job from a church introduced to you through the program. Examples: sound, livestream, and lighting, and building and facilities projects such as roofing, HVAC replacement, paving, or renovation.`,
+      ],
+    },
+    {
+      heading: "These are minimum rates",
+      body: [
+        `The ${rebate} rebate and the ${referral} referral fee are minimums. You may offer a higher rate in any category you serve, to show you want the work. Many vendors ask their manufacturers to help cover it. You set the rate you offer for each category in your vendor portal, and it applies to sales and jobs in that category from the day you save it until you change it.`,
+        "The rate you offer is one part of how vendors are ranked in the catalogs, and it counts for less than your price to the church and your service record. Raising your prices to pay a higher rate lowers your ranking. Offering more does not promise you any sales.",
       ],
     },
     {
@@ -244,5 +300,5 @@ export function vendorTermsText(config: FeeConfig = FEES): string {
 
 /** One plain line describing the fees, for the invitation email. */
 export function feeSummary(config: FeeConfig = FEES): string {
-  return `Under the Vendor Terms you pay a ${config.rebate.percent}% rebate on catalog and recurring-contract sales made through the program, and a ${config.referral.percent}% referral fee on project and referral jobs from churches introduced through the program. You report ${config.reporting}; fees are due ${config.dueDays} days after you are paid.`;
+  return `Under the Vendor Terms you pay a rebate of at least ${config.rebate.percent}% on catalog and recurring-contract sales made through the program, and a referral fee of at least ${config.referral.percent}% on project and referral jobs from churches introduced through the program. These are minimums; you may offer more by category. You report ${config.reporting}; fees are due ${config.dueDays} days after you are paid.`;
 }

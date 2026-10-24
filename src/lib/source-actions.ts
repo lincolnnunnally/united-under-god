@@ -136,7 +136,7 @@ const invitePreviewInput = z.object({ bidId: z.string() });
 const inviteSendInput = z.object({ bidId: z.string(), vendorIds: z.array(z.string()).min(1).max(200) });
 
 /** Desk reads and writes. A missing database throws; it never looks like a saved desk. */
-async function deskSql() {
+export async function deskSql() {
   try {
     return await getSql();
   } catch (err) {
@@ -146,7 +146,7 @@ async function deskSql() {
 }
 
 /** Throws 403 unless the caller is staff. Returns a label for the case timeline. */
-async function assertStaff(userId: string): Promise<string> {
+export async function assertStaff(userId: string): Promise<string> {
   const { getSessionUser } = await import("@/lib/auth/verify.server");
   const sql = await deskSql();
   const users = await sql<{ email: string }>`select email from "user" where id = ${userId}`;

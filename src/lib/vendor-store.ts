@@ -14,6 +14,7 @@ import {
   VENDOR_TERMS_VERSION,
   feeSummary,
   needsCovenant,
+  termsChange,
   type Consequence,
 } from "./vendor-terms.ts";
 
@@ -608,6 +609,7 @@ export function inviteEmail(args: {
       args.link,
       "",
       "You can revise your quote until the bid closes. Churches buy directly from you and choose freely.",
+      `Your open bids, standing, and monthly report are also in your vendor portal: ${args.siteUrl}/buying/portal`,
       "",
       "Quotes are given under the Vendor Covenant: make it right, stand behind your work, and quote honestly.",
       feeSummary(),
@@ -844,7 +846,14 @@ async function findInvite(sql: Sql, bidId: string, token: string) {
     select id, vendor_id, opened_at, bid_id from source_bid_invites
     where token_hash = ${tokenHash} and bid_id = ${bidId}
   `;
-  return rows[0] ?? null;
+  if (rows[0]) return rows[0];
+  // The vendor portal's own link to the same invitation (0010). Read through
+  // to_jsonb so the email link keeps working on a database without it.
+  const portal = await sql<{ id: string; vendor_id: string; opened_at: unknown; bid_id: string }>`
+    select id, vendor_id, opened_at, bid_id from source_bid_invites i
+    where bid_id = ${bidId} and coalesce(to_jsonb(i) ->> 'portal_token_hash', '') = ${tokenHash}
+  `;
+  return portal[0] ?? null;
 }
 
 async function inviteContext(sql: Sql, bidId: string, token: string) {
@@ -1013,19 +1022,18 @@ export function covenantEmail(args: {
 }) {
   const { vendor } = args;
   return {
-    subject: "Please review and accept the Vendor Covenant",
+    subject: "Please review and accept the Vendor Covenant and Vendor Terms",
     text: [
       vendor.contactName ? `Hello ${vendor.contactName},` : "Hello,",
       "",
-      `${vendor.company} is a vendor in the United Under God buying program${vendor.termsVersion ? ` and accepted the Vendor Terms version ${vendor.termsVersion}` : ""}. The terms now begin with the Vendor Covenant: the standard every vendor agrees to keep.`,
+      `${vendor.company} is a vendor in the United Under God buying program${vendor.termsVersion ? ` and accepted the Vendor Terms version ${vendor.termsVersion}` : ""}. The Vendor Terms are now version ${VENDOR_TERMS_VERSION}. ${termsChange()}`,
       "",
-      "In short: make it right when it isn't right for the church, stand behind your work, go above and beyond, care about the church's success, quote honestly, answer problems quickly, and accept United Under God's resolution when a church and a vendor cannot settle a problem.",
+      "The terms begin with the Vendor Covenant. In short: make it right when it isn't right for the church, stand behind your work, go above and beyond, care about the church's success, quote honestly, answer problems quickly, and accept United Under God's resolution when a church and a vendor cannot settle a problem.",
       "",
       `Read it and accept version ${VENDOR_TERMS_VERSION} here (this link is only for you):`,
       args.link,
       "",
       `The full text is also public: ${args.siteUrl}${VENDOR_TERMS_PATH}`,
-      "The rates have not changed.",
       "",
       "Questions? Reply to this email.",
       "",

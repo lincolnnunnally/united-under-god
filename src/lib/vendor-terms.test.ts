@@ -8,11 +8,15 @@ import {
   FEES,
   FEE_DISCLOSURE,
   VENDOR_TERMS_VERSION,
+  FEE_OFFER_MAX,
   acceptedCovenant,
+  cleanFeeOffer,
   covenantText,
+  feeFloor,
   feeFor,
   feeSummary,
   needsCovenant,
+  termsChange,
   vendorCovenant,
   vendorTerms,
   vendorTermsText,
@@ -30,8 +34,8 @@ test("the owner's rates: 2% on catalog and contract, 10% on project and referral
 
 test("the fee config drives the terms text", () => {
   const text = vendorTermsText();
-  assert.match(text, /rebate of 2% of your sales/);
-  assert.match(text, /referral fee of 10% of each job/);
+  assert.match(text, /rebate of at least 2% of your sales/);
+  assert.match(text, /referral fee of at least 10% of each job/);
   assert.match(text, /monthly/);
   assert.match(text, /due 30 days after you are paid/);
 
@@ -42,11 +46,11 @@ test("the fee config drives the terms text", () => {
     dueDays: 45,
   };
   const other = vendorTermsText(changed);
-  assert.match(other, /rebate of 3% of your sales/);
-  assert.match(other, /referral fee of 12% of each job/);
+  assert.match(other, /rebate of at least 3% of your sales/);
+  assert.match(other, /referral fee of at least 12% of each job/);
   assert.match(other, /due 45 days/);
   assert.ok(!/\b2%|\b10%|30 days/.test(other), "no rate is typed into the copy by hand");
-  assert.match(feeSummary(changed), /3% rebate.*12% referral fee/);
+  assert.match(feeSummary(changed), /rebate of at least 3%.*referral fee of at least 12%/);
   assert.equal(vendorTerms(changed)[2]!.heading, "The 3% rebate");
 });
 
@@ -81,9 +85,10 @@ test("the disclosure line is short, plain, and says UUG retains the rebates", ()
 // --- the Vendor Covenant ------------------------------------------------------
 
 test("the terms version is bumped for the covenant, and the covenant leads", () => {
-  assert.equal(VENDOR_TERMS_VERSION, "2026-10-25");
+  assert.equal(VENDOR_TERMS_VERSION, "2026-10-26");
   assert.ok(VENDOR_TERMS_VERSION > "2026-10-24", "newer than the version vendors first accepted");
-  assert.equal(COVENANT_SINCE, VENDOR_TERMS_VERSION);
+  assert.equal(COVENANT_SINCE, "2026-10-25");
+  assert.ok(COVENANT_SINCE <= VENDOR_TERMS_VERSION);
   const sections = vendorTerms();
   assert.equal(sections[0]!.heading, "The Vendor Covenant");
   assert.equal(sections[0]!.covenant, true);
@@ -157,4 +162,43 @@ test("vendors on an older version need to accept the new covenant", () => {
   assert.equal(needsCovenant(VENDOR_TERMS_VERSION), false);
   assert.equal(acceptedCovenant("2026-10-24"), false);
   assert.equal(acceptedCovenant(VENDOR_TERMS_VERSION), true);
+  // 2026-10-26 changed the rates, not the covenant: 2026-10-25 still carries it.
+  assert.equal(needsCovenant("2026-10-25"), true, "asked to accept the new terms");
+  assert.equal(acceptedCovenant("2026-10-25"), true, "but has accepted the covenant");
+});
+
+// --- minimum rates (2026-10-26) -------------------------------------------------
+
+test("the rates are minimums: the terms say so and a vendor may offer more by category", () => {
+  const text = vendorTermsText();
+  const minimums = vendorTerms().find((section) => section.heading === "These are minimum rates");
+  assert.ok(minimums, "a section says the rates are minimums");
+  assert.match(text, /2% rebate and the 10% referral fee are minimums/);
+  assert.match(text, /offer a higher rate in any category you serve/);
+  assert.match(text, /in your vendor portal/);
+  assert.match(text, /counts for less than your price to the church/);
+  assert.match(text, /Raising your prices to pay a higher rate lowers your ranking/);
+  assert.match(text, /does not promise you any sales/);
+  assert.match(feeSummary(), /at least 2%.*at least 10%.*minimums; you may offer more by category/);
+  assert.match(termsChange("2026-10-26"), /minimum rates/);
+  assert.match(termsChange("2026-10-26"), /covenant has not changed/);
+});
+
+test("floors are enforced on an offered rate", () => {
+  assert.equal(feeFloor("rebate"), 2);
+  assert.equal(feeFloor("referral"), 10);
+  assert.equal(cleanFeeOffer("", "rebate"), 2, "blank is the floor");
+  assert.equal(cleanFeeOffer("2", "rebate"), 2);
+  assert.equal(cleanFeeOffer("3.5", "rebate"), 3.5);
+  assert.equal(cleanFeeOffer("12%", "referral"), 12);
+  assert.throws(() => cleanFeeOffer("1.99", "rebate"), /at least 2%/);
+  assert.throws(() => cleanFeeOffer("9.5", "referral"), /at least 10%/);
+  assert.throws(() => cleanFeeOffer("0", "rebate"), /at least 2%/);
+  assert.throws(() => cleanFeeOffer("-3", "rebate"), /like 2\.5/);
+  assert.throws(() => cleanFeeOffer("2.555", "rebate"), /two decimals/);
+  assert.throws(() => cleanFeeOffer("abc", "rebate"), /like 2\.5/);
+  assert.throws(() => cleanFeeOffer(String(FEE_OFFER_MAX + 1), "referral"), /or less/);
+  // The floor follows the config, not a typed number.
+  const higher: FeeConfig = { ...FEES, rebate: { ...FEES.rebate, percent: 3 } };
+  assert.throws(() => cleanFeeOffer("2.5", "rebate", higher), /at least 3%/);
 });
