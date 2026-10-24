@@ -246,7 +246,7 @@ export function recommend(a: Answers): Tier[] {
   if (building === "new-building") {
     start.push({
       title: "Design audio, video, and lighting with the architect",
-      body: "Get speaker, camera, and display positions, rigging points, power, conduit, and cooling into the drawings now, while they can still change. Shape the room’s acoustics from the start.",
+      body: "Get the speakers, cameras, screens, and the power and wiring for them into the building plans now, while they can still change. Plan how the room will sound from the start.",
       help: "planning-a-new-building",
     });
   }
@@ -255,8 +255,8 @@ export function recommend(a: Answers): Tier[] {
   const speakers: RecItem = {
     title: "Speakers aimed at the seats, tuned for speech",
     body: isLarge(a)
-      ? "A system designed so every section of a large room gets direct sound, with fill or delay speakers where the main speakers cannot reach, then aligned and tuned with measurements."
-      : "Speakers chosen and aimed so the sound lands on the congregation and not the walls, with fill speakers for the back rows if needed, then tuned for clear speech.",
+      ? "A system designed so every section of a large room hears clearly, with extra speakers where the main ones cannot reach, then tuned to the room with measurements."
+      : "Speakers chosen and aimed so the sound lands on the congregation and not the walls, with extra speakers for the back rows if needed, then tuned for clear speech.",
     help: "cant-hear-in-the-back",
   };
   const mics: RecItem = {
@@ -265,7 +265,7 @@ export function recommend(a: Answers): Tier[] {
         ? "Better pulpit, lectern, and choir microphones"
         : "The right microphone for each person on the platform",
     body: has(a, "feedback-during-the-sermon")
-      ? "Microphones closer to the mouth need far less gain, which is the first defense against feedback. Placement and gain structure are set so each mic has room before it rings."
+      ? "Microphones closer to the mouth need far less volume, which is the first defense against squeal. Each one is placed and set so it has room to spare before it rings."
       : "Microphones chosen to capture voices clearly and to disappear into the room, placed and set so the system does not have to work hard.",
     help: "feedback-during-the-sermon",
   };
@@ -285,16 +285,16 @@ export function recommend(a: Answers): Tier[] {
 
   if (isEchoey(a)) {
     (has(a, "hearing-aids-squeal-or-echo") || has(a, "cant-hear-in-the-back") ? start : next).push({
-      title: "Targeted acoustic treatment",
-      body: "Your room has the hard surfaces or height that keep sound bouncing. A few treatments placed from measurements reduce the echo for everyone, including hearing aid users, and let the system go louder before feedback.",
+      title: "Sound panels where they are needed",
+      body: "Your room has the hard surfaces or height that keep sound bouncing. A few sound panels placed from measurements reduce the echo for everyone, including hearing aid users, and let the system get louder before it squeals.",
       help: "hearing-aids-squeal-or-echo",
     });
   }
 
   if (has(a, "volunteers-cant-run-the-board")) {
     start.push({
-      title: "A simpler board with presets, labels, and training",
-      body: "A digital console that recalls the Sunday setup with one button, every channel named for what it is, and on-site training for your volunteers the first Sunday.",
+      title: "A simpler board with saved settings, labels, and training",
+      body: "A digital mixing board that brings back the Sunday setup with one button, every channel named for what it is, and on-site training for your volunteers the first Sunday.",
       help: "volunteers-cant-run-the-board",
     });
   }
@@ -313,7 +313,10 @@ export function recommend(a: Answers): Tier[] {
       help: "livestream-keeps-dropping",
     });
     next.push({
-      title: style === "traditional" ? "Discreet PTZ cameras" : "PTZ cameras run by one volunteer",
+      title:
+        style === "traditional"
+          ? "Small, discreet cameras"
+          : "Remote-controlled cameras one volunteer can run",
       body:
         style === "traditional"
           ? "Small pan-tilt-zoom cameras mounted out of sight lines, so homebound members can see the pulpit and choir without anything changing in the chancel."
@@ -341,19 +344,19 @@ export function recommend(a: Answers): Tier[] {
       body: "Screens or projection at either side of the platform, readable from every seat, leaving the center of the platform and the cross clear.",
     });
     later.push({
-      title: "Stage and house lighting on presets",
-      body: "Lighting on a console with saved looks for each part of the service, so it looks right in person and on camera without a lighting expert.",
+      title: "Stage and room lighting with saved looks",
+      body: "Lighting with a control board and saved looks for each part of the service, so it looks right in person and on camera without a lighting expert.",
     });
   } else {
     later.push({
-      title: "An LED wall sized for your sightlines",
+      title: "An LED wall sized so every seat can read it",
       body: isLarge(a)
-        ? "An LED wall specified, rigged, and calibrated so lyrics, teaching, and the speaker’s face on screen are readable from the back of a large room."
-        : "An LED wall specified and calibrated for your room, bright enough to read with the lights up and sized for your sightlines.",
+        ? "An LED wall chosen, hung, and adjusted so lyrics, teaching, and the speaker’s face on screen are clear from the back of a large room."
+        : "An LED wall chosen and adjusted for your room, bright enough to read with the lights up and sized so every seat can read it.",
     });
     later.push({
-      title: "Production lighting on a console",
-      body: "Stage and house lighting with presets and cues, so volunteers can run a full service without programming it each week.",
+      title: "Stage lighting with a control board",
+      body: "Stage and room lighting with saved looks, so volunteers can run a full service without setting it up each week.",
     });
   }
 

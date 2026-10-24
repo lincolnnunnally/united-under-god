@@ -80,7 +80,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         title: "Hearing aids without the squeal.",
-        body: "Much of the squeal and echo comes from the room, not the hearing aid. There are assistive listening options that send the sermon straight to a hearing aid or a small receiver, and we’ll help you choose the right option for your sanctuary.",
+        body: "Much of the squeal and echo comes from the room, not the hearing aid. There are listening helps that send the sermon straight to a hearing aid or a small receiver, and we’ll help you choose the right option for your sanctuary.",
       },
       {
         title: "Homebound members, back in the service.",
@@ -106,15 +106,15 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         q: "Can you help members whose hearing aids squeal or echo?",
-        a: "Yes. The first step is often the room and the speakers. Beyond that there are assistive listening options, such as a hearing loop, Auracast broadcast audio, or receivers handed out at the door, and we’ll help you choose the right option for your congregation.",
+        a: "Yes. The first step is often the room and the speakers. Beyond that there are listening helps, such as a hearing loop, Auracast (a newer kind of Bluetooth), or receivers handed out at the door, and we’ll help you choose the right option for your congregation.",
       },
       {
-        q: "Are churches required to provide assistive listening?",
-        a: "Religious organizations are generally exempt from the ADA’s assistive listening rules. Many churches provide it anyway, because the members who need it most are often the ones who have been faithful the longest.",
+        q: "Are churches required to provide hearing help?",
+        a: "Religious organizations are generally exempt from the ADA’s rules on hearing help. Many churches provide it anyway, because the members who need it most are often the ones who have been faithful the longest.",
       },
       {
         q: "Will our volunteers be able to run it?",
-        a: "That is the goal. The system is set up with labeled presets, and your team is trained on-site, including the first Sunday.",
+        a: "That is the goal. The system is set up with saved settings and clear labels, and your team is trained on-site, including the first Sunday.",
       },
       WARRANTY_FAQ,
       PRICE_FAQ,
@@ -124,33 +124,32 @@ export const LANDING_PAGES: LandingPage[] = [
     slug: "modern",
     look: "modern",
     label: "Modern worship",
-    title: "LED Walls, Lighting & Broadcast for Modern Worship | United Under God",
+    title: "LED Walls, Lighting & Livestream for Modern Worship | United Under God",
     description:
-      "LED walls, production lighting, a band mix that works, and broadcast and IMAG for churches building a modern worship experience in the Southeast.",
-    serviceName: "LED walls, production lighting, band audio, and broadcast for modern worship",
-    eyebrow: "For modern worship · Band, lights, LED, broadcast",
+      "LED walls, stage lighting, a band mix that works, and cameras and livestreaming for churches building a modern worship experience in the Southeast.",
+    serviceName: "LED walls, stage lighting, band sound, and livestream for modern worship",
+    eyebrow: "For modern worship · Band, lights, LED walls, livestream",
     h1: "Create an atmosphere for worship.",
-    lead: "An LED wall that carries the lyrics and the message, lighting that helps people lift their eyes, a band mix the room can sing with, and a broadcast that feels like being there.",
+    lead: "An LED wall that carries the lyrics and the message, lighting that helps people lift their eyes, a band mix the room can sing with, and a livestream that feels like being there.",
     cardTitle: "Create an atmosphere for worship",
-    cardBody:
-      "A band, an LED wall, production lighting, and a broadcast that feels like being there.",
+    cardBody: "A band, an LED wall, stage lighting, and a livestream that feels like being there.",
     benefitsTitle: "Remove the distractions. Make room for worship.",
     benefits: [
       {
         title: "An LED wall that serves the moment.",
-        body: "Lyrics everyone can read, Scripture on the screen as it is preached, and a canvas that sets the tone of the service, planned around sightlines, rigging, and calibration.",
+        body: "Lyrics everyone can read, Scripture on the screen as it is preached, and a backdrop that sets the tone of the service, placed so every seat can see it.",
       },
       {
         title: "Lighting that draws eyes upward.",
-        body: "Production lighting with presets and cues, so a volunteer can move from a quiet prayer to a full chorus with one button.",
+        body: "Stage lighting with saved looks, so a volunteer can move from a quiet prayer to a full chorus with one button.",
       },
       {
         title: "A band mix the room can sing with.",
-        body: "Clear vocals over the band, in-ear and wedge monitoring the band can trust, and a stage that is ready for visiting artists.",
+        body: "Clear vocals over the band, speakers and earpieces so the band can hear themselves, and a stage that is ready for visiting artists.",
       },
       {
-        title: "Broadcast and IMAG for the people watching.",
-        body: "Multi-camera capture and switching, so the person in the back row and the person at home both see the face of the one leading worship.",
+        title: "Cameras for the big screen and the livestream.",
+        body: "Several cameras, so the person in the back row and the person at home both see the face of the one leading worship.",
       },
     ],
     stages: ["modern"],
@@ -164,15 +163,15 @@ export const LANDING_PAGES: LandingPage[] = [
     faq: [
       {
         q: "Can a volunteer team run lighting and an LED wall?",
-        a: "Yes, when the system is set up for them. Showfiles, presets, and labeled controls mean volunteers run the service, and the team is trained on-site before the first Sunday.",
+        a: "Yes, when the system is set up for them. Saved settings and labeled controls mean volunteers run the service, and the team is trained on-site before the first Sunday.",
       },
       {
-        q: "Do we need a full broadcast suite to stream well?",
-        a: "Not always. Some churches start with a few cameras and a clean switching and streaming chain and grow from there. The Dream phase sorts out what fits your church now and later.",
+        q: "Do we need a TV-studio setup to stream well?",
+        a: "Not always. Some churches start with a few cameras and a simple, reliable streaming setup and grow from there. The Dream phase sorts out what fits your church now and later.",
       },
       {
         q: "Can the work happen without missing a service?",
-        a: "Yes. Systems are pre-built and pre-programmed off site, and installation is phased around your services, because Sunday is always coming.",
+        a: "Yes. Equipment is built and set up ahead of time, and the work is done in stages around your services, because Sunday is always coming.",
       },
       WARRANTY_FAQ,
       PRICE_FAQ,
@@ -225,7 +224,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         q: "Can the choir and the band share one sound system?",
-        a: "Yes. It takes the right choir microphones, careful placement, and a mix that is set up for both, with presets so volunteers can move between them.",
+        a: "Yes. It takes the right choir microphones, careful placement, and a mix that is set up for both, with saved settings so volunteers can switch between them.",
       },
       {
         q: "We are not sure if we are traditional or blended. Does it matter?",
@@ -264,7 +263,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         title: "One button for the volunteer.",
-        body: "Start, stop, and camera presets set up in advance and labeled, with your team trained on-site.",
+        body: "Start, stop, and camera positions saved in advance and labeled, with your team trained on-site.",
       },
     ],
     stages: ["traditional", "blended", "modern"],
@@ -283,7 +282,7 @@ export const LANDING_PAGES: LandingPage[] = [
     faq: [
       {
         q: "Why does our livestream keep dropping?",
-        a: "Usually it is the network, the encoder, or the computer doing too much at once. A dedicated, tested path for the stream and a simpler streaming chain fix most of it.",
+        a: "Usually it is the internet connection, the streaming box, or the computer doing too much at once. A dedicated, tested connection for the stream and a simpler streaming setup fix most of it.",
       },
       {
         q: "Will cameras change how our sanctuary looks?",
