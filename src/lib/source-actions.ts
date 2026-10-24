@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
-import { DbUnavailableError, getSql } from "@/lib/db";
+import { DbUnavailableError, getSql, type Sql } from "@/lib/db";
 import { SUPER_EMAILS } from "@/lib/desk";
 import {
   addQuote,
@@ -11,6 +11,7 @@ import {
   readBuyingBook,
   readBuyingCatalog,
   readDesk,
+  setBidArea,
   setBidStatus,
   setItemWinners,
   setQuoteStatus,
@@ -18,6 +19,26 @@ import {
   type PublicBookEntry,
   type SourceDesk,
 } from "@/lib/source-store";
+import { sendResendText } from "@/lib/desk-mail";
+import { SITE_URL } from "@/lib/seo";
+import {
+  listInvites,
+  listVendors,
+  previewInvites,
+  sendInvites,
+  updateVendor,
+  type InviteRow,
+  type SendInvitesResult,
+  type VendorRow,
+} from "@/lib/vendor-store";
+
+/** The desk: bids and quotes, plus the vendor list and the invitation log. */
+export type DeskView = SourceDesk & {
+  vendors: VendorRow[];
+  invites: InviteRow[];
+  /** False when migrations/0007_source_vendors.sql is not applied yet. */
+  vendorsReady: boolean;
+};
 
 const createBidInput = z.object({
   title: z.string(),
@@ -25,6 +46,7 @@ const createBidInput = z.object({
   neededBy: z.string().optional().default(""),
   category: z.string().optional().default(""),
   subcategory: z.string().optional().default(""),
+  area: z.string().optional().default(""),
   items: z
     .array(
       z.object({
@@ -70,6 +92,20 @@ const publishInput = z.object({
   awardId: z.string(),
 });
 
+const bidAreaInput = z.object({ bidId: z.string(), area: z.string() });
+
+const vendorUpdateInput = z.object({
+  vendorId: z.string(),
+  status: z.string().optional(),
+  categories: z.array(z.string()).max(200).optional(),
+  states: z.array(z.string()).max(60).optional(),
+  places: z.string().optional(),
+  nationwide: z.boolean().optional(),
+});
+
+const invitePreviewInput = z.object({ bidId: z.string() });
+const inviteSendInput = z.object({ bidId: z.string(), vendorIds: z.array(z.string()).min(1).max(200) });
+
 /** Desk reads and writes. A missing database throws; it never looks like a saved desk. */
 async function deskSql() {
   try {
@@ -100,10 +136,25 @@ async function assertStaff(userId: string) {
   }
 }
 
-async function deskFor(userId: string): Promise<SourceDesk> {
+/** 42P01: the vendor tables are not there yet (0007 not applied). */
+function missingTable(err: unknown) {
+  return Boolean(err && typeof err === "object" && "code" in err && String(err.code) === "42P01");
+}
+
+async function deskView(sql: Sql): Promise<DeskView> {
+  const desk = await readDesk(sql);
+  try {
+    return { ...desk, vendors: await listVendors(sql), invites: await listInvites(sql), vendorsReady: true };
+  } catch (err) {
+    if (!missingTable(err)) throw err;
+    return { ...desk, vendors: [], invites: [], vendorsReady: false };
+  }
+}
+
+async function deskFor(userId: string): Promise<DeskView> {
   await assertStaff(userId);
   const sql = await deskSql();
-  return readDesk(sql);
+  return deskView(sql);
 }
 
 export const listPublishedBook = createServerFn({ method: "GET" }).handler(
@@ -130,7 +181,7 @@ export const createSourceBid = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await createBid(sql, data, context.userId);
-    return readDesk(sql);
+    return deskView(sql);
   });
 
 export const setSourceBidStatus = createServerFn({ method: "POST" })
@@ -140,7 +191,7 @@ export const setSourceBidStatus = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await setBidStatus(sql, data.bidId, data.status);
-    return readDesk(sql);
+    return deskView(sql);
   });
 
 export const addSourceQuote = createServerFn({ method: "POST" })
@@ -150,7 +201,7 @@ export const addSourceQuote = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await addQuote(sql, data, context.userId);
-    return readDesk(sql);
+    return deskView(sql);
   });
 
 export const setSourceQuoteStatus = createServerFn({ method: "POST" })
@@ -160,7 +211,7 @@ export const setSourceQuoteStatus = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await setQuoteStatus(sql, data.quoteId, data.status);
-    return readDesk(sql);
+    return deskView(sql);
   });
 
 export const setSourceWinners = createServerFn({ method: "POST" })
@@ -170,7 +221,7 @@ export const setSourceWinners = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await setItemWinners(sql, data.itemId, data.quoteIds, context.userId);
-    return readDesk(sql);
+    return deskView(sql);
   });
 
 export const publishSourceAward = createServerFn({ method: "POST" })
@@ -180,8 +231,59 @@ export const publishSourceAward = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await publishAward(sql, data.awardId, context.userId);
-    return readDesk(sql);
+    return deskView(sql);
   });
+
+export const setSourceBidArea = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(bidAreaInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const sql = await deskSql();
+    await setBidArea(sql, data.bidId, data.area);
+    return deskView(sql);
+  });
+
+export const updateSourceVendor = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(vendorUpdateInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const sql = await deskSql();
+    const { vendorId, ...patch } = data;
+    await updateVendor(sql, vendorId, patch, context.userId);
+    return deskView(sql);
+  });
+
+/** Who matches the bid and the exact email. Sends nothing. */
+export const previewSourceInvites = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(invitePreviewInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const sql = await deskSql();
+    return previewInvites(sql, data.bidId, SITE_URL);
+  });
+
+/** Sends only when staff press Send, only to the vendors chosen, once per vendor per bid. */
+export const sendSourceInvites = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(inviteSendInput)
+  .handler(async ({ data, context }): Promise<{ desk: DeskView; result: SendInvitesResult }> => {
+    await assertStaff(context.userId);
+    const sql = await deskSql();
+    const result = await sendInvites(sql, {
+      bidId: data.bidId,
+      vendorIds: data.vendorIds,
+      userId: context.userId,
+      siteUrl: SITE_URL,
+      send: ({ to, subject, text }) =>
+        sendResendText({ to, subject, text, apiKey: process.env.RESEND_API_KEY }),
+    });
+    return { desk: await deskView(sql), result };
+  });
+
+export type { InviteRow, SendInvitesResult, VendorRow } from "@/lib/vendor-store";
 
 export type {
   BiddingItem,

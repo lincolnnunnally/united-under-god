@@ -21,10 +21,12 @@ import {
   readSourceDesk,
   setSourceBidStatus,
   setSourceQuoteStatus,
+  setSourceBidArea,
   setSourceWinners,
+  type DeskView,
   type SourceBid,
-  type SourceDesk,
 } from "@/lib/source-actions";
+import { VendorsSection, InvitePanel } from "@/components/source-vendors";
 import { cn } from "@/lib/utils";
 import { pageHead } from "@/lib/seo";
 
@@ -58,12 +60,12 @@ function SourcePage() {
 }
 
 function SourceDesk() {
-  const [desk, setDesk] = useState<SourceDesk | null>(null);
+  const [desk, setDesk] = useState<DeskView | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  async function apply(next?: SourceDesk, preferId?: string) {
+  async function apply(next?: DeskView, preferId?: string) {
     const data = next ?? (await readSourceDesk());
     setDesk(data);
     setSelectedId((current) => {
@@ -83,8 +85,8 @@ function SourceDesk() {
   }, []);
 
   async function run(
-    work: () => Promise<SourceDesk>,
-    preferId?: (data: SourceDesk) => string | undefined,
+    work: () => Promise<DeskView>,
+    preferId?: (data: DeskView) => string | undefined,
   ) {
     setError("");
     try {
@@ -124,6 +126,8 @@ function SourceDesk() {
 
       {desk ? <CoverageView desk={desk} /> : null}
 
+      {desk ? <VendorsSection desk={desk} onRun={run} /> : null}
+
       <CreateBidForm
         disabled={loading}
         onCreate={(input) =>
@@ -136,6 +140,7 @@ function SourceDesk() {
                   neededBy: input.neededBy,
                   category: input.category,
                   subcategory: input.subcategory,
+                  area: input.area,
                   items: input.items.map(({ description, quantity, unit, catalogItem }) => ({
                     description,
                     quantity,
@@ -182,7 +187,7 @@ function SourceDesk() {
             ))}
           </ul>
           {selected ? (
-            <BidWorkspace bid={selected} onRun={run} />
+            <BidWorkspace bid={selected} desk={desk} onRun={run} />
           ) : (
             <p className="text-muted">Choose a bid.</p>
           )}
@@ -203,12 +208,14 @@ function CreateBidForm({
     neededBy: string;
     category: string;
     subcategory: string;
+    area: string;
     items: DraftItem[];
   }) => Promise<boolean>;
 }) {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [neededBy, setNeededBy] = useState("");
+  const [area, setArea] = useState("");
   const [category, setCategory] = useState("");
   const [subcategory, setSubcategory] = useState("");
   const [template, setTemplate] = useState("");
@@ -248,11 +255,12 @@ function CreateBidForm({
     event.preventDefault();
     setBusy(true);
     try {
-      const saved = await onCreate({ title, summary, neededBy, category, subcategory, items });
+      const saved = await onCreate({ title, summary, neededBy, category, subcategory, area, items });
       if (!saved) return;
       setTitle("");
       setSummary("");
       setNeededBy("");
+      setArea("");
       setCategory("");
       setSubcategory("");
       setTemplate("");
@@ -361,15 +369,27 @@ function CreateBidForm({
           disabled={disabled || busy}
         />
       </div>
-      <div className="grid gap-1.5 sm:max-w-xs">
-        <Label htmlFor="bid-needed">Needed by</Label>
-        <Input
-          id="bid-needed"
-          type="date"
-          value={neededBy}
-          onChange={(event) => setNeededBy(event.target.value)}
-          disabled={disabled || busy}
-        />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <Label htmlFor="bid-needed">Needed by</Label>
+          <Input
+            id="bid-needed"
+            type="date"
+            value={neededBy}
+            onChange={(event) => setNeededBy(event.target.value)}
+            disabled={disabled || busy}
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="bid-area">Area (state codes, blank for anywhere)</Label>
+          <Input
+            id="bid-area"
+            placeholder="GA, SC"
+            value={area}
+            onChange={(event) => setArea(event.target.value)}
+            disabled={disabled || busy}
+          />
+        </div>
       </div>
       <fieldset className="grid gap-3" disabled={disabled || busy}>
         <legend className="text-sm font-medium text-ink">Items</legend>
@@ -448,14 +468,16 @@ function CreateBidForm({
 
 function BidWorkspace({
   bid,
+  desk,
   onRun,
 }: {
   bid: SourceBid;
-  onRun: (work: () => Promise<SourceDesk>) => Promise<boolean>;
+  desk: DeskView;
+  onRun: (work: () => Promise<DeskView>) => Promise<boolean>;
 }) {
   const [busy, setBusy] = useState(false);
 
-  async function run(work: () => Promise<SourceDesk>) {
+  async function run(work: () => Promise<DeskView>) {
     setBusy(true);
     try {
       return await onRun(work);
@@ -476,6 +498,7 @@ function BidWorkspace({
             {bid.neededBy ? (
               <p className="mt-2 text-sm text-muted">Needed by {bid.neededBy}</p>
             ) : null}
+            <BidAreaEditor bid={bid} disabled={busy} onRun={run} />
           </div>
           <Button
             type="button"
@@ -525,6 +548,9 @@ function BidWorkspace({
                     <p className="font-medium">{quote.vendorName}</p>
                     <p className="text-xs uppercase tracking-[0.14em] text-subtle">
                       {quote.status}
+                      {quote.source === "online"
+                        ? ` · submitted online${quote.updatedAt && quote.updatedAt !== quote.createdAt ? ` · revised ${quote.updatedAt.slice(0, 10)}` : ""}`
+                        : " · typed in"}
                     </p>
                     {quote.vendorContact ? (
                       <p className="mt-1 text-sm text-muted">{quote.vendorContact}</p>
@@ -556,6 +582,7 @@ function BidWorkspace({
                       <li key={line.id}>
                         {item?.description ?? "Item"}:{" "}
                         {line.unitPrice ? `$${line.unitPrice}` : "no price"}
+                        {line.notes ? ` · ${line.notes}` : ""}
                       </li>
                     );
                   })}
@@ -572,6 +599,8 @@ function BidWorkspace({
           </p>
         )}
       </section>
+
+      <InvitePanel bid={bid} desk={desk} onRun={run} />
 
       <section>
         <h3 className="font-display text-xl">Winners</h3>
@@ -699,7 +728,7 @@ function QuoteForm({
 }: {
   bid: SourceBid;
   disabled: boolean;
-  onRun: (work: () => Promise<SourceDesk>) => Promise<boolean>;
+  onRun: (work: () => Promise<DeskView>) => Promise<boolean>;
 }) {
   const [vendorName, setVendorName] = useState("");
   const [vendorContact, setVendorContact] = useState("");
@@ -792,7 +821,7 @@ function QuoteForm({
   );
 }
 
-function CoverageView({ desk }: { desk: SourceDesk }) {
+function CoverageView({ desk }: { desk: DeskView }) {
   const view = coverage(desk.bids);
   const covered = view.rows.length - view.referralOnly.length - view.gaps.length;
   return (
@@ -851,5 +880,63 @@ function CoverageView({ desk }: { desk: SourceDesk }) {
         </div>
       ) : null}
     </section>
+  );
+}
+
+function BidAreaEditor({
+  bid,
+  disabled,
+  onRun,
+}: {
+  bid: SourceBid;
+  disabled: boolean;
+  onRun: (work: () => Promise<DeskView>) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [area, setArea] = useState(bid.area);
+  if (!editing) {
+    return (
+      <p className="mt-2 text-sm text-muted">
+        Area: {bid.area || "anywhere"}{" "}
+        <button
+          type="button"
+          className="text-forest underline-offset-4 hover:underline"
+          onClick={() => {
+            setArea(bid.area);
+            setEditing(true);
+          }}
+        >
+          Change
+        </button>
+      </p>
+    );
+  }
+  return (
+    <form
+      className="mt-2 flex flex-wrap items-end gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        void onRun(() => setSourceBidArea({ data: { bidId: bid.id, area } })).then((ok) => {
+          if (ok) setEditing(false);
+        });
+      }}
+    >
+      <div className="grid gap-1.5">
+        <Label htmlFor={`area-${bid.id}`}>Area (state codes, blank for anywhere)</Label>
+        <Input
+          id={`area-${bid.id}`}
+          value={area}
+          placeholder="GA, SC"
+          onChange={(event) => setArea(event.target.value)}
+          disabled={disabled}
+        />
+      </div>
+      <Button type="submit" disabled={disabled}>
+        Save area
+      </Button>
+      <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+        Cancel
+      </Button>
+    </form>
   );
 }

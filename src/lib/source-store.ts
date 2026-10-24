@@ -19,6 +19,8 @@ export type CreateBidInput = {
   /** A church-spend category id, or blank for an untagged bid. */
   category?: string;
   subcategory?: string;
+  /** Two-letter state codes the bid is for ('' = anywhere). Needs 0007. */
+  area?: string;
   items: BidItemInput[];
 };
 
@@ -58,7 +60,12 @@ export type SourceQuote = {
   vendorContact: string;
   notes: string;
   status: string;
+  /** 'desk' (typed in by staff) or 'online' (an invited vendor submitted it). */
+  source: string;
+  /** The source_vendors id behind an online quote ('' for desk quotes). */
+  vendorId: string;
   createdAt: string;
+  updatedAt: string;
   lines: SourceQuoteLine[];
 };
 
@@ -90,6 +97,8 @@ export type SourceBid = {
   neededBy: string;
   category: string;
   subcategory: string;
+  /** States the bid is for ('' = anywhere). */
+  area: string;
   status: string;
   createdAt: string;
   items: SourceItem[];
@@ -202,7 +211,40 @@ export async function createBid(sql: Sql, input: CreateBidInput, userId: string)
   } catch (err) {
     throw missingCategoryColumns(err) ?? err;
   }
+  // Written only when set, so a bid still saves on a database without 0007.
+  if ((input.area ?? "").trim()) await setBidArea(sql, bidId, input.area ?? "");
   return bidId;
+}
+
+/** Two-letter state codes, comma separated; blank means anywhere. */
+export function cleanArea(raw: string): string {
+  const codes = raw
+    .split(/[\s,;]+/)
+    .map((part) => part.trim().toUpperCase())
+    .filter(Boolean);
+  for (const code of codes) {
+    if (!/^[A-Z]{2}$/.test(code)) throw new Error(`"${code}" is not a two-letter state code.`);
+  }
+  return [...new Set(codes)].sort().join(", ");
+}
+
+export async function setBidArea(sql: Sql, bidId: string, raw: string) {
+  const area = cleanArea(raw);
+  try {
+    const rows = await sql`
+      update source_bid_requests set area = ${area}, updated_at = now() where id = ${bidId}
+      returning id
+    `;
+    if (!rows[0]) throw new Error("That bid is not on the desk.");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    if (/column "area"/.test(message)) {
+      throw new Error(
+        "The bid area column is not in the database yet. Apply migrations/0007_source_vendors.sql, then try again.",
+      );
+    }
+    throw err;
+  }
 }
 
 /**
@@ -437,7 +479,10 @@ function mapQuote(row: Record<string, unknown>, lines: SourceQuoteLine[]): Sourc
     vendorContact: text(row.vendor_contact),
     notes: text(row.notes),
     status: text(row.status),
+    source: text(row.source) || "desk",
+    vendorId: text(row.vendor_id),
     createdAt: iso(row.created_at),
+    updatedAt: iso(row.updated_at),
     lines,
   };
 }
@@ -494,6 +539,7 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
         neededBy: text(bid.needed_by),
         category: text(bid.category),
         subcategory: text(bid.subcategory),
+        area: text(bid.area),
         status: text(bid.status),
         createdAt: iso(bid.created_at),
         items: items.filter((row) => text(row.bid_id) === bidId).map(mapItem),
