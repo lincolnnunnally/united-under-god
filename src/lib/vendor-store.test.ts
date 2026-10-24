@@ -144,7 +144,6 @@ test("licensed referral-only parts cannot be picked", () => {
     "financial-services/banking",
     "financial-services/payroll-and-tax",
     "financial-services/audit-tax",
-    "professional-services/legal",
     "transportation/vehicle-insurance",
   ]) {
     assert.throws(() => cleanVendorCategories([key]), /handled separately/, key);

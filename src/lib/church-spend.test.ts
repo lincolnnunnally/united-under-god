@@ -127,7 +127,7 @@ test("the validator catches a duplicate id, a missing model, and a licensed non-
   assert.match(problems, /licensed-only but is not a referral/);
 });
 
-test("insurance, health benefits, banking and loans, legal, and payroll and tax are referral only through a licensed provider", () => {
+test("insurance, health benefits, banking and loans, and payroll and tax are referral only through a licensed provider", () => {
   const mustBeLicensed: [string, string?][] = [
     ["insurance"],
     ["transportation", "vehicle-insurance"],
@@ -136,7 +136,6 @@ test("insurance, health benefits, banking and loans, legal, and payroll and tax 
     ["financial-services", "banking"],
     ["financial-services", "payroll-and-tax"],
     ["financial-services", "audit-tax"],
-    ["professional-services", "legal"],
   ];
   for (const [categoryId, subId] of mustBeLicensed) {
     const category = getSpendCategory(categoryId)!;
@@ -192,7 +191,7 @@ test("the list covers what the owner asked for", () => {
     "property-insurance", "liability-insurance", "abuse-insurance", "do-insurance",
     "workers-comp", "payroll", "bookkeeping", "audit", "online-giving", "card-processing",
     "checking", "building-loan", "health-insurance", "retirement-plan", "staffing",
-    "bylaws-review", "architecture", "campaign-consulting", "tent-rental", "t-shirts",
+    "architecture", "campaign-consulting", "tent-rental", "t-shirts",
     "banners", "promo-items", "blankets", "canned-goods", "toothbrushes", "cemetery-mowing",
     "office-desks", "cribs", "baptism-robes", "altar-flowers", "poinsettias", "easter-lilies",
   ];

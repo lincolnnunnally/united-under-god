@@ -2999,48 +2999,10 @@
     {
       "id": "professional-services",
       "name": "Professional services",
-      "short": "Legal, architecture and engineering, appraisals, and consulting.",
-      "summary": "Churches need professionals now and then: an architect for a building, an appraiser for a sale, a consultant for a campaign. Legal work goes through a licensed attorney only.",
-      "metaDescription": "Professional services for churches: introductions to licensed attorneys, plus architecture, engineering, appraisals, and campaign and planning consultants.",
+      "short": "Architecture and engineering, appraisals, and consulting.",
+      "summary": "Churches need professionals now and then: an architect for a building, an appraiser for a sale, a consultant for a campaign.",
+      "metaDescription": "Professional services for churches: architecture, engineering, appraisals, and campaign and planning consultants, bid for the group.",
       "subcategories": [
-        {
-          "id": "legal",
-          "name": "Legal",
-          "requires": {
-            "kind": "licensed",
-            "note": "Referral only, to a licensed attorney. United Under God does not give legal advice."
-          },
-          "items": [
-            {
-              "id": "bylaws-review",
-              "name": "Bylaws and governance review",
-              "unit": "per project",
-              "frequency": "as needed",
-              "model": "referral"
-            },
-            {
-              "id": "real-estate-legal",
-              "name": "Real estate and property matters",
-              "unit": "per project",
-              "frequency": "as needed",
-              "model": "referral"
-            },
-            {
-              "id": "employment-legal",
-              "name": "Employment matters",
-              "unit": "per project",
-              "frequency": "as needed",
-              "model": "referral"
-            },
-            {
-              "id": "contract-review",
-              "name": "Contract review",
-              "unit": "per project",
-              "frequency": "as needed",
-              "model": "referral"
-            }
-          ]
-        },
         {
           "id": "design",
           "name": "Architecture and engineering",
