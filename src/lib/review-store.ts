@@ -11,7 +11,8 @@ import { ANONYMOUS_CHURCH } from "./vendor-rank.ts";
 /**
  * Verified church reviews of program vendors. A church can review a vendor
  * only from a private link sent after a real program job: the owner sends it
- * from the desk, or it goes out when a vendor reports a closed job. Only a
+ * from the desk, or approves the request a vendor's closed-job report leaves
+ * waiting on the desk. Nothing is ever sent on a vendor's word alone. Only a
  * SHA-256 of the link token is stored.
  *
  * The owner can hide a review only for abuse, profanity, or private
@@ -38,9 +39,6 @@ export const HIDE_REASON_LABELS: Record<HideReason, string> = {
   profanity: "Profanity",
   private_information: "Shares private information",
 };
-
-/** Vendor-reported jobs: at most this many review requests per vendor per 30 days. */
-export const REPORT_REQUESTS_PER_MONTH = 20;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -188,41 +186,19 @@ export async function previewReviewRequest(sql: Sql, input: ReviewRequestInput, 
   };
 }
 
-/**
- * Save and send one review request. Only the token's hash is stored; the token
- * is only in the email. A failed send stays on the desk as failed.
- */
-export async function sendReviewRequest(
+/** Email a request whose row is claimed for sending, and record the outcome. */
+async function deliverRequest(
   sql: Sql,
-  input: ReviewRequestInput,
-  args: {
-    origin: "desk" | "report";
-    reportId?: string;
-    sentBy: string;
-    siteUrl: string;
-    send: SendMail;
-  },
+  request: CleanReviewRequest & { id: string },
+  args: { origin: "desk" | "report"; token: string; siteUrl: string; send: SendMail },
 ): Promise<{ id: string; ok: boolean; error: string }> {
-  const request = cleanReviewRequest(input);
   const company = await vendorCompany(sql, request.vendorId);
-  const token = newInviteToken();
-  const id = crypto.randomUUID();
   const email = reviewRequestEmail({
     request,
     company,
     origin: args.origin,
-    link: `${args.siteUrl}${reviewLinkPath(id, token)}`,
+    link: `${args.siteUrl}${reviewLinkPath(request.id, args.token)}`,
   });
-  await sql`
-    insert into source_review_requests (
-      id, vendor_id, category, church_name, contact_name, email, job, origin, report_id,
-      token_hash, email_status, sent_by
-    ) values (
-      ${id}, ${request.vendorId}, ${request.category}, ${request.churchName},
-      ${request.contactName}, ${request.email}, ${request.job}, ${args.origin},
-      ${args.reportId ?? ""}, ${await hashInviteToken(token)}, ${"sending"}, ${args.sentBy}
-    )
-  `;
   let outcome: { ok: boolean; error: string };
   try {
     outcome = await args.send({ to: request.email, subject: email.subject, text: email.text });
@@ -232,25 +208,119 @@ export async function sendReviewRequest(
   const error = outcome.ok ? "" : outcome.error || "mail is not set up (no RESEND_API_KEY)";
   await sql`
     update source_review_requests set
-      email_status = ${outcome.ok ? "sent" : "failed"}, email_error = ${error.slice(0, 500)}
-    where id = ${id}
+      email_status = ${outcome.ok ? "sent" : "failed"}, email_error = ${error.slice(0, 500)},
+      sent_at = now()
+    where id = ${request.id}
   `;
-  return { id, ok: outcome.ok, error };
+  return { id: request.id, ok: outcome.ok, error };
+}
+
+/**
+ * The owner's own request from the desk, sent after the preview. Only the
+ * token's hash is stored; the token is only in the email. A failed send stays
+ * on the desk as failed.
+ */
+export async function sendReviewRequest(
+  sql: Sql,
+  input: ReviewRequestInput,
+  args: { sentBy: string; siteUrl: string; send: SendMail },
+): Promise<{ id: string; ok: boolean; error: string }> {
+  const request = cleanReviewRequest(input);
+  await vendorCompany(sql, request.vendorId);
+  const token = newInviteToken();
+  const id = crypto.randomUUID();
+  await sql`
+    insert into source_review_requests (
+      id, vendor_id, category, church_name, contact_name, email, job, origin,
+      token_hash, email_status, sent_by
+    ) values (
+      ${id}, ${request.vendorId}, ${request.category}, ${request.churchName},
+      ${request.contactName}, ${request.email}, ${request.job}, ${"desk"},
+      ${await hashInviteToken(token)}, ${"sending"}, ${args.sentBy}
+    )
+  `;
+  return deliverRequest(sql, { ...request, id }, { origin: "desk", token, siteUrl: args.siteUrl, send: args.send });
+}
+
+/** A pending request has no working link yet: this placeholder can never equal a token's hash. */
+function pendingHash() {
+  return `pending:${crypto.randomUUID()}`;
+}
+
+/**
+ * A vendor reported a closed job. Nothing is sent: the request waits on the
+ * desk, beside the church and contact the vendor entered, until the owner
+ * approves it (which sends the email) or declines it. This is what stops a
+ * vendor from sending review links to people of its own choosing.
+ */
+export async function queueReportedReviewRequest(
+  sql: Sql,
+  input: ReviewRequestInput,
+  args: { reportId: string; vendorLabel: string },
+): Promise<{ id: string }> {
+  const request = cleanReviewRequest(input);
+  await vendorCompany(sql, request.vendorId);
+  const id = crypto.randomUUID();
+  await sql`
+    insert into source_review_requests (
+      id, vendor_id, category, church_name, contact_name, email, job, origin, report_id,
+      token_hash, email_status, sent_by
+    ) values (
+      ${id}, ${request.vendorId}, ${request.category}, ${request.churchName},
+      ${request.contactName}, ${request.email}, ${request.job}, ${"report"}, ${args.reportId},
+      ${pendingHash()}, ${"pending"}, ${args.vendorLabel}
+    )
+  `;
+  return { id };
+}
+
+/**
+ * The owner approves a pending request: it is claimed once, gets its private
+ * link, and is emailed. Approving again sends nothing.
+ */
+export async function approveReviewRequest(
+  sql: Sql,
+  requestId: string,
+  args: { approvedBy: string; siteUrl: string; send: SendMail },
+): Promise<{ id: string; ok: boolean; error: string }> {
+  const token = newInviteToken();
+  const claimed = await sql`
+    update source_review_requests set
+      email_status = 'sending', token_hash = ${await hashInviteToken(token)},
+      sent_by = ${args.approvedBy}
+    where id = ${requestId} and email_status = 'pending'
+    returning *
+  `;
+  if (!claimed[0]) throw new Error("That review request is not waiting for approval.");
+  const row = mapRequest(claimed[0]);
+  return deliverRequest(
+    sql,
+    {
+      id: row.id,
+      vendorId: row.vendorId,
+      category: row.category,
+      churchName: row.churchName,
+      contactName: row.contactName,
+      email: row.email,
+      job: row.job,
+    },
+    { origin: "report", token, siteUrl: args.siteUrl, send: args.send },
+  );
+}
+
+/** The owner declines a pending request. Nothing is sent. */
+export async function declineReviewRequest(sql: Sql, requestId: string, author: string) {
+  const rows = await sql`
+    update source_review_requests set email_status = 'declined', sent_by = ${author}
+    where id = ${requestId} and email_status = 'pending'
+    returning id
+  `;
+  if (!rows[0]) throw new Error("That review request is not waiting for approval.");
 }
 
 export async function listReviewRequests(sql: Sql): Promise<ReviewRequestRow[]> {
   const rows = await sql`select * from source_review_requests order by sent_at desc`;
   return rows.map(mapRequest);
-}
-
-/** How many vendor-reported review requests this vendor sent in the last 30 days. */
-export async function recentReportRequests(sql: Sql, vendorId: string, now = new Date()) {
-  const since = new Date(now.getTime() - 30 * 86_400_000).toISOString();
-  const rows = await sql<{ n: number }>`
-    select count(*)::int as n from source_review_requests
-    where vendor_id = ${vendorId} and origin = 'report' and sent_at >= ${since}
-  `;
-  return Number(rows[0]?.n ?? 0);
 }
 
 // ---------------------------------------------------------------------------
@@ -268,6 +338,7 @@ async function findRequest(sql: Sql, requestId: string, token: string) {
   const rows = await sql`
     select * from source_review_requests
     where id = ${requestId} and token_hash = ${await hashInviteToken(token)}
+      and email_status not in ('pending', 'declined')
   `;
   return rows[0] ? mapRequest(rows[0]) : null;
 }

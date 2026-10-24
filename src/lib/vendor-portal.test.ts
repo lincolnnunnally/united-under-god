@@ -229,11 +229,11 @@ test("offers: per catalog, at or above the floor, only where the vendor serves",
 
 // --- monthly reports and the review request -----------------------------------------
 
-test("monthly reports: sales, none, and a closed job that asks the church for a review", async () => {
+test("monthly reports: sales, none, and a closed job that leaves a pending review request (no email)", async () => {
   const sql = await freshProgramDb();
   const vendorId = await approved(sql);
   const box = mailbox();
-  const args = { siteUrl: SITE, send: box.send, now: NOW };
+  const args = { now: NOW };
 
   assert.equal(cleanMonth("2026-10", NOW), "2026-10");
   assert.throws(() => cleanMonth("2026-11", NOW), /once it has started/);
@@ -268,18 +268,42 @@ test("monthly reports: sales, none, and a closed job that asks the church for a 
     },
     args,
   );
-  assert.equal(job.reviewRequest, "sent");
-  assert.equal(box.sent.length, 1);
-  assert.equal(box.sent[0]!.to, "pat@grace.example");
-  assert.match(box.sent[0]!.text, /told us it finished a job for Grace Chapel/);
-  assert.match(box.sent[0]!.text, /Floor care kit and training/);
+  assert.equal(job.reviewRequest, "pending");
+  assert.equal(box.sent.length, 0, "nothing is sent from a vendor's report");
   const requests = await listReviewRequests(sql);
   assert.equal(requests.length, 1);
   assert.equal(requests[0]!.origin, "report");
   assert.equal(requests[0]!.reportId, job.id);
+  assert.equal(requests[0]!.emailStatus, "pending");
+  // The desk sees what the vendor typed, to check it.
+  assert.equal(requests[0]!.churchName, "Grace Chapel");
+  assert.equal(requests[0]!.contactName, "Pat Lee");
+  assert.equal(requests[0]!.email, "pat@grace.example");
+  assert.equal(requests[0]!.job, "Floor care kit and training");
+
+  // Many reported jobs: still nothing sent, every one waits.
+  for (let i = 0; i < 25; i += 1) {
+    await submitReport(
+      sql,
+      vendorId,
+      {
+        month: "2026-10",
+        kind: "job",
+        category: "janitorial-supplies",
+        amount: "10",
+        description: `Job ${i}`,
+        churchName: `Church ${i}`,
+        email: `friend${i}@accomplice.example`,
+      },
+      args,
+    );
+  }
+  assert.equal(box.sent.length, 0);
+  assert.ok((await listReviewRequests(sql)).every((row) => row.emailStatus === "pending"));
 
   const view = await readPortal(sql, vendorId, NOW);
-  assert.deepEqual(view.reports.map((row) => row.kind).sort(), ["job", "none", "sales"]);
+  assert.deepEqual([...new Set(view.reports.map((row) => row.kind))].sort(), ["job", "none", "sales"]);
+  assert.equal(view.reports.filter((row) => row.kind === "job").length, 26);
   assert.equal(view.reports.find((row) => row.kind === "sales")!.amount, "1250.00");
 });
 

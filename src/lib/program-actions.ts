@@ -6,6 +6,8 @@ import { sendResendText } from "@/lib/desk-mail";
 import { SITE_URL } from "@/lib/seo";
 import { assertStaff, deskSql } from "@/lib/source-actions";
 import {
+  approveReviewRequest,
+  declineReviewRequest,
   hideReview,
   listModeration,
   listReviewRequests,
@@ -136,8 +138,25 @@ export const sendReviewRequestFn = createServerFn({ method: "POST" })
     let result = { ok: false, error: "" };
     const desk = await programWrite(context.userId, async (sql, author) => {
       const out = await sendReviewRequest(sql, data, {
-        origin: "desk",
         sentBy: author,
+        siteUrl: SITE_URL,
+        send: mail,
+      });
+      result = { ok: out.ok, error: out.error };
+    });
+    return { desk, result };
+  });
+
+/** One click on a request a vendor's report left waiting: approve sends it once; decline sends nothing. */
+export const decideReviewRequestFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ requestId: z.string().max(80), approve: z.boolean() }))
+  .handler(async ({ data, context }) => {
+    let result = { ok: true, error: "" };
+    const desk = await programWrite(context.userId, async (sql, author) => {
+      if (!data.approve) return declineReviewRequest(sql, data.requestId, author);
+      const out = await approveReviewRequest(sql, data.requestId, {
+        approvedBy: author,
         siteUrl: SITE_URL,
         send: mail,
       });

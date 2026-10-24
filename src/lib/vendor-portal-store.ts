@@ -31,11 +31,7 @@ import {
   vendorCatalogs,
   type ScoreBreakdown,
 } from "./vendor-rank.ts";
-import {
-  REPORT_REQUESTS_PER_MONTH,
-  recentReportRequests,
-  sendReviewRequest,
-} from "./review-store.ts";
+import { queueReportedReviewRequest } from "./review-store.ts";
 
 /**
  * The vendor portal: sign-in by a one-time emailed link, a session cookie,
@@ -506,14 +502,15 @@ function mapReport(row: Record<string, unknown>): ReportRow {
 
 /**
  * Report one month's program sales, a closed job, or a month with none. A
- * closed job sends the church contact a review request, once per job.
+ * closed job leaves a review request waiting on the desk; the owner approves
+ * it before anything is sent to the church.
  */
 export async function submitReport(
   sql: Sql,
   vendorId: string,
   input: ReportInput,
-  args: { siteUrl: string; send: SendMail; now?: Date },
-): Promise<{ id: string; reviewRequest: "sent" | "failed" | "limit" | "none" }> {
+  args: { now?: Date } = {},
+): Promise<{ id: string; reviewRequest: "pending" | "none" }> {
   const now = args.now ?? new Date();
   const month = cleanMonth(input.month, now);
   const kind = input.kind as ReportKind;
@@ -560,16 +557,14 @@ export async function submitReport(
       ${contactName}, ${email}, ${closedOn}
     )
   `;
-  if ((await recentReportRequests(sql, vendorId, now)) >= REPORT_REQUESTS_PER_MONTH) {
-    return { id, reviewRequest: "limit" };
-  }
-  const sent = await sendReviewRequest(
+  // Nothing is sent from a vendor's report: the request waits for the owner.
+  const pending = await queueReportedReviewRequest(
     sql,
     { vendorId, category, churchName, contactName, email, job: description },
-    { origin: "report", reportId: id, sentBy: `vendor:${vendorId}`, siteUrl: args.siteUrl, send: args.send },
+    { reportId: id, vendorLabel: `vendor:${vendorId}` },
   );
-  await sql`update source_vendor_reports set review_request_id = ${sent.id} where id = ${id}`;
-  return { id, reviewRequest: sent.ok ? "sent" : "failed" };
+  await sql`update source_vendor_reports set review_request_id = ${pending.id} where id = ${id}`;
+  return { id, reviewRequest: "pending" };
 }
 
 export async function listReports(sql: Sql, vendorId?: string): Promise<ReportRow[]> {

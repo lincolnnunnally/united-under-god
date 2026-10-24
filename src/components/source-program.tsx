@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PreferredBadge, RankingDisclosure } from "@/components/vendor-ranking";
 import {
   decideCategoryRequestFn,
+  decideReviewRequestFn,
   hideReviewFn,
   previewBroadcastFn,
   previewReviewRequestFn,
@@ -65,6 +66,7 @@ export function ProgramSection() {
         <div className="mt-2 grid gap-8">
           <Rankings desk={desk} />
           <CategoryRequests desk={desk} run={run} />
+          <PendingReviewRequests desk={desk} run={run} />
           <ReviewRequests desk={desk} run={run} />
           <Reviews desk={desk} run={run} />
           <Broadcast desk={desk} run={run} />
@@ -173,6 +175,73 @@ function CategoryRequests({ desk, run }: { desk: ProgramDesk; run: Run }) {
   );
 }
 
+/**
+ * Requests left by vendors' closed-job reports. Nothing has been sent. The
+ * owner checks the church and contact the vendor typed in, then approves
+ * (sends the email once) or declines.
+ */
+function PendingReviewRequests({ desk, run }: { desk: ProgramDesk; run: Run }) {
+  const [busy, setBusy] = useState("");
+  const [note, setNote] = useState("");
+  const pending = desk.requests.filter((row) => row.emailStatus === "pending");
+
+  async function decide(requestId: string, approve: boolean) {
+    setBusy(requestId);
+    let result = { ok: true, error: "" };
+    const ok = await run(async () => {
+      const out = await decideReviewRequestFn({ data: { requestId, approve } });
+      result = out.result;
+      return out.desk;
+    });
+    if (ok) setNote(approve ? (result.ok ? "Sent." : `Not sent: ${result.error}`) : "Declined. Nothing was sent.");
+    setBusy("");
+  }
+
+  return (
+    <div>
+      <h3 className="font-display text-lg">Review requests waiting for approval</h3>
+      <p className="mt-1 max-w-2xl text-sm text-muted">
+        From vendors' closed-job reports. Nothing has been sent. Check that the church and contact
+        look real for this job before approving; approving sends the email once.
+      </p>
+      {pending.length === 0 ? (
+        <p className="mt-1 text-sm text-muted">None waiting.</p>
+      ) : (
+        <ul className="mt-2 grid gap-2">
+          {pending.map((row) => (
+            <li key={row.id} className="rounded-lg bg-paper px-4 py-3 text-sm shadow-[var(--shadow-border)]" data-pending-review-request="">
+              <p className="font-medium">
+                {companyOf(desk, row.vendorId)} reported a job for {row.churchName}
+              </p>
+              <p className="text-muted">
+                Contact the vendor entered: {row.contactName || "(no name)"} · {row.email}
+              </p>
+              <p className="text-muted">
+                Job: {row.job}
+                {row.category ? ` · ${getSpendCategory(row.category)?.name ?? row.category}` : ""} · reported{" "}
+                {when(row.sentAt)}
+              </p>
+              <div className="mt-2 flex gap-2">
+                <Button type="button" disabled={Boolean(busy)} onClick={() => void decide(row.id, true)}>
+                  {busy === row.id ? "Sending…" : "Approve and send"}
+                </Button>
+                <Button type="button" variant="secondary" disabled={Boolean(busy)} onClick={() => void decide(row.id, false)}>
+                  Decline
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {note ? (
+        <p className="mt-2 text-sm text-ink" role="status">
+          {note}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 type RequestPreview = Awaited<ReturnType<typeof previewReviewRequestFn>>;
 
 function ReviewRequests({ desk, run }: { desk: ProgramDesk; run: Run }) {
@@ -221,7 +290,7 @@ function ReviewRequests({ desk, run }: { desk: ProgramDesk; run: Run }) {
       <h3 className="font-display text-lg">Ask a church for a review</h3>
       <p className="mt-1 max-w-2xl text-sm text-muted">
         After a real program job. The church contact gets a private link; their name and email are
-        never shown. Vendor-reported closed jobs send this automatically.
+        never shown. Vendor-reported closed jobs wait above for your approval.
       </p>
       <form className="mt-3 grid gap-3 sm:grid-cols-2" onSubmit={(event) => void onPreview(event)}>
         <div className="grid gap-1.5">
@@ -292,7 +361,10 @@ function ReviewRequests({ desk, run }: { desk: ProgramDesk; run: Run }) {
       ) : null}
       {desk.requests.length ? (
         <ul className="mt-3 grid gap-1 text-sm text-muted">
-          {desk.requests.slice(0, 40).map((row) => (
+          {desk.requests
+            .filter((row) => row.emailStatus !== "pending")
+            .slice(0, 40)
+            .map((row) => (
             <li key={row.id}>
               {companyOf(desk, row.vendorId)} · {row.churchName} ({row.email}) · {row.origin === "report" ? "vendor report" : "desk"} ·{" "}
               {row.emailStatus}

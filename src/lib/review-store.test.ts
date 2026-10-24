@@ -6,6 +6,10 @@ import { cleanVendorSignup, createVendor, updateVendor } from "./vendor-store.ts
 import { VENDOR_TERMS_VERSION } from "./vendor-terms.ts";
 import {
   HIDE_REASONS,
+  approveReviewRequest,
+  declineReviewRequest,
+  listReviewRequests,
+  queueReportedReviewRequest,
   REVIEW_PAGE_PATH,
   hideReview,
   listModeration,
@@ -48,7 +52,7 @@ async function request(sql: Sql, vendorId: string, church = "Grace Chapel") {
   const out = await sendReviewRequest(
     sql,
     { vendorId, category: "janitorial-supplies", churchName: church, contactName: "Pat Lee", email: "pat@grace.example", job: "Monthly supplies" },
-    { origin: "desk", sentBy: "lincoln", siteUrl: SITE, send: box.send },
+    { sentBy: "lincoln", siteUrl: SITE, send: box.send },
   );
   const { url, token } = linkIn(box.sent[0]!.text, REVIEW_PAGE_PATH);
   return { id: out.id, token, url, box };
@@ -101,7 +105,7 @@ test("the review request: preview shows the exact email; only the token's hash i
   const failed = await sendReviewRequest(
     sql,
     { vendorId, churchName: "Hope", email: "a@hope.example", job: "x" },
-    { origin: "desk", sentBy: "lincoln", siteUrl: SITE, send: mailbox(true).send },
+    { sentBy: "lincoln", siteUrl: SITE, send: mailbox(true).send },
   );
   assert.equal(failed.ok, false);
 });
@@ -201,4 +205,55 @@ test("hiding: only for abuse, profanity, or private information; logged; never s
   const full = await listModeration(sql);
   assert.deepEqual(full.map((row) => row.action).sort(), ["hide", "unhide"]);
   assert.equal((await vendorReviewSummary(sql, vendorId)).published.length, 3);
+});
+
+test("a vendor-reported job waits for the owner: approval sends exactly once, decline sends nothing", async () => {
+  const sql = await freshProgramDb();
+  const vendorId = await vendor(sql);
+  const input = {
+    vendorId,
+    category: "janitorial-supplies",
+    churchName: "Grace Chapel",
+    contactName: "Pat Lee",
+    email: "pat@grace.example",
+    job: "Floor care kit",
+  };
+  const pending = await queueReportedReviewRequest(sql, input, { reportId: "r1", vendorLabel: `vendor:${vendorId}` });
+  const other = await queueReportedReviewRequest(sql, { ...input, email: "friend@accomplice.example" }, {
+    reportId: "r2",
+    vendorLabel: `vendor:${vendorId}`,
+  });
+  const rows = await listReviewRequests(sql);
+  assert.deepEqual(rows.map((row) => row.emailStatus), ["pending", "pending"]);
+  // A pending request has no working link: no token can open it.
+  const stored = await sql<{ token_hash: string }>`select token_hash from source_review_requests where id = ${pending.id}`;
+  assert.match(stored[0]!.token_hash, /^pending:/);
+  assert.deepEqual(await readReviewPage(sql, pending.id, "a".repeat(43)), { state: "denied" });
+
+  const box = mailbox();
+  const sent = await approveReviewRequest(sql, pending.id, { approvedBy: "lincoln", siteUrl: SITE, send: box.send });
+  assert.equal(sent.ok, true);
+  assert.equal(box.sent.length, 1);
+  assert.equal(box.sent[0]!.to, "pat@grace.example");
+  assert.match(box.sent[0]!.text, /told us it finished a job for Grace Chapel/);
+  // Approving again sends nothing more.
+  await assert.rejects(
+    approveReviewRequest(sql, pending.id, { approvedBy: "lincoln", siteUrl: SITE, send: box.send }),
+    /not waiting for approval/,
+  );
+  assert.equal(box.sent.length, 1, "exactly once");
+  // The link in that one email works.
+  const { token } = linkIn(box.sent[0]!.text, REVIEW_PAGE_PATH);
+  assert.equal((await readReviewPage(sql, pending.id, token)).state, "open");
+
+  // Declined: nothing sent, and it cannot be approved afterwards.
+  await declineReviewRequest(sql, other.id, "lincoln");
+  await assert.rejects(
+    approveReviewRequest(sql, other.id, { approvedBy: "lincoln", siteUrl: SITE, send: box.send }),
+    /not waiting for approval/,
+  );
+  assert.equal(box.sent.length, 1);
+  const after = await listReviewRequests(sql);
+  assert.equal(after.find((row) => row.id === other.id)!.emailStatus, "declined");
+  assert.equal(after.find((row) => row.id === pending.id)!.emailStatus, "sent");
 });

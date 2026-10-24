@@ -348,7 +348,7 @@ function Reports({ read, run }: { read: Ok; run: (work: () => Write) => Promise<
     setBusy(false);
     if (error) setNote(error);
     else {
-      setNote(kind === "job" ? "Saved. We asked the church how it went." : "Saved.");
+      setNote(kind === "job" ? "Saved. We will check it and then ask the church how it went." : "Saved.");
       formRef.current?.reset();
     }
   }
@@ -358,7 +358,8 @@ function Reports({ read, run }: { read: Ok; run: (work: () => Write) => Promise<
     <Card title="Monthly report" id="report">
       <p className="mt-2 max-w-2xl text-sm text-muted">
         Report your program sales and closed jobs each month, including months with none. When you
-        report a closed job, we email the church contact a private link to review the work.
+        report a closed job, we check it and then email the church contact a private link to
+        review the work.
       </p>
       <form ref={formRef} className="mt-4 grid gap-4" onSubmit={(event) => void onSubmit(event)}>
         <div className="grid gap-4 sm:grid-cols-2">

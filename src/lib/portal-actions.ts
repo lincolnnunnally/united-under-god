@@ -186,7 +186,7 @@ export const submitPortalReportFn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) =>
     portalWrite(async (vendorId) =>
-      submitReport(await portalSql(), vendorId, data, { siteUrl: SITE_URL, send: mail }),
+      submitReport(await portalSql(), vendorId, data),
     ),
   );
 
