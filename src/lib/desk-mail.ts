@@ -11,56 +11,166 @@ export const DESK_REPLY_TO = OWNER_EMAIL;
 /** email_log stores the provider body, clipped so a Cloudflare HTML page cannot fill the row. */
 export const RESEND_ERROR_LIMIT = 500;
 
-/** Hard stop for desk mail, including the owner note. Same width as the verse reserve. */
+/** Public replies from the desk. Owner notices and church notes are other lanes. */
 export const DESK_DAILY_CAP = 5;
+/** Public replies for one UTC month. The daily cap would be 155 on a 31-day month. */
+export const DESK_MONTHLY_CAP = 15;
 
-export function deskDayBucket(now = new Date()) {
-  const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
-    .toISOString()
-    .slice(0, 10);
-  return `day:${day}`;
-}
+/** Notices to lincoln@. Junk inquiries on the public lane cannot spend these. */
+export const OWNER_DAILY_CAP = 20;
+export const OWNER_MONTHLY_CAP = 40;
+
+/**
+ * Church sound-and-video confirmation. Same daily width as an owner notice,
+ * on its own counter, so a busy Sunday of church notes cannot silence Lincoln.
+ */
+export const AV_DAILY_CAP = OWNER_DAILY_CAP;
+export const AV_MONTHLY_CAP = 15;
+
+/**
+ * Letters these three lanes may spend in a month.
+ * 80 verse letters × 31 days is 2,480, and confirmations take 450.
+ * 3,000 − 2,480 − 450 = 70, which is this sum. Reserving (20 + 5) × 31
+ * would put the month past 3,000 and shrink the morning letter, so the
+ * month stops here instead.
+ */
+export const DESK_FAMILY_MONTHLY_CAP = OWNER_MONTHLY_CAP + DESK_MONTHLY_CAP + AV_MONTHLY_CAP;
+
+export type DeskLane = "desk" | "owner" | "av";
+
+export type DeskClaim = {
+  ok: boolean;
+  /** True only when this call incremented the counters. Fail-open does not. */
+  reserved: boolean;
+  reason: "" | "daily cap" | "monthly cap";
+  dayBucket: string;
+  monthBucket: string;
+};
+
+export type DeskMailSkip = {
+  id: string;
+  lane: string;
+  kind: string;
+  reason: string;
+  created_at: string;
+};
 
 export function deskSendAllowed(sentToday: number, cap = DESK_DAILY_CAP) {
   return Math.max(0, sentToday) < cap;
 }
 
-function missingRelation(error: unknown) {
-  return (error as { code?: string })?.code === "42P01";
+export function deskBuckets(lane: DeskLane, now = new Date()) {
+  const day = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    .toISOString()
+    .slice(0, 10);
+  return { dayBucket: `${lane}:${day}`, monthBucket: `${lane}:${day.slice(0, 7)}` };
+}
+
+function deskLaneCaps(lane: DeskLane) {
+  if (lane === "owner") return { daily: OWNER_DAILY_CAP, monthly: OWNER_MONTHLY_CAP };
+  if (lane === "av") return { daily: AV_DAILY_CAP, monthly: AV_MONTHLY_CAP };
+  return { daily: DESK_DAILY_CAP, monthly: DESK_MONTHLY_CAP };
+}
+
+function errorCode(error: unknown) {
+  return (error as { code?: string })?.code;
+}
+
+/** Missing table, or the reserve function is not installed yet. */
+function budgetNotReady(error: unknown) {
+  const code = errorCode(error);
+  return code === "42P01" || code === "42883";
 }
 
 /**
- * Claim one desk letter for this UTC day. The counter moves in this statement
- * only while it is still under the cap. A missing table means the manual
- * migration is not applied yet, and the send is allowed.
+ * Write the held letter where the desk can read it. A failed insert does not
+ * change the decision to hold the letter.
  */
-export async function claimDeskSend(sql: Sql, now = new Date()) {
+export async function recordDeskSkip(
+  sql: Sql,
+  args: { lane: string; kind: string; reason: "daily cap" | "monthly cap" },
+) {
   try {
-    const rows = await sql<{ used: number }>`
-      insert into desk_send_budget (bucket, used)
-      values (${deskDayBucket(now)}, 1)
-      on conflict (bucket) do update
-      set used = desk_send_budget.used + 1, updated_at = now()
-      where desk_send_budget.used < ${DESK_DAILY_CAP}
-      returning used
+    await sql`
+      insert into desk_mail_skips (id, lane, kind, reason)
+      values (${crypto.randomUUID()}, ${args.lane}, ${args.kind}, ${args.reason})
     `;
-    return rows.length > 0;
+  } catch {
+    console.error(`[desk-mail] skip log failed lane=${args.lane}`);
+  }
+}
+
+/**
+ * Recent held letters, newest first. A missing table yields an empty list so
+ * the desk still opens before the manual migration is applied. Read only.
+ */
+export async function listDeskMailSkips(sql: Sql, limit = 20): Promise<DeskMailSkip[]> {
+  try {
+    return await sql<DeskMailSkip>`
+      select id, lane, kind, reason, created_at::text as created_at
+      from desk_mail_skips
+      order by created_at desc
+      limit ${limit}
+    `;
   } catch (error) {
-    if (missingRelation(error)) return true;
+    if (budgetNotReady(error)) return [];
     throw error;
   }
 }
 
-export async function releaseDeskSend(sql: Sql, now = new Date()) {
+/**
+ * Claim one letter on a lane for this UTC day and month together.
+ * Public desk mail fail-opens only when the migration is not applied yet.
+ * Owner notices and church notes fail open on any database error.
+ * A cap writes a desk_mail_skips row and does not send.
+ */
+export async function claimDeskSend(
+  sql: Sql,
+  now = new Date(),
+  lane: DeskLane = "desk",
+  kind: string = lane,
+): Promise<DeskClaim> {
+  const buckets = deskBuckets(lane, now);
+  const caps = deskLaneCaps(lane);
+  const open = { ok: true, reserved: false, reason: "" as const, ...buckets };
   try {
-    await sql`
-      update desk_send_budget
-      set used = greatest(used - 1, 0), updated_at = now()
-      where bucket = ${deskDayBucket(now)}
+    const rows = await sql<{ result: string }>`
+      select desk_reserve_send(
+        ${buckets.dayBucket},
+        ${caps.daily},
+        ${buckets.monthBucket},
+        ${caps.monthly}
+      ) as result
     `;
+    const verdict = rows[0]?.result;
+    if (verdict === "ok") return { ...open, reserved: true };
+    if (verdict === "day" || verdict === "month") {
+      const reason = verdict === "month" ? "monthly cap" : "daily cap";
+      await recordDeskSkip(sql, { lane, kind, reason });
+      return { ok: false, reserved: false, reason, ...buckets };
+    }
+    throw new Error("desk reserve returned nothing");
   } catch (error) {
-    if (missingRelation(error)) return;
+    if (lane === "owner" || lane === "av" || budgetNotReady(error)) return open;
     throw error;
+  }
+}
+
+/** Give back a day and a month, one row at a time, in bucket order. */
+export async function releaseDeskSend(sql: Sql, now = new Date(), lane: DeskLane = "desk") {
+  const buckets = deskBuckets(lane, now);
+  const names = [buckets.dayBucket, buckets.monthBucket].sort();
+  for (const bucket of names) {
+    try {
+      await sql`
+        update desk_send_budget
+        set used = greatest(used - 1, 0), updated_at = now()
+        where bucket = ${bucket}
+      `;
+    } catch (error) {
+      if (lane === "owner" || lane === "av" || budgetNotReady(error)) return;
+      throw error;
+    }
   }
 }
 
@@ -192,7 +302,11 @@ export async function sendResendBatch(args: {
 
 /**
  * Resend only, to the literal owner address. No notify_routes read and no
- * email_log write, so it still works when the database is down.
+ * email_log write.
+ *
+ * `unsaved` is the database-is-down fallback. It does not open a connection
+ * and it does not claim a slot, even when a sql handle was passed in.
+ * `routes` uses the owner allowance. A database error there still sends.
  */
 export async function sendHardcodedOwnerEmail(args: {
   subject: string;
@@ -206,12 +320,15 @@ export async function sendHardcodedOwnerEmail(args: {
   now?: Date;
 }): Promise<{ sent: number; attempted: number }> {
   const now = args.now ?? new Date();
-  if (args.sql) {
-    const claimed = await claimDeskSend(args.sql, now);
-    if (!claimed) {
-      console.error(`[desk-mail] daily cap reached kind=${args.logKind}`);
+  const budgeted = args.logLabel !== "unsaved";
+  let reserved = false;
+  if (budgeted && args.sql) {
+    const claimed = await claimDeskSend(args.sql, now, "owner", args.logKind);
+    if (!claimed.ok) {
+      console.error(`[desk-mail] ${claimed.reason} reached kind=${args.logKind}`);
       return { sent: 0, attempted: 0 };
     }
+    reserved = claimed.reserved;
   }
   const result = await sendResendText({
     to: OWNER_EMAIL,
@@ -221,8 +338,12 @@ export async function sendHardcodedOwnerEmail(args: {
     from: args.from ?? deskFromAddress(),
     fetchImpl: args.fetchImpl,
   });
-  if (!result.ok && args.sql && (result.rejected || result.error === "")) {
-    await releaseDeskSend(args.sql, now);
+  if (!result.ok && reserved && args.sql && (result.rejected || result.error === "")) {
+    try {
+      await releaseDeskSend(args.sql, now, "owner");
+    } catch {
+      console.error(`[desk-mail] release failed kind=${args.logKind}`);
+    }
   }
   if (!result.ok) {
     console.error(

@@ -1,5 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { LEGAL } from "./content.ts";
+import { DESK_FAMILY_MONTHLY_CAP } from "./desk-mail.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 import { isPublicDomainTranslation, verseSlug, type VerseDay } from "./verse.ts";
 
@@ -8,12 +9,17 @@ export const RESEND_DAILY_CAP = 100;
 export const RESEND_MONTHLY_CAP = 3000;
 
 /**
- * Left unused on purpose. Desk mail and any other app on this key still fit,
- * and confirmations are not allowed to spend it. The free plan rejects mail
- * at the cap rather than billing an overage.
+ * Left unused on purpose. Public desk replies fit here, and confirmations
+ * are not allowed to spend it. Owner notices are a separate lane and are
+ * not subtracted on the day: another 20 would shrink the verse letter
+ * below 80. The free plan rejects mail at the cap rather than billing.
  */
 export const DESK_DAILY_RESERVE = 5;
-export const DESK_MONTHLY_RESERVE = 150;
+/**
+ * What the owner, public desk, and church lanes may spend in a month.
+ * See DESK_FAMILY_MONTHLY_CAP. This is not (20 + 5) × 31.
+ */
+export const DESK_MONTHLY_RESERVE = DESK_FAMILY_MONTHLY_CAP;
 
 /** @deprecated Use DESK_DAILY_RESERVE. Kept so older call sites still compile. */
 export const RESEND_DAILY_HEADROOM = DESK_DAILY_RESERVE;
@@ -26,8 +32,8 @@ export const VERSE_DAILY_SEND_CEILING = 80;
 /**
  * Confirmations, across every address.
  * 15 a day is what remains of a 100-letter day after the 5-letter desk reserve
- * and an 80-letter verse run. 450 a month is 15 × 30, which fits under the
- * 3,000-letter month after the 150-letter desk reserve and 80 letters × 30 days.
+ * and an 80-letter verse run. 450 a month is 15 × 30. An 80-letter verse on
+ * each of 31 days is 2,480. 2,480 + 450 + the 70-letter desk reserve is 3,000.
  */
 export const CONFIRM_DAILY_CAP = 15;
 export const CONFIRM_MONTHLY_CAP = 450;

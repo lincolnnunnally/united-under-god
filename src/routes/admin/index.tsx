@@ -95,6 +95,8 @@ function InboxPage() {
         waiting across every app.
       </p>
 
+      <HeldMail skips={glance?.skips ?? []} />
+
       <div className="mt-6 flex flex-wrap gap-2">
         <FilterChip label="All" on={kind === "all"} onClick={() => setKind("all")} />
         {DESK_KINDS.map((item) => (
@@ -142,6 +144,35 @@ function InboxPage() {
         ))}
       </ul>
     </div>
+  );
+}
+
+function HeldMail({
+  skips,
+}: {
+  skips: Array<{ id: string; lane: string; kind: string; reason: string; created_at: string }>;
+}) {
+  return (
+    <section className="mt-8" aria-label="Held mail">
+      <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">Held mail</p>
+      {skips.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">No letter has been held for the cap.</p>
+      ) : (
+        <ul className="mt-3 space-y-2">
+          {skips.map((skip) => (
+            <li
+              key={skip.id}
+              className="rounded-xl bg-cream px-5 py-3 text-sm text-ink shadow-[var(--shadow-border)]"
+            >
+              <span className="font-medium">{skip.lane}</span>
+              <span className="text-muted"> · {skip.reason}</span>
+              {skip.kind ? <span className="text-muted"> · {skip.kind}</span> : null}
+              <span className="mt-1 block text-muted">{skip.created_at}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

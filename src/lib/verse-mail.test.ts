@@ -4,7 +4,21 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
-import { claimDeskSend, DESK_DAILY_CAP, deskSendAllowed, sendHardcodedOwnerEmail } from "./desk-mail.ts";
+import { sendAvConfirmation } from "./church-av-confirm.ts";
+import {
+  AV_DAILY_CAP,
+  AV_MONTHLY_CAP,
+  claimDeskSend,
+  DESK_DAILY_CAP,
+  DESK_FAMILY_MONTHLY_CAP,
+  DESK_MONTHLY_CAP,
+  deskBuckets,
+  deskSendAllowed,
+  listDeskMailSkips,
+  OWNER_DAILY_CAP,
+  OWNER_MONTHLY_CAP,
+  sendHardcodedOwnerEmail,
+} from "./desk-mail.ts";
 import {
   buildConfirmMail,
   buildDailyVerseMail,
@@ -70,6 +84,16 @@ function gate(now: Date, ip?: string) {
 function ask(sql: Sql, input: Parameters<typeof requestVerseSubscription>[1]) {
   const now = input.now ?? new Date();
   return requestVerseSubscription(sql, { ...gate(now, input.ip), ...input });
+}
+
+function throwingSql(onCall?: () => void): Sql {
+  const fail = () => {
+    onCall?.();
+    throw Object.assign(new Error("database is down"), { code: "57P01" });
+  };
+  const sql = (async () => fail()) as unknown as Sql;
+  sql.query = async () => fail();
+  return sql;
 }
 
 function toSql(pg: PGlite): Sql {
@@ -1312,70 +1336,206 @@ describe("verse confirm defenses", () => {
     await pg.close();
   });
 
-  it("stops desk mail at five a day", async () => {
+  it("stops public desk mail at five a day and still allows an owner notice", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-12-03T15:00:00.000Z");
     assert.equal(DESK_DAILY_CAP, DESK_DAILY_RESERVE);
     assert.equal(deskSendAllowed(DESK_DAILY_CAP - 1), true);
     assert.equal(deskSendAllowed(DESK_DAILY_CAP), false);
+    for (let n = 0; n < DESK_DAILY_CAP; n += 1) {
+      const claimed = await claimDeskSend(sql, now, "desk", "inquiry");
+      assert.equal(claimed.ok, true);
+      assert.equal(claimed.reserved, true);
+    }
+    const blocked = await claimDeskSend(sql, now, "desk", "inquiry");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.reason, "daily cap");
+    const buckets = deskBuckets("desk", now);
+    const used = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${buckets.dayBucket}
+    `;
+    assert.equal(Number(used[0]?.used), DESK_DAILY_CAP);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips[0]?.lane, "desk");
+    assert.equal(skips[0]?.kind, "inquiry");
+    assert.equal(skips[0]?.reason, "daily cap");
+    const owner = await claimDeskSend(sql, now, "owner", "routes");
+    assert.equal(owner.ok, true);
+    assert.equal(owner.reserved, true);
+    await pg.close();
+  });
+
+  it("sends the unsaved owner fallback when the database throws", async () => {
+    const now = new Date("2026-12-03T15:00:00.000Z");
+    let fetches = 0;
+    let sqlCalls = 0;
+    const fetchImpl = (async () => {
+      fetches += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const down = throwingSql(() => {
+      sqlCalls += 1;
+    });
+    const sent = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED",
+      text: "hello",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      sql: down,
+      now,
+      fetchImpl,
+    });
+    assert.deepEqual(sent, { sent: 1, attempted: 1 });
+    assert.equal(fetches, 1);
+    assert.equal(sqlCalls, 0);
+
+    const { pg, sql } = await db();
+    const month = deskBuckets("owner", now).monthBucket;
+    await sql`
+      insert into desk_send_budget (bucket, used)
+      values (${month}, ${OWNER_MONTHLY_CAP})
+    `;
+    let watched = 0;
+    const watching = (async <T = Record<string, unknown>>(
+      strings: TemplateStringsArray,
+      ...values: unknown[]
+    ): Promise<T[]> => {
+      watched += 1;
+      return sql<T>(strings, ...values);
+    }) as Sql;
+    watching.query = (text, params) => sql.query(text, params);
+    const still = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED",
+      text: "hello",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      sql: watching,
+      now,
+      fetchImpl,
+    });
+    assert.equal(still.sent, 1);
+    assert.equal(watched, 0);
+    assert.equal(fetches, 2);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips.length, 0);
+    await pg.close();
+  });
+
+  it("sends a saved owner notice when the claim throws", async () => {
+    const now = new Date("2026-12-05T15:00:00.000Z");
+    let fetches = 0;
+    const sent = await sendHardcodedOwnerEmail({
+      subject: "Routes",
+      text: "hello",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "routes",
+      sql: throwingSql(),
+      now,
+      fetchImpl: (async () => {
+        fetches += 1;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.deepEqual(sent, { sent: 1, attempted: 1 });
+    assert.equal(fetches, 1);
+    const claim = await claimDeskSend(throwingSql(), now, "owner", "food");
+    assert.equal(claim.ok, true);
+    assert.equal(claim.reserved, false);
+    await assert.rejects(() => claimDeskSend(throwingSql(), now, "desk"));
+  });
+
+  it("gives owner notices their own daily allowance and records the skip", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-12-06T15:00:00.000Z");
     let fetches = 0;
     const fetchImpl = (async () => {
       fetches += 1;
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
-    for (let n = 0; n < DESK_DAILY_CAP; n += 1) {
+    for (let n = 0; n < OWNER_DAILY_CAP; n += 1) {
       const sent = await sendHardcodedOwnerEmail({
-        subject: "Desk note",
+        subject: "Routes",
         text: "hello",
         apiKey: "re_test",
         logKind: "food",
-        logLabel: "unsaved",
+        logLabel: "routes",
         sql,
         now,
         fetchImpl,
       });
       assert.equal(sent.sent, 1);
     }
-    assert.equal(fetches, DESK_DAILY_CAP);
     const blocked = await sendHardcodedOwnerEmail({
-      subject: "Desk note",
+      subject: "Routes",
       text: "hello",
       apiKey: "re_test",
       logKind: "food",
-      logLabel: "unsaved",
+      logLabel: "routes",
       sql,
       now,
       fetchImpl,
     });
     assert.deepEqual(blocked, { sent: 0, attempted: 0 });
-    assert.equal(fetches, DESK_DAILY_CAP);
+    assert.equal(fetches, OWNER_DAILY_CAP);
+    const buckets = deskBuckets("owner", now);
     const used = await sql<{ used: number }>`
-      select used from desk_send_budget where bucket = ${`day:${now.toISOString().slice(0, 10)}`}
+      select used from desk_send_budget where bucket = ${buckets.dayBucket}
     `;
-    assert.equal(Number(used[0]?.used), DESK_DAILY_CAP);
+    assert.equal(Number(used[0]?.used), OWNER_DAILY_CAP);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips[0]?.lane, "owner");
+    assert.equal(skips[0]?.kind, "food");
+    assert.equal(skips[0]?.reason, "daily cap");
+    await pg.close();
+  });
 
+  it("releases a refused owner notice in bucket order and keeps the slot when the network fails", async () => {
+    const { pg, sql } = await db();
     const later = new Date("2026-12-04T15:00:00.000Z");
+    const releaseOrder: string[] = [];
+    const watching = (async <T = Record<string, unknown>>(
+      strings: TemplateStringsArray,
+      ...values: unknown[]
+    ): Promise<T[]> => {
+      const text = strings.join(" ");
+      if (text.includes("greatest(used - 1") && text.includes("desk_send_budget")) {
+        const bucket = values.find((value) => typeof value === "string" && /^(desk|owner|av):/.test(value));
+        if (typeof bucket === "string") releaseOrder.push(bucket);
+      }
+      return sql<T>(strings, ...values);
+    }) as Sql;
+    watching.query = (text, params) => sql.query(text, params);
     const refused = await sendHardcodedOwnerEmail({
-      subject: "Desk note",
+      subject: "Routes",
       text: "hello",
       apiKey: "re_test",
       logKind: "food",
-      logLabel: "unsaved",
-      sql,
+      logLabel: "routes",
+      sql: watching,
       now: later,
       fetchImpl: (async () => new Response("no", { status: 500 })) as typeof fetch,
     });
     assert.equal(refused.sent, 0);
-    const released = await sql<{ used: number }>`
-      select used from desk_send_budget where bucket = ${`day:${later.toISOString().slice(0, 10)}`}
+    const expected = [deskBuckets("owner", later).dayBucket, deskBuckets("owner", later).monthBucket].sort();
+    assert.deepEqual(releaseOrder, expected);
+    const released = await sql<{ bucket: string; used: number }>`
+      select bucket, used from desk_send_budget
+      where bucket = ${expected[0]} or bucket = ${expected[1]}
+      order by bucket
     `;
-    assert.equal(Number(released[0]?.used), 0);
+    assert.deepEqual(
+      released.map((row) => Number(row.used)),
+      [0, 0],
+    );
     const dropped = await sendHardcodedOwnerEmail({
-      subject: "Desk note",
+      subject: "Routes",
       text: "hello",
       apiKey: "re_test",
       logKind: "food",
-      logLabel: "unsaved",
+      logLabel: "routes",
       sql,
       now: later,
       fetchImpl: (async () => {
@@ -1384,11 +1544,117 @@ describe("verse confirm defenses", () => {
     });
     assert.equal(dropped.sent, 0);
     const kept = await sql<{ used: number }>`
-      select used from desk_send_budget where bucket = ${`day:${later.toISOString().slice(0, 10)}`}
+      select used from desk_send_budget where bucket = ${deskBuckets("owner", later).dayBucket}
     `;
     assert.equal(Number(kept[0]?.used), 1);
-    assert.equal(await claimDeskSend(sql, later), true);
+    const again = await claimDeskSend(sql, later, "owner");
+    assert.equal(again.ok, true);
     await pg.close();
+  });
+
+  it("stops each desk lane on its monthly cap so the month stays inside 3000", async () => {
+    assert.equal(DESK_MONTHLY_RESERVE, DESK_FAMILY_MONTHLY_CAP);
+    assert.equal(DESK_FAMILY_MONTHLY_CAP, OWNER_MONTHLY_CAP + DESK_MONTHLY_CAP + AV_MONTHLY_CAP);
+    assert.ok(
+      VERSE_DAILY_SEND_CEILING * 31 + CONFIRM_MONTHLY_CAP + OWNER_MONTHLY_CAP + DESK_MONTHLY_CAP + AV_MONTHLY_CAP <=
+        RESEND_MONTHLY_CAP,
+    );
+    const { pg, sql } = await db();
+    const now = new Date("2026-07-02T12:00:00.000Z");
+    const buckets = deskBuckets("desk", now);
+    await sql`
+      insert into desk_send_budget (bucket, used)
+      values (${buckets.monthBucket}, ${DESK_MONTHLY_CAP})
+    `;
+    const blocked = await claimDeskSend(sql, now, "desk", "inquiry");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.reason, "monthly cap");
+    const day = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${buckets.dayBucket}
+    `;
+    assert.equal(Number(day[0]?.used), 0);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips[0]?.lane, "desk");
+    assert.equal(skips[0]?.reason, "monthly cap");
+    await sql`drop table desk_mail_skips`;
+    const still = await claimDeskSend(sql, now, "desk", "inquiry");
+    assert.equal(still.ok, false);
+    assert.equal(still.reason, "monthly cap");
+    await sql`drop table desk_send_budget`;
+    const open = await claimDeskSend(sql, now, "desk");
+    assert.equal(open.ok, true);
+    assert.equal(open.reserved, false);
+    await pg.close();
+  });
+
+  it("holds a church confirmation inside the owner-style allowance and fails open", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-08-04T15:00:00.000Z");
+    const buckets = deskBuckets("av", now);
+    await sql`
+      insert into desk_send_budget (bucket, used)
+      values (${buckets.dayBucket}, ${AV_DAILY_CAP - 1})
+    `;
+    const inquiry = { id: "av-1", name: "Ruth", email: "ruth@example.org", phone: "", message: "" };
+    let fetches = 0;
+    const fetchImpl = (async () => {
+      fetches += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const sent = await sendAvConfirmation({ inquiry, apiKey: "re_test", sql, now, fetchImpl });
+    assert.deepEqual(sent, { sent: true });
+    const held = await sendAvConfirmation({
+      inquiry: { ...inquiry, id: "av-2" },
+      apiKey: "re_test",
+      sql,
+      now,
+      fetchImpl,
+    });
+    assert.deepEqual(held, { sent: false });
+    assert.equal(fetches, 1);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips[0]?.lane, "av");
+    assert.equal(skips[0]?.reason, "daily cap");
+    const open = await sendAvConfirmation({
+      inquiry: { ...inquiry, id: "av-3" },
+      apiKey: "re_test",
+      sql: throwingSql(),
+      now,
+      fetchImpl,
+    });
+    assert.deepEqual(open, { sent: true });
+    assert.equal(fetches, 2);
+    await pg.close();
+  });
+
+  it("lists held mail for the desk and does not offer a way to change it", () => {
+    const actions = readFileSync(new URL("./desk-actions.ts", import.meta.url), "utf8");
+    const admin = readFileSync(new URL("../routes/admin/index.tsx", import.meta.url), "utf8");
+    const confirm = readFileSync(new URL("./church-av-confirm.ts", import.meta.url), "utf8");
+    const server = readFileSync(new URL("./desk-mail.server.ts", import.meta.url), "utf8");
+    const manual = readFileSync(new URL("../../migrations/manual/0005_verse_subscribers.sql", import.meta.url), "utf8");
+    assert.match(actions, /sendUnsaved:\s*\(notice\)\s*=>\s*mailOwner\(inquiry,\s*notice,\s*"unsaved"\)/);
+    const mailOwnerFn = actions.slice(actions.indexOf("async function mailOwner"), actions.indexOf("async function notifyInquiry"));
+    const unsaved = mailOwnerFn.match(/if \(logLabel === "unsaved"\) \{([\s\S]*?)\n  \}/);
+    assert.ok(unsaved);
+    assert.equal(unsaved[1].includes("sql"), false);
+    assert.match(mailOwnerFn, /logLabel,\s*\n\s*sql,/);
+    assert.match(actions, /sendAvConfirmation\(\{[^}]*sql: avSql/);
+    assert.match(actions, /listDeskMailSkips/);
+    assert.equal(actions.includes("delete from desk_mail_skips"), false);
+    assert.equal(actions.includes("update desk_mail_skips"), false);
+    const held = admin.slice(admin.indexOf("function HeldMail"), admin.indexOf("function FilterChip"));
+    assert.match(held, /Held mail/);
+    assert.equal(held.includes("<button"), false);
+    assert.equal(held.includes("onClick"), false);
+    assert.equal(held.includes("updateInquiry"), false);
+    assert.match(confirm, /claimDeskSend\([\s\S]*"av"/);
+    assert.match(server, /claimDeskSend\(sql, now, "desk", "inquiry"\)/);
+    assert.match(server, /releaseDeskSend\(sql, now, "desk"\)/);
+    assert.match(manual, /create table if not exists desk_mail_skips/i);
+    assert.match(manual, /desk_reserve_send/);
+    assert.match(manual, /revoke all on table desk_mail_skips from public/i);
+    assert.equal(manual.includes("create policy"), false);
   });
 
   it("holds the rest of the month so desk mail cannot shrink the letter", async () => {
@@ -1416,10 +1682,12 @@ describe("verse confirm defenses", () => {
     `;
     for (let n = 0; n < DESK_DAILY_CAP; n += 1) {
       const claimed = await claimDeskSend(sql, morning);
-      assert.equal(claimed, true);
+      assert.equal(claimed.ok, true);
     }
-    assert.equal(await claimDeskSend(sql, morning), false);
+    const sixth = await claimDeskSend(sql, morning);
+    assert.equal(sixth.ok, false);
     let confirmFetches = 0;
+    let ownerFetches = 0;
     const blocked = await ask(sql, {
       email: "late@example.com",
       sourcePath: "/verse",
@@ -1428,14 +1696,17 @@ describe("verse confirm defenses", () => {
       apiKey: "re_test",
       secret: SECRET,
       allowLive: true,
-      fetchImpl: (async () => {
-        confirmFetches += 1;
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        const payload = JSON.parse(String(init?.body ?? "{}")) as { to?: string[] };
+        if ((payload.to ?? []).includes("lincoln@unitedundergod.org")) ownerFetches += 1;
+        else confirmFetches += 1;
         return new Response("{}", { status: 200 });
       }) as typeof fetch,
     });
     assert.equal(blocked.ok, false);
     if (!blocked.ok) assert.equal(blocked.error, CONFIRM_CAP_MESSAGE);
     assert.equal(confirmFetches, 0);
+    assert.equal(ownerFetches, 1);
     let verseSends = 0;
     const delivered = await deliverDailyVerse(sql, {
       now: morning,

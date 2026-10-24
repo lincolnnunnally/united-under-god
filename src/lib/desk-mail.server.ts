@@ -56,17 +56,17 @@ export async function sendDeskEmails(args: SendArgs) {
     let status = "failed";
     let error = "";
     try {
-      const claimed = await claimDeskSend(sql, now);
-      if (!claimed) {
-        console.error(`[desk-mail] daily cap reached inquiry=${args.inquiryId}`);
+      const claimed = await claimDeskSend(sql, now, "desk", "inquiry");
+      if (!claimed.ok) {
+        console.error(`[desk-mail] ${claimed.reason} reached inquiry=${args.inquiryId}`);
         status = "skipped";
-        error = "desk daily cap";
+        error = claimed.reason === "monthly cap" ? "desk monthly cap" : "desk daily cap";
       } else {
         const result = await sendOne(to, args.subject, args.text);
         status = result.status;
         error = result.error;
         if (status === "sent") sent += 1;
-        else if (result.rejected) await releaseDeskSend(sql, now);
+        else if (result.rejected && claimed.reserved) await releaseDeskSend(sql, now, "desk");
       }
     } catch (err) {
       error = err instanceof Error ? err.message : "send failed";

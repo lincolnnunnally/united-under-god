@@ -12,8 +12,8 @@
 -- The app connects with DATABASE_URL (table owner) and bypasses RLS.
 -- The Data API roles get no grants and no policies, so anon cannot read
 -- or write these rows. There is no policy that allows a public select.
--- Apply this file as that same role. verse_reserve_confirm is granted to
--- the role that runs this file, and to nobody else.
+-- Apply this file as that same role. verse_reserve_confirm and
+-- desk_reserve_send are granted to the role that runs this file, and to nobody else.
 
 create table if not exists verse_subscribers (
   id text primary key,
@@ -128,13 +128,29 @@ create table if not exists verse_pow_rate (
   constraint verse_pow_rate_used_check check (used >= 0)
 );
 
--- Desk mail, including the owner note. One UTC day. The app stops at 5.
+-- One row per lane and period. desk_reserve_send moves the day and the month
+-- together, or neither.
+--   desk:YYYY-MM-DD / desk:YYYY-MM — public replies, 5 a day and 15 a month
+--   owner:YYYY-MM-DD / owner:YYYY-MM — notices to the owner, 20 a day and 40 a month
+--   av:YYYY-MM-DD / av:YYYY-MM — church confirmations, 20 a day and 15 a month
 create table if not exists desk_send_budget (
   bucket text primary key,
   used integer not null,
   updated_at timestamptz not null default now(),
   constraint desk_send_budget_used_check check (used >= 0)
 );
+
+-- A letter the cap held back. The desk lists these rows and does not change them.
+create table if not exists desk_mail_skips (
+  id text primary key,
+  lane text not null,
+  kind text not null default '',
+  reason text not null,
+  created_at timestamptz not null default now(),
+  constraint desk_mail_skips_reason_check check (reason in ('daily cap', 'monthly cap'))
+);
+
+create index if not exists desk_mail_skips_created_idx on desk_mail_skips (created_at);
 
 -- Atomic confirm reservations. used increases only while it is still under the cap.
 -- bucket is day:YYYY-MM-DD, month:YYYY-MM, or net:<network>:YYYY-MM-DD.
@@ -156,6 +172,7 @@ alter table verse_pow_issued enable row level security;
 alter table verse_pow_rate enable row level security;
 alter table verse_confirm_budget enable row level security;
 alter table desk_send_budget enable row level security;
+alter table desk_mail_skips enable row level security;
 
 revoke all on table verse_subscribers from public;
 revoke all on table verse_mail_runs from public;
@@ -168,6 +185,7 @@ revoke all on table verse_pow_issued from public;
 revoke all on table verse_pow_rate from public;
 revoke all on table verse_confirm_budget from public;
 revoke all on table desk_send_budget from public;
+revoke all on table desk_mail_skips from public;
 
 -- One statement, so a day, a month, and a network are reserved together or not at all.
 -- security invoker (the default): the caller still needs table privileges.
@@ -233,6 +251,57 @@ $verse$;
 revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from public;
 grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) to current_user;
 
+-- Day and month together. Returns ok, day, or month.
+-- security invoker (the default): the caller still needs table privileges.
+create or replace function desk_reserve_send(
+  day_bucket text,
+  day_cap integer,
+  month_bucket text,
+  month_cap integer
+) returns text
+language plpgsql
+set search_path = pg_catalog, public
+as $desk$
+declare
+  rec record;
+  day_used integer := 0;
+  month_used integer := 0;
+begin
+  insert into public.desk_send_budget (bucket, used)
+  values (day_bucket, 0), (month_bucket, 0)
+  on conflict (bucket) do nothing;
+
+  for rec in
+    select bucket, used
+    from public.desk_send_budget
+    where bucket in (day_bucket, month_bucket)
+    order by bucket
+    for update
+  loop
+    if rec.bucket = day_bucket then
+      day_used := rec.used;
+    elsif rec.bucket = month_bucket then
+      month_used := rec.used;
+    end if;
+  end loop;
+
+  if day_used >= day_cap then
+    return 'day';
+  end if;
+  if month_used >= month_cap then
+    return 'month';
+  end if;
+
+  update public.desk_send_budget
+  set used = used + 1, updated_at = now()
+  where bucket in (day_bucket, month_bucket);
+  return 'ok';
+end
+$desk$;
+
+revoke all on function desk_reserve_send(text, integer, text, integer) from public;
+grant execute on function desk_reserve_send(text, integer, text, integer) to current_user;
+
 do $$
 declare
   role_name text;
@@ -251,12 +320,17 @@ begin
         'verse_pow_issued',
         'verse_pow_rate',
         'verse_confirm_budget',
-        'desk_send_budget'
+        'desk_send_budget',
+        'desk_mail_skips'
       ] loop
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;
       execute format(
         'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from %I',
+        role_name
+      );
+      execute format(
+        'revoke all on function desk_reserve_send(text, integer, text, integer) from %I',
         role_name
       );
     end if;

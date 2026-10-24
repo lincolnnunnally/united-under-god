@@ -251,7 +251,7 @@ async function noteConfirmCap(sql: Sql, now: Date, apiKey?: string, fetchImpl?: 
     apiKey,
     fetchImpl,
     logKind: "verse-confirm-cap",
-    logLabel: "unsaved",
+    logLabel: "routes",
     sql,
     now,
   });

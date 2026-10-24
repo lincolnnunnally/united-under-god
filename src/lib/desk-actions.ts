@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
-import { sendHardcodedOwnerEmail } from "@/lib/desk-mail";
+import { listDeskMailSkips, sendHardcodedOwnerEmail, type DeskMailSkip } from "@/lib/desk-mail";
 import { sendAvConfirmation } from "@/lib/church-av-confirm";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
 import { notifySavedInquiry, settleInquirySubmit } from "@/lib/desk-submit";
@@ -165,6 +165,17 @@ async function mailOwner(
   notice: { subject: string; text: string },
   logLabel: "unsaved" | "routes",
 ) {
+  // The unsaved path is the database-is-down fallback. It must not open a
+  // connection or claim a slot.
+  if (logLabel === "unsaved") {
+    return sendHardcodedOwnerEmail({
+      subject: notice.subject,
+      text: notice.text,
+      apiKey: process.env.RESEND_API_KEY,
+      logKind: inquiry.kind,
+      logLabel,
+    });
+  }
   let sql: Awaited<ReturnType<typeof getSql>> | undefined;
   try {
     sql = await getSql();
@@ -276,11 +287,9 @@ export const submitInquiry = createServerFn({ method: "POST" })
       await forwardInquiryToDashboard(inquiry).catch(() => undefined);
     }
     if (settled.ok && kind === "av") {
-      // Instant reply to the church that asked. Never blocks the submit:
-      // sendAvConfirmation catches and logs its own failures.
-      await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY }).catch(
-        () => undefined,
-      );
+      let avSql: Awaited<ReturnType<typeof getSql>> | undefined;
+      try { avSql = await getSql(); } catch { avSql = undefined; }
+      await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY, sql: avSql }).catch(() => undefined);
     }
     if (!settled.ok) {
       return {
@@ -306,14 +315,25 @@ export const readDeskGlance = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
     await requireDeskStaff(context.userId);
-    const stats = await readOpsStats();
+    const [stats, skips] = await Promise.all([
+      readOpsStats(),
+      (async (): Promise<DeskMailSkip[]> => {
+        try {
+          return await listDeskMailSkips(await getSql());
+        } catch {
+          return [];
+        }
+      })(),
+    ]);
     return {
       stats,
+      skips,
       reportingArmed: reportingArmed(),
       dashboardUrl: DASHBOARD_ORIGIN,
       publicUrl: PUBLIC_URL,
     } satisfies {
       stats: OpsStats;
+      skips: DeskMailSkip[];
       reportingArmed: boolean;
       dashboardUrl: string;
       publicUrl: string;
