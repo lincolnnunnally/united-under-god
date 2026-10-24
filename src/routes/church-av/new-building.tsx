@@ -53,7 +53,7 @@ function FloorPlan() {
         ))}
       </svg>
       <figcaption className="av-nb-caption">
-        Drawn in before the walls close: speakers, rigging, cameras, and the sound booth.
+        Planned on paper first: speakers, rigging, cameras, and the sound booth.
       </figcaption>
     </figure>
   );
