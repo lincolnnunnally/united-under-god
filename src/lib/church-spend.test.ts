@@ -61,7 +61,7 @@ async function fresh({ categories = true } = {}) {
   const pg = new PGlite();
   await pg.waitReady;
   await pg.exec(migration("0004_source_buying.sql"));
-  if (categories) await pg.exec(migration("manual/0006_source_bid_category.sql"));
+  if (categories) await pg.exec(migration("0006_source_bid_category.sql"));
   return toSql(pg);
 }
 

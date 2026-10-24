@@ -185,7 +185,7 @@ function BuyingBook({
         ) : entries.length === 0 ? (
           <p className="mt-3 max-w-2xl text-muted">
             We are gathering our first group orders now. As prices are secured, they will be listed
-            here for members. Join below and we will let you know as soon as savings are available
+            here for every church. Join below and we will let you know as soon as savings are available
             for the things you buy.
           </p>
         ) : (

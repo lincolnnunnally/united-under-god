@@ -207,7 +207,7 @@ export async function createBid(sql: Sql, input: CreateBidInput, userId: string)
 
 /**
  * Postgres 42703 (undefined column) on a bid write means
- * migrations/manual/0006_source_bid_category.sql has not been applied to this
+ * migrations/0006_source_bid_category.sql has not been applied to this
  * database. Say so instead of a bare SQL error.
  */
 export function missingCategoryColumns(err: unknown): Error | null {
@@ -218,7 +218,7 @@ export function missingCategoryColumns(err: unknown): Error | null {
     return null;
   }
   return new Error(
-    "The bid category columns are not in the database yet. Apply migrations/manual/0006_source_bid_category.sql, then try again.",
+    "The bid category columns are not in the database yet. Apply migrations/0006_source_bid_category.sql, then try again.",
   );
 }
 
