@@ -27,12 +27,21 @@ function JoinPage() {
             <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
               The seal — free, always
             </p>
-            <h1 className="mt-3 text-4xl">Make the statement of intent.</h1>
+            <h1 className="mt-3 text-4xl">Take the seal.</h1>
             <p className="mt-5 max-w-prose text-muted">
-              The seal is not a fee, a contract, or a membership club. It is a
-              public way to say: we desire to be unified under God, and we
-              intend to fulfill what Jesus asked of His church — love one
-              another, and let good work be seen.
+              The seal is a statement of intent your organization chooses to
+              make. It is not a fee or a contract. It is a public way to say: we
+              desire to be unified under God, and we intend to fulfill what
+              Jesus asked of His church — love one another, and let good work be
+              seen.
+            </p>
+            <p className="mt-3 max-w-prose text-sm text-muted">
+              The seal is separate from{" "}
+              <Link to="/membership" className="text-forest underline-offset-4 hover:underline">
+                church membership
+              </Link>
+              , the paid program for the buying catalogs and member benefits. Taking the seal never
+              requires it.
             </p>
           </div>
         </div>

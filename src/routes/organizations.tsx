@@ -4,6 +4,7 @@ import { SiteShell } from "@/components/site-shell";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { Button } from "@/components/ui/button";
 import { ORG_TYPES } from "@/lib/content";
+import { MEMBER_PRICE_LABEL } from "@/lib/membership";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/organizations")({
@@ -25,9 +26,9 @@ const HELPS = [
   },
   {
     title: "Group buying",
-    body: "Pool orders for toner, paper, and supplies with other churches and ministries, and pay less than you would on your own.",
+    body: "Pool orders for toner, paper, and supplies with other churches and ministries. We bid for the group, and member churches see the awarded prices and vendors.",
     to: "/buying",
-    cta: "Start saving",
+    cta: "See the catalogs",
   },
   {
     title: "The assessment",
@@ -85,6 +86,28 @@ function OrganizationsPage() {
         <SignInNudge about="group buying, outreach, and the seal" />
       </section>
 
+      <section className="mx-auto max-w-6xl px-5 pt-10 md:px-8">
+        <Link
+          to="/membership"
+          className="group flex flex-col gap-4 rounded-xl bg-forest p-6 text-paper shadow-[var(--shadow-border)] sm:flex-row sm:items-center sm:justify-between sm:p-8"
+        >
+          <span>
+            <span className="block text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
+              For churches
+            </span>
+            <span className="mt-2 block font-display text-2xl text-paper">Become a member church</span>
+            <span className="mt-2 block max-w-2xl text-sm text-paper/85">
+              The full buying catalogs with vendor contacts and awarded prices, a church website,
+              pastor fellowship, and help when a vendor falls short. {MEMBER_PRICE_LABEL}.
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-2 text-sm font-medium text-paper">
+            See membership
+            <ArrowRight className="size-4 transition-transform duration-[var(--motion-quick)] group-hover:translate-x-0.5" />
+          </span>
+        </Link>
+      </section>
+
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
         <div className="grid gap-10 md:grid-cols-2">
           {ORG_TYPES.map((item) => (
@@ -117,7 +140,10 @@ function OrganizationsPage() {
           </div>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button asChild>
-              <Link to="/join">Join free</Link>
+              <Link to="/join">Take the seal</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link to="/membership">Become a member church</Link>
             </Button>
             <Button asChild variant="secondary">
               <Link to="/happenings">See what’s happening</Link>

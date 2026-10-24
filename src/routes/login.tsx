@@ -8,6 +8,7 @@ import { GROK_PROVIDERS, authClient, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { PLENTY_URL } from "@/lib/content";
 import { readMyPlace } from "@/lib/member-actions";
+import { safeNextPath } from "@/lib/membership";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/login")({
@@ -22,9 +23,20 @@ function nameFromEmail(email: string) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+/** `/login?next=/membership` returns there after sign-in (same-site paths only). */
+function nextPath(): string | null {
+  if (typeof window === "undefined") return null;
+  return safeNextPath(new URLSearchParams(window.location.search).get("next"));
+}
+
 function SignedInRedirect() {
   const [to, setTo] = useState<"/" | "/admin" | "/account" | null>(null);
   useEffect(() => {
+    const next = nextPath();
+    if (next) {
+      window.location.replace(next);
+      return;
+    }
     void readMyPlace()
       .then((place) => setTo(place.isStaff ? "/admin" : "/account"))
       .catch(() => setTo("/account"));
@@ -58,6 +70,11 @@ function LoginPage() {
   if (user) return <SignedInRedirect />;
 
   async function goAfterAuth() {
+    const next = nextPath();
+    if (next) {
+      window.location.href = next;
+      return;
+    }
     try {
       const place = await readMyPlace();
       window.location.href = place.isStaff ? "/admin" : "/account";
@@ -131,7 +148,7 @@ function LoginPage() {
     }, 4000);
     try {
       await signIn(providerId, {
-        callbackURL: "/account",
+        callbackURL: nextPath() ?? "/account",
         errorCallbackURL: "/login",
       });
       setError("Google and X did not start. Use email and password.");

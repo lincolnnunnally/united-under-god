@@ -54,7 +54,12 @@ export function InvolvementForm({
 }: Props) {
   const copy = INTENT_COPY[intent];
   const needsOrg =
-    intent === "seal" || intent === "grocery" || intent === "buying" || intent === "av";
+    intent === "seal" ||
+    intent === "grocery" ||
+    intent === "buying" ||
+    intent === "av" ||
+    intent === "member" ||
+    intent === "website";
   const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
   const [error, setError] = useState("");
 

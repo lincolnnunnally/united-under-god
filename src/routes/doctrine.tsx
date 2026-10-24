@@ -686,7 +686,7 @@ function DoctrinePage() {
         </blockquote>
         <div className="doctrine-actions">
           <Link className="button button-primary" to="/join">
-            Make the statement of intent
+            Take the seal
           </Link>
           <Link className="button" to="/organizations">
             How we help organizations

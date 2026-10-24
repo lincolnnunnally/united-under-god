@@ -437,6 +437,11 @@ export type CatalogBookEntry = {
   catalogItem: string;
   /** The vendor stands behind the Vendor Covenant (see listBook). */
   covenant?: boolean;
+  /**
+   * Vendor, price, and notes were withheld on the server because the viewer
+   * is not a member church (see entriesForViewer in membership.ts).
+   */
+  locked?: boolean;
 };
 
 export type CatalogItemStatus = "priced" | "bidding" | "referral" | "not-bid";
@@ -471,7 +476,10 @@ export function catalogView(
   book: CatalogBookEntry[],
   bidding: { category: string; catalogItem: string }[],
 ): CatalogView {
-  const mine = book.filter((entry) => entry.category === category.id && entry.unitPrice.trim());
+  // A locked entry still counts as priced: the price exists, the viewer is not a member.
+  const mine = book.filter(
+    (entry) => entry.category === category.id && (entry.unitPrice.trim() || entry.locked),
+  );
   const open = new Set(
     bidding.filter((row) => row.category === category.id).map((row) => row.catalogItem),
   );
