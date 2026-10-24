@@ -1,6 +1,12 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { LEGAL } from "./content.ts";
-import { DESK_FAMILY_MONTHLY_CAP, SHARED_DAILY_CAP } from "./desk-mail.ts";
+import {
+  AV_DAILY_CAP,
+  DESK_DAILY_CAP,
+  DESK_FAMILY_MONTHLY_CAP,
+  OWNER_DAILY_CAP,
+  SHARED_DAILY_CAP,
+} from "./desk-mail.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 import { isPublicDomainTranslation, verseSlug, type VerseDay } from "./verse.ts";
 
@@ -44,9 +50,16 @@ export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
 
 /**
  * Confirmation notes from one network, per UTC day.
- * IPv4 is a /24. IPv6 is a /48. A missing address uses the shared bucket.
+ * IPv4 is a /24. IPv6 is a /32. A missing address uses the shared bucket.
+ * One a day, so five distinct networks are what fills the confirm lane.
  */
-export const CONFIRM_PER_NETWORK_PER_DAY = 3;
+export const CONFIRM_PER_NETWORK_PER_DAY = 1;
+
+/**
+ * Desk, owner, and church letters stay reserved all day.
+ * Confirmations cannot borrow them, before or after the verse letter.
+ */
+export const LANE_DAILY_RESERVE = DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP;
 
 /** Sign-up attempts from one IP, whether or not a note goes out. */
 export const SUBSCRIBE_IP_PER_HOUR = 5;
@@ -64,7 +77,10 @@ export const VERSE_POW_HMAC_PREFIX = "verse-pow-v1";
 /** Missing or unreadable addresses share this one bucket. */
 export const SHARED_IP_BUCKET = "shared";
 
-/** Leading zero bits a browser must find before a sign-up counts. */
+/**
+ * Leading zero bits a browser must find before a sign-up counts.
+ * Fixed. The daily ledger is what stops a lane from filling.
+ */
 export const VERSE_POW_BITS = 16;
 export const VERSE_POW_TTL_SEC = 10 * 60;
 
@@ -241,17 +257,11 @@ export function verseMonthSlotsToHold(perDay: number, openDays: number) {
 
 /**
  * Caps passed into the atomic reservation. The desk reserve is never given to confirmations.
- * After the day's verse letter is sent, confirmations may use whatever shared room is left.
- * The shared row still stops the day at 95.
+ * `dayCap` stays at 5. After the letter is sent, the reserve function reads that row
+ * and may add only the part of the 80 the letter did not use.
  */
 export function confirmHardCeilings(
-  input: {
-    dailyCap?: number;
-    monthlyCap?: number;
-    verseHold?: number;
-    verseMonthHold?: number;
-    letterSent?: boolean;
-  } = {},
+  input: { dailyCap?: number; monthlyCap?: number; verseHold?: number; verseMonthHold?: number } = {},
 ) {
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
@@ -259,7 +269,7 @@ export function confirmHardCeilings(
   const verseMonthHold = Math.max(0, input.verseMonthHold ?? 0);
   const sharedCap = input.dailyCap == null ? SHARED_DAILY_CAP : dailyCap - DESK_DAILY_RESERVE;
   return {
-    dayCap: input.letterSent ? sharedCap : CONFIRM_DAILY_CAP,
+    dayCap: CONFIRM_DAILY_CAP,
     monthCap: CONFIRM_MONTHLY_CAP,
     netCap: CONFIRM_PER_NETWORK_PER_DAY,
     dailyHard: sharedCap - verseHold,
@@ -267,6 +277,18 @@ export function confirmHardCeilings(
     verseHold,
     verseMonthHold,
   };
+}
+
+/**
+ * How many confirmations this UTC day may send.
+ * Before the letter, that is 5. After it, 5 plus the letters the run did not send.
+ * Desk 3, owner 4, and church 3 stay reserved either way: 95 − 80 − 10 = 5.
+ */
+export function confirmDayCeiling(letterSent: boolean, verseSent: number) {
+  if (!letterSent) return CONFIRM_DAILY_CAP;
+  const unused = Math.max(0, VERSE_DAILY_SEND_CEILING - Math.max(0, Math.floor(verseSent)));
+  const base = SHARED_DAILY_CAP - VERSE_DAILY_SEND_CEILING - LANE_DAILY_RESERVE;
+  return Math.max(0, base) + unused;
 }
 
 /**
@@ -283,10 +305,11 @@ export function confirmSendAllowed(input: {
   monthlyCap?: number;
   verseHold?: number;
   verseMonthHold?: number;
-  letterSent?: boolean;
+  /** From the same formula as the reserve. The transaction re-reads the run row. */
+  dayCeiling?: number;
 }) {
   const caps = confirmHardCeilings(input);
-  if (input.confirmsToday >= caps.dayCap) return false;
+  if (input.confirmsToday >= (input.dayCeiling ?? caps.dayCap)) return false;
   if (input.confirmsThisMonth >= caps.monthCap) return false;
   const sharedCap = (input.dailyCap ?? RESEND_DAILY_CAP) - DESK_DAILY_RESERVE;
   if (input.otherToday + caps.verseHold >= sharedCap) return false;
@@ -337,12 +360,6 @@ export function confirmNetwork(ip: string | undefined) {
     .slice(0, 2)
     .map((group) => group.padStart(4, "0"))
     .join(":")}::/32`;
-}
-
-/** Proof-of-work bits for the next confirmation. Harder as today's confirm lane fills, never above 24. */
-export function confirmPowBits(confirmsToday: number) {
-  const used = Math.max(0, Math.floor(confirmsToday));
-  return Math.min(24, VERSE_POW_BITS + used * 2);
 }
 
 /** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */

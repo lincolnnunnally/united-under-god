@@ -261,13 +261,15 @@ revoke all on function reserve_shared_mail(text, integer, integer) from public;
 grant execute on function reserve_shared_mail(text, integer, integer) to current_user;
 
 -- One statement, so a day, a month, a network, and the shared day move together.
--- The old 10-argument form did not touch the shared day. Drop it so it cannot be called.
+-- The old forms did not read the verse run or hold the desk lanes. Drop them.
 drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer);
+drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer);
 
 -- security invoker (the default): the caller still needs table privileges.
 -- Execute is revoked from the Data API roles below.
--- other_today and daily_hard stay in the argument list so a caller can pass them,
--- and the shared row is what actually guards the day.
+-- other_today and daily_hard stay in the argument list so a caller can pass them.
+-- The letter-sent flag is read here, under the run-row lock, not from the caller.
+-- lane_reserve is desk + owner + church. Those slots stay out of confirmations all day.
 create or replace function verse_reserve_confirm(
   day_bucket text,
   day_cap integer,
@@ -282,7 +284,8 @@ create or replace function verse_reserve_confirm(
   shared_bucket text,
   shared_cap integer,
   verse_date text,
-  verse_ceiling integer
+  verse_ceiling integer,
+  lane_reserve integer
 ) returns text
 language plpgsql
 set search_path = pg_catalog, public
@@ -293,6 +296,13 @@ declare
   month_used integer := 0;
   net_used integer := 0;
   shared_used integer := 0;
+  lane_used integer := 0;
+  run_status text := '';
+  verse_sent integer := 0;
+  effective_day integer := 0;
+  desk_bucket text := 'desk:' || split_part(shared_bucket, ':', 2);
+  owner_bucket text := 'owner:' || split_part(shared_bucket, ':', 2);
+  av_bucket text := 'av:' || split_part(shared_bucket, ':', 2);
 begin
   insert into public.verse_confirm_budget (bucket, used)
   values (day_bucket, 0), (month_bucket, 0), (net_bucket, 0)
@@ -314,20 +324,47 @@ begin
     end if;
   end loop;
 
-  if day_used >= day_cap
+  select status, sent_count
+    into run_status, verse_sent
+  from public.verse_mail_runs
+  where date_key = verse_date
+  for update;
+
+  if run_status = 'sent' then
+    effective_day := greatest(0, shared_cap - verse_ceiling - lane_reserve)
+      + greatest(0, verse_ceiling - coalesce(verse_sent, 0));
+  else
+    effective_day := day_cap;
+  end if;
+
+  if day_used >= effective_day
      or month_used >= month_cap
      or month_used + other_month >= monthly_hard then
     return 'global';
   end if;
 
   insert into public.desk_send_budget (bucket, used)
-  values (shared_bucket, 0)
+  values (desk_bucket, 0), (owner_bucket, 0), (av_bucket, 0), (shared_bucket, 0)
   on conflict (bucket) do nothing;
-  select used into shared_used
-  from public.desk_send_budget
-  where bucket = shared_bucket
-  for update;
-  if shared_used + public.mail_verse_hold(verse_date, verse_ceiling) >= shared_cap then
+
+  for rec in
+    select bucket, used
+    from public.desk_send_budget
+    where bucket in (desk_bucket, owner_bucket, av_bucket, shared_bucket)
+    order by bucket
+    for update
+  loop
+    if rec.bucket = shared_bucket then
+      shared_used := rec.used;
+    else
+      lane_used := lane_used + rec.used;
+    end if;
+  end loop;
+
+  -- Lane letters already in the shared count are not reserved a second time.
+  if shared_used - least(lane_used, lane_reserve)
+     + public.mail_verse_hold(verse_date, verse_ceiling)
+     + lane_reserve >= shared_cap then
     return 'global';
   end if;
 
@@ -345,8 +382,8 @@ begin
 end
 $verse$;
 
-revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) from public;
-grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) to current_user;
+revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from public;
+grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) to current_user;
 
 -- The old 4-argument form did not touch the shared day.
 drop function if exists desk_reserve_send(text, integer, text, integer);
@@ -445,7 +482,7 @@ begin
         role_name
       );
       execute format(
-        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) from %I',
+        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from %I',
         role_name
       );
       execute format(

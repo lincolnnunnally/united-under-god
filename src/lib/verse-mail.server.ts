@@ -18,6 +18,7 @@ import {
   CONFIRM_PER_ADDRESS_PER_DAY,
   CONFIRM_PER_NETWORK_PER_DAY,
   CONFIRM_TTL_SEC,
+  LANE_DAILY_RESERVE,
   POW_ISSUE_PER_HOUR,
   UNSUBSCRIBE_TTL_SEC,
   VERSE_NOT_OPEN,
@@ -30,10 +31,10 @@ import {
   cleanSourcePath,
   claimPowOnce,
   confirmDayBucket,
+  confirmDayCeiling,
   confirmHardCeilings,
   confirmMonthBucket,
   confirmNetBucket,
-  confirmPowBits,
   confirmSendAllowed,
   fullPostalAddress,
   indexNowPayload,
@@ -192,19 +193,16 @@ async function unsentVerseMonthHold(sql: Sql, now: Date) {
   return todayHold + verseMonthSlotsToHold(perDay, futureDays);
 }
 
-async function letterSentToday(sql: Sql, now: Date) {
-  const dateKey = verseRunDateKey(now);
-  const runs = await sql<{ status: string }>`
-    select status from verse_mail_runs where date_key = ${dateKey}
-  `;
-  return runs[0]?.status === "sent";
-}
-
 async function verseHolds(sql: Sql, now: Date) {
   const verseHold = await unsentVerseHold(sql, now);
   const verseMonthHold = await unsentVerseMonthHold(sql, now);
-  const letterSent = await letterSentToday(sql, now);
-  return { verseHold, verseMonthHold, letterSent };
+  const dateKey = verseRunDateKey(now);
+  const runs = await sql<{ status: string; sent_count: number }>`
+    select status, sent_count from verse_mail_runs where date_key = ${dateKey}
+  `;
+  const letterSent = runs[0]?.status === "sent";
+  const verseSent = letterSent ? Number(runs[0]?.sent_count ?? 0) : 0;
+  return { verseHold, verseMonthHold, letterSent, verseSent };
 }
 
 async function confirmSliceOpen(sql: Sql, now: Date) {
@@ -212,7 +210,16 @@ async function confirmSliceOpen(sql: Sql, now: Date) {
   const confirmsThisMonth = await budgetUsed(sql, confirmMonthBucket(now));
   const { otherToday, otherThisMonth } = await otherMail(sql, now);
   const holds = await verseHolds(sql, now);
-  return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth, ...holds });
+  // A hint only. verse_reserve_confirm reads the run row again inside its locks.
+  return confirmSendAllowed({
+    confirmsToday,
+    confirmsThisMonth,
+    otherToday,
+    otherThisMonth,
+    verseHold: holds.verseHold,
+    verseMonthHold: holds.verseMonthHold,
+    dayCeiling: confirmDayCeiling(holds.letterSent, holds.verseSent),
+  });
 }
 
 async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
@@ -234,7 +241,8 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
       ${sharedDayBucket(now)},
       ${SHARED_DAILY_CAP},
       ${verseRunDateKey(now)},
-      ${VERSE_HOLD_CEILING}
+      ${VERSE_HOLD_CEILING},
+      ${LANE_DAILY_RESERVE}
     ) as result
   `;
   return rows[0]?.result ?? "global";
@@ -588,15 +596,8 @@ export async function issueVerseSignupChallenge(
     console.error("[verse-mail] pow challenge failed");
     return { ok: false, error: CHALLENGE_LATER };
   }
-  let bits = VERSE_POW_BITS;
-  try {
-    bits = confirmPowBits(await budgetUsed(sql, confirmDayBucket(now)));
-  } catch (error) {
-    if (isDbFailure(error)) return issueOfflineVerseChallenge(input);
-    console.error("[verse-mail] pow difficulty fell back to the base");
-  }
   noteDatabaseBack();
-  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), bits, bucket);
+  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), VERSE_POW_BITS, bucket);
   return { ok: true, challenge: issued.challenge, bits: issued.bits };
 }
 

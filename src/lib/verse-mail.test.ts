@@ -36,14 +36,15 @@ import {
   confirmHardCeilings,
   confirmMonthBucket,
   confirmNetBucket,
+  confirmDayCeiling,
   confirmNetwork,
-  confirmPowBits,
   confirmSendAllowed,
   CONFIRM_CAP_MESSAGE,
   CONFIRM_MONTHLY_CAP,
   CONFIRM_PER_NETWORK_PER_DAY,
   DESK_DAILY_RESERVE,
   DESK_MONTHLY_RESERVE,
+  LANE_DAILY_RESERVE,
   fullPostalAddress,
   indexNowKeyFile,
   ipSubscribeLimited,
@@ -219,7 +220,13 @@ describe("verse mail tokens and caps", () => {
       VERSE_DAILY_SEND_CEILING * 31 + CONFIRM_MONTHLY_CAP + DESK_MONTHLY_CAP + OWNER_MONTHLY_CAP + AV_MONTHLY_CAP <=
         RESEND_MONTHLY_CAP,
     );
-    assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 3);
+    assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 1);
+    assert.equal(LANE_DAILY_RESERVE, DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP);
+    assert.equal(SHARED_DAILY_CAP - VERSE_DAILY_SEND_CEILING - LANE_DAILY_RESERVE, CONFIRM_DAILY_CAP);
+    assert.equal(confirmDayCeiling(false, 0), CONFIRM_DAILY_CAP);
+    assert.equal(confirmDayCeiling(true, VERSE_DAILY_SEND_CEILING), CONFIRM_DAILY_CAP);
+    assert.equal(confirmDayCeiling(true, VERSE_DAILY_SEND_CEILING - 5), CONFIRM_DAILY_CAP + 5);
+    assert.equal(confirmHardCeilings().dayCap, CONFIRM_DAILY_CAP);
     assert.equal(confirmHardCeilings().dailyHard, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
     assert.equal(confirmHardCeilings().monthlyHard, RESEND_MONTHLY_CAP - DESK_MONTHLY_RESERVE);
     assert.equal(
@@ -281,31 +288,24 @@ describe("verse mail tokens and caps", () => {
     assert.equal(confirmNetwork("2001:db8:85a3:1::1"), confirmNetwork("2001:db8:85a3:ffff::2"));
     assert.equal(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
     assert.notEqual(confirmNetwork("2001:db8::1"), confirmNetwork("2001:db9::1"));
-    assert.equal(confirmPowBits(0), VERSE_POW_BITS);
-    assert.equal(confirmPowBits(1), VERSE_POW_BITS + 2);
-    assert.equal(confirmPowBits(4), 24);
-    assert.equal(confirmPowBits(9), 24);
-    assert.equal(confirmHardCeilings({ letterSent: true }).dayCap, SHARED_DAILY_CAP);
-    assert.equal(confirmHardCeilings().dayCap, CONFIRM_DAILY_CAP);
     assert.equal(
       confirmSendAllowed({
         confirmsToday: CONFIRM_DAILY_CAP,
         confirmsThisMonth: 0,
         otherToday: CONFIRM_DAILY_CAP,
         otherThisMonth: 0,
-        letterSent: true,
         verseHold: 0,
+        dayCeiling: confirmDayCeiling(true, VERSE_DAILY_SEND_CEILING - 5),
       }),
       true,
     );
     assert.equal(
       confirmSendAllowed({
-        confirmsToday: 0,
+        confirmsToday: CONFIRM_DAILY_CAP + 5,
         confirmsThisMonth: 0,
-        otherToday: SHARED_DAILY_CAP,
+        otherToday: 0,
         otherThisMonth: 0,
-        letterSent: true,
-        verseHold: 0,
+        dayCeiling: confirmDayCeiling(true, VERSE_DAILY_SEND_CEILING - 5),
       }),
       false,
     );
@@ -387,6 +387,7 @@ describe("verse subscription store", () => {
       email: `  ${QA} `,
       sourcePath: "/verse/psalm-23-1",
       now,
+      ip: "203.0.113.9",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -407,6 +408,7 @@ describe("verse subscription store", () => {
       email: "neighbor@example.com",
       sourcePath: "/verse",
       now,
+      ip: "198.51.100.9",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -544,6 +546,7 @@ describe("verse subscription store", () => {
       email: QA,
       sourcePath: "/verse",
       now,
+      ip: "203.0.113.20",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -559,6 +562,7 @@ describe("verse subscription store", () => {
       email: QA,
       sourcePath: "/verse",
       now,
+      ip: "203.0.113.20",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -573,6 +577,7 @@ describe("verse subscription store", () => {
       email: "bounced@resend.dev",
       sourcePath: "/verse",
       now,
+      ip: "198.51.100.20",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -588,6 +593,7 @@ describe("verse subscription store", () => {
       email: "complained@resend.dev",
       sourcePath: "/verse",
       now,
+      ip: "192.0.2.20",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -953,7 +959,7 @@ describe("verse subscription store", () => {
 });
 
 describe("verse confirm defenses", { concurrency: false }, () => {
-  it("stops a fourth confirmation from the same IPv4 /24 and the same IPv6 /32", async () => {
+  it("stops a second confirmation from the same IPv4 /24 and the same IPv6 /32", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T21:00:00Z");
     let calls = 0;
@@ -969,29 +975,23 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       allowLive: true,
       fetchImpl,
     };
-    for (let n = 0; n < 3; n += 1) {
-      const result = await ask(sql, { ...base, email: `v4-${n}@example.com`, ip: `203.0.113.${n + 1}` });
-      assert.equal(result.ok, true);
-    }
+    const firstV4 = await ask(sql, { ...base, email: "v4-1@example.com", ip: "203.0.113.1" });
+    assert.equal(firstV4.ok, true);
     const blockedV4 = await ask(sql, { ...base, email: "v4-more@example.com", ip: "203.0.113.200" });
     assert.equal(blockedV4.ok && blockedV4.message.includes("Check your inbox"), true);
-    assert.equal(calls, 3);
+    assert.equal(calls, 1);
     const otherV4 = await ask(sql, { ...base, email: "v4-other@example.com", ip: "203.0.114.8" });
     assert.equal(otherV4.ok, true);
-    assert.equal(calls, 4);
+    assert.equal(calls, 2);
 
-    const nextDay = new Date("2026-10-24T21:00:00Z");
-    const v6base = { ...base, now: nextDay };
-    for (let n = 0; n < 3; n += 1) {
-      const result = await ask(sql, { ...v6base, email: `v6-${n}@example.com`, ip: `2001:db8:85a3:${n}::1` });
-      assert.equal(result.ok, true);
-    }
-    const blockedV6 = await ask(sql, { ...v6base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::9" });
+    const firstV6 = await ask(sql, { ...base, email: "v6-1@example.com", ip: "2001:db8:85a3::1" });
+    assert.equal(firstV6.ok, true);
+    const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a4::1" });
     assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
     assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
-    const otherV6 = await ask(sql, { ...v6base, email: "v6-other@example.com", ip: "2001:db9::1" });
+    const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db9::1" });
     assert.equal(otherV6.ok, true);
-    assert.equal(calls, 8);
+    assert.equal(calls, 4);
     const nets = await sql<{ bucket: string; used: number }>`
       select bucket, used from verse_confirm_budget where bucket like 'net:%' order by bucket
     `;
@@ -1000,8 +1000,8 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       [
         `${confirmNetBucket("203.0.113.1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
         `${confirmNetBucket("203.0.114.8", now)}=1`,
-        `${confirmNetBucket("2001:db8:85a3::1", nextDay)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
-        `${confirmNetBucket("2001:db9::1", nextDay)}=1`,
+        `${confirmNetBucket("2001:db8:85a3::1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
+        `${confirmNetBucket("2001:db9::1", now)}=1`,
       ].sort(),
     );
     await pg.close();
@@ -2117,7 +2117,7 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     await pg.close();
   });
 
-  it("raises proof-of-work bits as the confirm lane fills", async () => {
+  it("keeps proof-of-work difficulty fixed while the confirm lane fills", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-27T15:00:00Z");
     await sql`
@@ -2131,23 +2131,24 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       now,
     });
     assert.equal(issued.ok, true);
-    if (issued.ok) assert.equal(issued.bits, confirmPowBits(3));
+    if (issued.ok) assert.equal(issued.bits, VERSE_POW_BITS);
+    const offline = issueOfflineVerseChallenge({
+      ip: "203.0.113.41",
+      secret: SECRET,
+      postalAddress: POSTAL,
+      now,
+    });
+    assert.equal(offline.ok, true);
+    if (offline.ok) assert.equal(offline.bits, VERSE_POW_BITS);
     await pg.close();
   });
 
-  it("lets confirmations borrow leftover shared room after the verse letter is sent", async () => {
+  it("lets five networks borrow leftover verse room and still reserves a desk send", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-26T15:00:00Z");
     const dateKey = verseRunDateKey(now);
-    await sql`
-      insert into verse_confirm_budget (bucket, used)
-      values (${confirmDayBucket(now)}, ${CONFIRM_DAILY_CAP})
-    `;
-    const bodies: string[] = [];
-    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
-      bodies.push(String(init?.body ?? ""));
-      return new Response("{}", { status: 200 });
-    }) as typeof fetch;
+    const verseSent = VERSE_DAILY_SEND_CEILING - 5;
+    const fetchImpl = (async () => new Response("{}", { status: 200 })) as typeof fetch;
     const base = {
       sourcePath: "/verse",
       now,
@@ -2156,36 +2157,52 @@ describe("verse confirm defenses", { concurrency: false }, () => {
       allowLive: true,
       fetchImpl,
     };
-    const before = await ask(sql, { ...base, email: "borrow-before@example.com", ip: "198.51.100.21" });
+    for (let n = 0; n < CONFIRM_DAILY_CAP; n += 1) {
+      const filled = await ask(sql, { ...base, email: `fill-${n}@example.com`, ip: `203.0.${n}.1` });
+      assert.equal(filled.ok, true);
+    }
+    const before = await ask(sql, { ...base, email: "fill-more@example.com", ip: "203.0.20.1" });
     assert.equal(before.ok, false);
     if (!before.ok) assert.equal(before.error, CONFIRM_CAP_MESSAGE);
-    assert.equal(bodies.some((body) => body.includes("borrow-before@example.com")), false);
 
     await sql`
-      insert into verse_mail_runs (date_key, status)
-      values (${dateKey}, 'sent')
+      insert into verse_mail_runs (date_key, status, sent_count)
+      values (${dateKey}, 'sent', ${verseSent})
     `;
-    const borrowed = await ask(sql, { ...base, email: "borrow-after@example.com", ip: "198.51.100.22" });
-    assert.equal(borrowed.ok, true);
-    assert.equal(bodies.some((body) => body.includes("borrow-after@example.com")), true);
+    await sql`
+      update desk_send_budget
+      set used = used + ${verseSent}
+      where bucket = ${sharedDayBucket(now)}
+    `;
+    for (let n = 0; n < 5; n += 1) {
+      const borrowed = await ask(sql, {
+        ...base,
+        email: `borrow-${n}@example.com`,
+        ip: `198.51.${n}.1`,
+      });
+      assert.equal(borrowed.ok, true);
+    }
     const day = await sql<{ used: number }>`
       select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
     `;
-    assert.equal(Number(day[0]?.used), CONFIRM_DAILY_CAP + 1);
-
-    await sql`
-      insert into desk_send_budget (bucket, used)
-      values (${sharedDayBucket(now)}, ${SHARED_DAILY_CAP})
-      on conflict (bucket) do update set used = ${SHARED_DAILY_CAP}
-    `;
-    const full = await ask(sql, { ...base, email: "borrow-full@example.com", ip: "198.51.100.23" });
-    assert.equal(full.ok, false);
-    if (!full.ok) assert.equal(full.error, CONFIRM_CAP_MESSAGE);
+    assert.equal(Number(day[0]?.used), confirmDayCeiling(true, verseSent));
+    const desk = await claimDeskSend(sql, now, "desk", "inquiry");
+    assert.equal(desk.ok, true);
+    assert.equal(desk.reserved, true);
+    const past = await ask(sql, { ...base, email: "borrow-past@example.com", ip: "192.0.2.1" });
+    assert.equal(past.ok, false);
+    if (!past.ok) assert.equal(past.error, CONFIRM_CAP_MESSAGE);
+    const deskAgain = await claimDeskSend(sql, now, "desk", "inquiry");
+    assert.equal(deskAgain.ok, true);
     const shared = await sql<{ used: number }>`
       select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
     `;
-    assert.equal(Number(shared[0]?.used), SHARED_DAILY_CAP);
-    assert.equal(bodies.some((body) => body.includes("borrow-full@example.com")), false);
+    const used = Number(shared[0]?.used);
+    // Filling the lane before the letter also sends one owner notice. That notice
+    // takes one of the ten reserved lane slots, along with the two desk claims.
+    const laneUsed = 1 + 2;
+    assert.equal(used, verseSent + confirmDayCeiling(true, verseSent) + laneUsed);
+    assert.ok(used + (LANE_DAILY_RESERVE - laneUsed) <= SHARED_DAILY_CAP);
     await pg.close();
   });
 
