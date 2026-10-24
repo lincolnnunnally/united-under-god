@@ -112,10 +112,8 @@ test("a working read returns counts and caches them", async () => {
   let calls = 0;
   const getSql = fakeSql((text) => {
     calls += 1;
-    if (text.includes("cc_churches")) {
-      assert.match(text, /directory_status/);
-      return LIVE_ROWS;
-    }
+    if (text.includes("uug_church_state_counts")) return LIVE_ROWS;
+    assert.ok(!text.includes("cc_churches"), "the page never counts the directory live when the view exists");
     return [{ n: 3 }];
   });
   const now = 1_000_000;
@@ -232,4 +230,24 @@ test("fee numbers in the copy come from the config", () => {
   assert.match(changed, /13%/);
   assert.match(changed, /45 days/);
   assert.ok(!changed.includes(`${FEES.rebate.percent}% `), "no rate typed by hand");
+});
+
+test("without the counts view, the read falls back to the live count", async () => {
+  clearChurchMarketCache();
+  const seen: string[] = [];
+  const getSql = fakeSql((text) => {
+    seen.push(text);
+    if (text.includes("uug_church_state_counts")) {
+      throw Object.assign(new Error('relation "uug_church_state_counts" does not exist'), { code: "42P01" });
+    }
+    if (text.includes("cc_churches")) {
+      assert.match(text, /directory_status/);
+      return LIVE_ROWS;
+    }
+    return [{ n: 0 }];
+  });
+  const read = await readChurchMarket(getSql, { now: 77 });
+  assert.equal(read.market?.total, 151118);
+  assert.ok(seen.some((t) => t.includes("cc_churches")));
+  clearChurchMarketCache();
 });

@@ -87,7 +87,16 @@ export function roundedDown(n: number): string {
   return `${(Math.floor(n / step) * step).toLocaleString("en-US")}+`;
 }
 
-export const MARKET_SQL = `select upper(trim(doc->>'state')) as state, count(*)::int as n
+/**
+ * Counting the directory live reads every JSONB row (about 9 s on production),
+ * longer than the page waits. Migration 0009 keeps these counts in the
+ * materialized view `uug_church_state_counts`, refreshed nightly by pg_cron, so
+ * the page reads a few rows instead.
+ */
+export const MARKET_SQL = `select state, n from uug_church_state_counts`;
+
+/** The live count, used only where the view does not exist (local PGLite). */
+export const MARKET_FALLBACK_SQL = `select upper(trim(doc->>'state')) as state, count(*)::int as n
   from cc_churches
   where coalesce(doc->>'directory_status', '') <> 'merged'
   group by 1`;
@@ -127,7 +136,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 async function readOnce(getSql: () => Promise<Sql>): Promise<ChurchMarket | null> {
   const sql = await getSql();
-  const rows = await sql.query<{ state: unknown; n: unknown }>(MARKET_SQL);
+  let rows: { state: unknown; n: unknown }[];
+  try {
+    rows = await sql.query<{ state: unknown; n: unknown }>(MARKET_SQL);
+  } catch (err) {
+    if ((err as { code?: string })?.code !== "42P01") throw err;
+    rows = await sql.query<{ state: unknown; n: unknown }>(MARKET_FALLBACK_SQL);
+  }
   const { total, states } = tallyStates(rows);
   if (total <= 0) return null;
   let approvedVendors = 0;
