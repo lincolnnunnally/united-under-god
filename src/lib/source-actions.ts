@@ -22,22 +22,51 @@ import {
 import { sendResendText } from "@/lib/desk-mail";
 import { SITE_URL } from "@/lib/seo";
 import {
+  listCovenantLinks,
   listInvites,
   listVendors,
+  previewCovenantLink,
   previewInvites,
+  sendCovenantLink,
   sendInvites,
   updateVendor,
+  type CovenantLinkRow,
   type InviteRow,
   type SendInvitesResult,
   type VendorRow,
 } from "@/lib/vendor-store";
+import {
+  addCaseEntry,
+  addCommitteePerson,
+  assignMediators,
+  decideCase,
+  escalateCase,
+  markRemedy,
+  previewChurchDecision,
+  previewMediatorNotice,
+  previewVendorNotice,
+  readCases,
+  sendChurchDecision,
+  sendMediatorLinks,
+  sendVendorNotice,
+  setCaseStatus,
+  setCommitteeActive,
+  type CaseRow,
+  type CommitteePerson,
+  type MediatorSendResult,
+} from "@/lib/case-store";
 
-/** The desk: bids and quotes, plus the vendor list and the invitation log. */
+/** The desk: bids and quotes, plus the vendor list, the invitation log, and cases. */
 export type DeskView = SourceDesk & {
   vendors: VendorRow[];
   invites: InviteRow[];
   /** False when migrations/0007_source_vendors.sql is not applied yet. */
   vendorsReady: boolean;
+  cases: CaseRow[];
+  committee: CommitteePerson[];
+  covenantLinks: CovenantLinkRow[];
+  /** False when migrations/0008_source_vendor_cases.sql is not applied yet. */
+  casesReady: boolean;
 };
 
 const createBidInput = z.object({
@@ -116,7 +145,8 @@ async function deskSql() {
   }
 }
 
-async function assertStaff(userId: string) {
+/** Throws 403 unless the caller is staff. Returns a label for the case timeline. */
+async function assertStaff(userId: string): Promise<string> {
   const { getSessionUser } = await import("@/lib/auth/verify.server");
   const sql = await deskSql();
   const users = await sql<{ email: string }>`select email from "user" where id = ${userId}`;
@@ -134,6 +164,7 @@ async function assertStaff(userId: string) {
     (err as Error & { status?: number }).status = 403;
     throw err;
   }
+  return `United Under God${email ? ` (${email})` : ""}`;
 }
 
 /** 42P01: the vendor tables are not there yet (0007 not applied). */
@@ -143,11 +174,23 @@ function missingTable(err: unknown) {
 
 async function deskView(sql: Sql): Promise<DeskView> {
   const desk = await readDesk(sql);
+  const noCases = { cases: [], committee: [], covenantLinks: [], casesReady: false };
+  let vendors: VendorRow[];
+  let invites: InviteRow[];
   try {
-    return { ...desk, vendors: await listVendors(sql), invites: await listInvites(sql), vendorsReady: true };
+    vendors = await listVendors(sql);
+    invites = await listInvites(sql);
   } catch (err) {
     if (!missingTable(err)) throw err;
-    return { ...desk, vendors: [], invites: [], vendorsReady: false };
+    return { ...desk, vendors: [], invites: [], vendorsReady: false, ...noCases };
+  }
+  try {
+    const { cases, committee } = await readCases(sql);
+    const covenantLinks = await listCovenantLinks(sql);
+    return { ...desk, vendors, invites, vendorsReady: true, cases, committee, covenantLinks, casesReady: true };
+  } catch (err) {
+    if (!missingTable(err)) throw err;
+    return { ...desk, vendors, invites, vendorsReady: true, ...noCases };
   }
 }
 
@@ -283,7 +326,200 @@ export const sendSourceInvites = createServerFn({ method: "POST" })
     return { desk: await deskView(sql), result };
   });
 
-export type { InviteRow, SendInvitesResult, VendorRow } from "@/lib/vendor-store";
+// ---------------------------------------------------------------------------
+// Cases, committee, and covenant re-acceptance (staff only)
+// ---------------------------------------------------------------------------
+
+const deskMail = ({ to, subject, text }: { to: string; subject: string; text: string }) =>
+  sendResendText({ to, subject, text, apiKey: process.env.RESEND_API_KEY });
+
+const caseIdInput = z.object({ caseId: z.string().max(80) });
+
+/** Run a case write as staff and return the fresh desk. */
+async function caseWrite(userId: string, work: (sql: Sql, author: string) => Promise<unknown>) {
+  const author = await assertStaff(userId);
+  const sql = await deskSql();
+  await work(sql, author);
+  return deskView(sql);
+}
+
+export const setCaseStatusFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ caseId: z.string().max(80), status: z.string().max(40) }))
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) => setCaseStatus(sql, data.caseId, data.status, author)),
+  );
+
+export const addCaseEntryFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      caseId: z.string().max(80),
+      kind: z.enum(["note", "message"]),
+      body: z.string().max(8000),
+    }),
+  )
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) =>
+      addCaseEntry(sql, data.caseId, { kind: data.kind, body: data.body }, author),
+    ),
+  );
+
+/** The exact email to the vendor. Sends nothing. */
+export const previewVendorNoticeFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    return previewVendorNotice(await deskSql(), data.caseId, SITE_URL);
+  });
+
+export const sendVendorNoticeFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) => {
+    let result = { ok: false, error: "" };
+    const desk = await caseWrite(context.userId, async (sql, author) => {
+      result = await sendVendorNotice(sql, {
+        caseId: data.caseId,
+        author,
+        siteUrl: SITE_URL,
+        send: deskMail,
+      });
+    });
+    return { desk, result };
+  });
+
+export const addCommitteePersonFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ name: z.string().max(200), email: z.string().max(240) }))
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql) => addCommitteePerson(sql, data)),
+  );
+
+export const setCommitteeActiveFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ personId: z.string().max(80), active: z.boolean() }))
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql) => setCommitteeActive(sql, data.personId, data.active)),
+  );
+
+export const assignMediatorsFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ caseId: z.string().max(80), personIds: z.array(z.string()).min(1).max(20) }))
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) =>
+      assignMediators(sql, data.caseId, data.personIds, author),
+    ),
+  );
+
+export const previewMediatorNoticeFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    return previewMediatorNotice(await deskSql(), data.caseId, SITE_URL);
+  });
+
+export const sendMediatorLinksFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ caseId: z.string().max(80), personIds: z.array(z.string()).min(1).max(20) }))
+  .handler(async ({ data, context }) => {
+    let result: MediatorSendResult = { sent: [], failed: [] };
+    const desk = await caseWrite(context.userId, async (sql, author) => {
+      result = await sendMediatorLinks(sql, {
+        caseId: data.caseId,
+        personIds: data.personIds,
+        author,
+        siteUrl: SITE_URL,
+        send: deskMail,
+      });
+    });
+    return { desk, result };
+  });
+
+export const decideCaseFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(
+    z.object({
+      caseId: z.string().max(80),
+      finding: z.string().max(40),
+      remedyKind: z.string().max(40),
+      remedyText: z.string().max(2000).optional().default(""),
+      remedyDue: z.string().max(20).optional().default(""),
+      consequence: z.string().max(40),
+      note: z.string().max(4000).optional().default(""),
+    }),
+  )
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) => {
+      const { caseId, ...decision } = data;
+      return decideCase(sql, caseId, decision, { userId: context.userId, author });
+    }),
+  );
+
+export const markRemedyFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ caseId: z.string().max(80), done: z.boolean() }))
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) => markRemedy(sql, data.caseId, data.done, author)),
+  );
+
+/** One click: the vendor's standing steps up one level, recorded on the case. */
+export const escalateCaseFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) =>
+    caseWrite(context.userId, (sql, author) => escalateCase(sql, data.caseId, author)),
+  );
+
+export const previewChurchDecisionFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    return previewChurchDecision(await deskSql(), data.caseId);
+  });
+
+export const sendChurchDecisionFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(caseIdInput)
+  .handler(async ({ data, context }) => {
+    let result = { ok: false, error: "" };
+    const desk = await caseWrite(context.userId, async (sql, author) => {
+      result = await sendChurchDecision(sql, { caseId: data.caseId, author, send: deskMail });
+    });
+    return { desk, result };
+  });
+
+const vendorIdInput = z.object({ vendorId: z.string().max(80) });
+
+export const previewCovenantLinkFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(vendorIdInput)
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    return previewCovenantLink(await deskSql(), data.vendorId, SITE_URL);
+  });
+
+export const sendCovenantLinkFn = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(vendorIdInput)
+  .handler(async ({ data, context }) => {
+    let result = { ok: false, error: "" };
+    const desk = await caseWrite(context.userId, async (sql) => {
+      result = await sendCovenantLink(sql, {
+        vendorId: data.vendorId,
+        userId: context.userId,
+        siteUrl: SITE_URL,
+        send: deskMail,
+      });
+    });
+    return { desk, result };
+  });
+
+export type { CaseRow, CommitteePerson, MediatorSendResult } from "@/lib/case-store";
+export type { CovenantLinkRow, InviteRow, SendInvitesResult, VendorRow } from "@/lib/vendor-store";
 
 export type {
   BiddingItem,

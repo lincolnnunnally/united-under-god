@@ -38,7 +38,9 @@ import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
 import { Route as BuyingCategoryRouteImport } from './routes/buying/$category'
+import { Route as BuyingCovenantRouteImport } from './routes/buying/covenant'
 import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
+import { Route as BuyingReportRouteImport } from './routes/buying/report'
 import { Route as BuyingSellToChurchesRouteImport } from './routes/buying/sell-to-churches'
 import { Route as BuyingVendorTermsRouteImport } from './routes/buying/vendor-terms'
 import { Route as BuyingVendorsRouteImport } from './routes/buying/vendors'
@@ -54,6 +56,8 @@ import { Route as VerseSlugRouteImport } from './routes/verse/$slug'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as BuyingBidsIdRouteImport } from './routes/buying/bids/$id'
+import { Route as BuyingCasesIdRouteImport } from './routes/buying/cases/$id'
+import { Route as BuyingMediateIdRouteImport } from './routes/buying/mediate/$id'
 import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
 import { Route as ChurchAvStateCityRouteImport } from './routes/church-av/$state/$city'
 import { Route as ChurchAvHelpIndexRouteImport } from './routes/church-av/help/index'
@@ -206,9 +210,19 @@ const BuyingCategoryRoute = BuyingCategoryRouteImport.update({
   path: '/$category',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const BuyingCovenantRoute = BuyingCovenantRouteImport.update({
+  id: '/covenant',
+  path: '/covenant',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const BuyingDeskRoute = BuyingDeskRouteImport.update({
   id: '/desk',
   path: '/desk',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
+const BuyingReportRoute = BuyingReportRouteImport.update({
+  id: '/report',
+  path: '/report',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
 const BuyingSellToChurchesRoute = BuyingSellToChurchesRouteImport.update({
@@ -287,6 +301,16 @@ const BuyingBidsIdRoute = BuyingBidsIdRouteImport.update({
   path: '/bids/$id',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const BuyingCasesIdRoute = BuyingCasesIdRouteImport.update({
+  id: '/cases/$id',
+  path: '/cases/$id',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
+const BuyingMediateIdRoute = BuyingMediateIdRouteImport.update({
+  id: '/mediate/$id',
+  path: '/mediate/$id',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const ChurchAvStateIndexRoute = ChurchAvStateIndexRouteImport.update({
   id: '/church-av/$state/',
   path: '/church-av/$state/',
@@ -345,7 +369,9 @@ export interface FileRoutesByFullPath {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
+  '/buying/covenant': typeof BuyingCovenantRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/report': typeof BuyingReportRoute
   '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
@@ -364,6 +390,8 @@ export interface FileRoutesByFullPath {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
+  '/buying/cases/$id': typeof BuyingCasesIdRoute
+  '/buying/mediate/$id': typeof BuyingMediateIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -395,7 +423,9 @@ export interface FileRoutesByTo {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
+  '/buying/covenant': typeof BuyingCovenantRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/report': typeof BuyingReportRoute
   '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
@@ -414,6 +444,8 @@ export interface FileRoutesByTo {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
+  '/buying/cases/$id': typeof BuyingCasesIdRoute
+  '/buying/mediate/$id': typeof BuyingMediateIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -449,7 +481,9 @@ export interface FileRoutesById {
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
+  '/buying/covenant': typeof BuyingCovenantRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/report': typeof BuyingReportRoute
   '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
@@ -468,6 +502,8 @@ export interface FileRoutesById {
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
+  '/buying/cases/$id': typeof BuyingCasesIdRoute
+  '/buying/mediate/$id': typeof BuyingMediateIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
@@ -504,7 +540,9 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/$category'
+    | '/buying/covenant'
     | '/buying/desk'
+    | '/buying/report'
     | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
@@ -523,6 +561,8 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/buying/bids/$id'
+    | '/buying/cases/$id'
+    | '/buying/mediate/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -554,7 +594,9 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/$category'
+    | '/buying/covenant'
     | '/buying/desk'
+    | '/buying/report'
     | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
@@ -573,6 +615,8 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/buying/bids/$id'
+    | '/buying/cases/$id'
+    | '/buying/mediate/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -607,7 +651,9 @@ export interface FileRouteTypes {
     | '/admin/staff'
     | '/bible/$slug'
     | '/buying/$category'
+    | '/buying/covenant'
     | '/buying/desk'
+    | '/buying/report'
     | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
@@ -626,6 +672,8 @@ export interface FileRouteTypes {
     | '/api/admin/stats'
     | '/api/auth/$'
     | '/buying/bids/$id'
+    | '/buying/cases/$id'
+    | '/buying/mediate/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
@@ -879,11 +927,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingCategoryRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/buying/covenant': {
+      id: '/buying/covenant'
+      path: '/covenant'
+      fullPath: '/buying/covenant'
+      preLoaderRoute: typeof BuyingCovenantRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/buying/desk': {
       id: '/buying/desk'
       path: '/desk'
       fullPath: '/buying/desk'
       preLoaderRoute: typeof BuyingDeskRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
+    '/buying/report': {
+      id: '/buying/report'
+      path: '/report'
+      fullPath: '/buying/report'
+      preLoaderRoute: typeof BuyingReportRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
     '/buying/sell-to-churches': {
@@ -991,6 +1053,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingBidsIdRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/buying/cases/$id': {
+      id: '/buying/cases/$id'
+      path: '/cases/$id'
+      fullPath: '/buying/cases/$id'
+      preLoaderRoute: typeof BuyingCasesIdRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
+    '/buying/mediate/$id': {
+      id: '/buying/mediate/$id'
+      path: '/mediate/$id'
+      fullPath: '/buying/mediate/$id'
+      preLoaderRoute: typeof BuyingMediateIdRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/church-av/$state/': {
       id: '/church-av/$state/'
       path: '/church-av/$state'
@@ -1070,22 +1146,30 @@ const BibleRouteRouteWithChildren = BibleRouteRoute._addFileChildren(
 
 interface BuyingRouteRouteChildren {
   BuyingCategoryRoute: typeof BuyingCategoryRoute
+  BuyingCovenantRoute: typeof BuyingCovenantRoute
   BuyingDeskRoute: typeof BuyingDeskRoute
+  BuyingReportRoute: typeof BuyingReportRoute
   BuyingSellToChurchesRoute: typeof BuyingSellToChurchesRoute
   BuyingVendorTermsRoute: typeof BuyingVendorTermsRoute
   BuyingVendorsRoute: typeof BuyingVendorsRoute
   BuyingIndexRoute: typeof BuyingIndexRoute
   BuyingBidsIdRoute: typeof BuyingBidsIdRoute
+  BuyingCasesIdRoute: typeof BuyingCasesIdRoute
+  BuyingMediateIdRoute: typeof BuyingMediateIdRoute
 }
 
 const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
   BuyingCategoryRoute: BuyingCategoryRoute,
+  BuyingCovenantRoute: BuyingCovenantRoute,
   BuyingDeskRoute: BuyingDeskRoute,
+  BuyingReportRoute: BuyingReportRoute,
   BuyingSellToChurchesRoute: BuyingSellToChurchesRoute,
   BuyingVendorTermsRoute: BuyingVendorTermsRoute,
   BuyingVendorsRoute: BuyingVendorsRoute,
   BuyingIndexRoute: BuyingIndexRoute,
   BuyingBidsIdRoute: BuyingBidsIdRoute,
+  BuyingCasesIdRoute: BuyingCasesIdRoute,
+  BuyingMediateIdRoute: BuyingMediateIdRoute,
 }
 
 const BuyingRouteRouteWithChildren = BuyingRouteRoute._addFileChildren(

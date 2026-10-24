@@ -103,7 +103,10 @@ async function tonerBid(sql: Sql, area = "") {
 // --- sign-up validation and terms acceptance ---------------------------------
 
 test("sign-up refuses without agreeing to the Vendor Terms", () => {
-  assert.throws(() => cleanVendorSignup(signup({ agreed: false })), /I agree to the Vendor Terms/);
+  assert.throws(
+    () => cleanVendorSignup(signup({ agreed: false })),
+    /I agree to the Vendor Covenant and Vendor Terms/,
+  );
   assert.throws(() => cleanVendorSignup(signup({ termsVersion: "2020-01-01" })), /were updated/);
 });
 

@@ -435,6 +435,8 @@ export type CatalogBookEntry = {
   notes: string;
   category: string;
   catalogItem: string;
+  /** The vendor stands behind the Vendor Covenant (see listBook). */
+  covenant?: boolean;
 };
 
 export type CatalogItemStatus = "priced" | "bidding" | "referral" | "not-bid";
