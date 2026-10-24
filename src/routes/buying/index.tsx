@@ -161,8 +161,15 @@ function BuyingPage() {
             </p>
             <p className="mt-4 text-sm text-muted">
               Sell to churches?{" "}
+              <Link
+                to="/buying/sell-to-churches"
+                className="text-forest underline-offset-4 hover:underline"
+              >
+                See the church vendor program
+              </Link>{" "}
+              or{" "}
               <Link to="/buying/vendors" className="text-forest underline-offset-4 hover:underline">
-                Sign up as a vendor
+                sign up as a vendor
               </Link>
               .
             </p>

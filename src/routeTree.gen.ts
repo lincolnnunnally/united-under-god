@@ -39,6 +39,7 @@ import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
 import { Route as BuyingCategoryRouteImport } from './routes/buying/$category'
 import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
+import { Route as BuyingSellToChurchesRouteImport } from './routes/buying/sell-to-churches'
 import { Route as BuyingVendorTermsRouteImport } from './routes/buying/vendor-terms'
 import { Route as BuyingVendorsRouteImport } from './routes/buying/vendors'
 import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
@@ -210,6 +211,11 @@ const BuyingDeskRoute = BuyingDeskRouteImport.update({
   path: '/desk',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const BuyingSellToChurchesRoute = BuyingSellToChurchesRouteImport.update({
+  id: '/sell-to-churches',
+  path: '/sell-to-churches',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const BuyingVendorTermsRoute = BuyingVendorTermsRouteImport.update({
   id: '/vendor-terms',
   path: '/vendor-terms',
@@ -340,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
@@ -389,6 +396,7 @@ export interface FileRoutesByTo {
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
@@ -442,6 +450,7 @@ export interface FileRoutesById {
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
+  '/buying/sell-to-churches': typeof BuyingSellToChurchesRoute
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
@@ -496,6 +505,7 @@ export interface FileRouteTypes {
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/desk'
+    | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
@@ -545,6 +555,7 @@ export interface FileRouteTypes {
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/desk'
+    | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
@@ -597,6 +608,7 @@ export interface FileRouteTypes {
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/desk'
+    | '/buying/sell-to-churches'
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
@@ -874,6 +886,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingDeskRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/buying/sell-to-churches': {
+      id: '/buying/sell-to-churches'
+      path: '/sell-to-churches'
+      fullPath: '/buying/sell-to-churches'
+      preLoaderRoute: typeof BuyingSellToChurchesRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/buying/vendor-terms': {
       id: '/buying/vendor-terms'
       path: '/vendor-terms'
@@ -1052,6 +1071,7 @@ const BibleRouteRouteWithChildren = BibleRouteRoute._addFileChildren(
 interface BuyingRouteRouteChildren {
   BuyingCategoryRoute: typeof BuyingCategoryRoute
   BuyingDeskRoute: typeof BuyingDeskRoute
+  BuyingSellToChurchesRoute: typeof BuyingSellToChurchesRoute
   BuyingVendorTermsRoute: typeof BuyingVendorTermsRoute
   BuyingVendorsRoute: typeof BuyingVendorsRoute
   BuyingIndexRoute: typeof BuyingIndexRoute
@@ -1061,6 +1081,7 @@ interface BuyingRouteRouteChildren {
 const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
   BuyingCategoryRoute: BuyingCategoryRoute,
   BuyingDeskRoute: BuyingDeskRoute,
+  BuyingSellToChurchesRoute: BuyingSellToChurchesRoute,
   BuyingVendorTermsRoute: BuyingVendorTermsRoute,
   BuyingVendorsRoute: BuyingVendorsRoute,
   BuyingIndexRoute: BuyingIndexRoute,
