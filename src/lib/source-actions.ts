@@ -9,10 +9,12 @@ import {
   isBuyingDbUnavailable,
   publishAward,
   readBuyingBook,
+  readBuyingCatalog,
   readDesk,
   setBidStatus,
   setItemWinners,
   setQuoteStatus,
+  type BuyingCatalogRead,
   type PublicBookEntry,
   type SourceDesk,
 } from "@/lib/source-store";
@@ -21,12 +23,15 @@ const createBidInput = z.object({
   title: z.string(),
   summary: z.string().optional().default(""),
   neededBy: z.string().optional().default(""),
+  category: z.string().optional().default(""),
+  subcategory: z.string().optional().default(""),
   items: z
     .array(
       z.object({
         description: z.string(),
         quantity: z.string().optional().default("1"),
         unit: z.string().optional().default(""),
+        catalogItem: z.string().optional().default(""),
       }),
     )
     .min(1),
@@ -107,6 +112,13 @@ export const listPublishedBook = createServerFn({ method: "GET" }).handler(
   },
 );
 
+/** Public: the buying book plus which list items are on an open bid (no vendors, no quotes). */
+export const listCatalogBook = createServerFn({ method: "GET" }).handler(
+  async (): Promise<BuyingCatalogRead> => {
+    return readBuyingCatalog(() => getSql());
+  },
+);
+
 export const readSourceDesk = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => deskFor(context.userId));
@@ -171,4 +183,10 @@ export const publishSourceAward = createServerFn({ method: "POST" })
     return readDesk(sql);
   });
 
-export type { PublicBookEntry, SourceBid, SourceDesk } from "@/lib/source-store";
+export type {
+  BiddingItem,
+  BuyingCatalogRead,
+  PublicBookEntry,
+  SourceBid,
+  SourceDesk,
+} from "@/lib/source-store";

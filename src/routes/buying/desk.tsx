@@ -6,6 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  SPEND_CATEGORIES,
+  bidTemplate,
+  catalogPath,
+  coverage,
+  getSpendCategory,
+  isLicensed,
+  templateOptions,
+} from "@/lib/church-spend";
+import {
   addSourceQuote,
   createSourceBid,
   publishSourceAward,
@@ -29,11 +38,16 @@ type DraftItem = {
   description: string;
   quantity: string;
   unit: string;
+  /** The church-spend item a template line came from; cleared if retyped. */
+  catalogItem: string;
 };
 
 function blankItem(): DraftItem {
-  return { key: crypto.randomUUID(), description: "", quantity: "1", unit: "" };
+  return { key: crypto.randomUUID(), description: "", quantity: "1", unit: "", catalogItem: "" };
 }
+
+const SELECT_CLASS =
+  "min-h-11 w-full rounded-md bg-paper px-3.5 text-base text-ink shadow-[var(--shadow-border)] outline-none focus-visible:shadow-[0_0_0_2px_var(--color-forest)] disabled:opacity-50 md:text-sm";
 
 function SourcePage() {
   return (
@@ -108,6 +122,8 @@ function SourceDesk() {
         </p>
       ) : null}
 
+      {desk ? <CoverageView desk={desk} /> : null}
+
       <CreateBidForm
         disabled={loading}
         onCreate={(input) =>
@@ -118,10 +134,13 @@ function SourceDesk() {
                   title: input.title,
                   summary: input.summary,
                   neededBy: input.neededBy,
-                  items: input.items.map(({ description, quantity, unit }) => ({
+                  category: input.category,
+                  subcategory: input.subcategory,
+                  items: input.items.map(({ description, quantity, unit, catalogItem }) => ({
                     description,
                     quantity,
                     unit,
+                    catalogItem,
                   })),
                 },
               }),
@@ -182,24 +201,61 @@ function CreateBidForm({
     title: string;
     summary: string;
     neededBy: string;
+    category: string;
+    subcategory: string;
     items: DraftItem[];
   }) => Promise<boolean>;
 }) {
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [neededBy, setNeededBy] = useState("");
+  const [category, setCategory] = useState("");
+  const [subcategory, setSubcategory] = useState("");
+  const [template, setTemplate] = useState("");
   const [items, setItems] = useState<DraftItem[]>([blankItem()]);
   const [busy, setBusy] = useState(false);
+  const [templateError, setTemplateError] = useState("");
+
+  const chosen = getSpendCategory(category);
+  const subOptions = chosen?.subcategories ?? [];
+
+  function applyTemplate(value: string) {
+    setTemplate(value);
+    setTemplateError("");
+    if (!value) return;
+    const [categoryId, subId = ""] = value.split("/");
+    try {
+      const filled = bidTemplate(categoryId, subId);
+      setTitle(filled.title);
+      setSummary(filled.summary);
+      setCategory(filled.category);
+      setSubcategory(filled.subcategory);
+      setItems(
+        filled.items.map((item) => ({
+          key: crypto.randomUUID(),
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          catalogItem: item.catalogItem,
+        })),
+      );
+    } catch (err) {
+      setTemplateError(err instanceof Error ? err.message : "That template did not load.");
+    }
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     try {
-      const saved = await onCreate({ title, summary, neededBy, items });
+      const saved = await onCreate({ title, summary, neededBy, category, subcategory, items });
       if (!saved) return;
       setTitle("");
       setSummary("");
       setNeededBy("");
+      setCategory("");
+      setSubcategory("");
+      setTemplate("");
       setItems([blankItem()]);
     } finally {
       setBusy(false);
@@ -212,6 +268,80 @@ function CreateBidForm({
       onSubmit={(event) => void onSubmit(event)}
     >
       <h2 className="font-display text-xl">Open a bid</h2>
+      <div className="grid gap-1.5">
+        <Label htmlFor="bid-template">New bid from template</Label>
+        <select
+          id="bid-template"
+          className={SELECT_CLASS}
+          value={template}
+          onChange={(event) => applyTemplate(event.target.value)}
+          disabled={disabled || busy}
+        >
+          <option value="">Start blank, or pick a category from the list</option>
+          {templateOptions().map(({ category: group, options }) => (
+            <optgroup key={group.id} label={group.name}>
+              {options.map((option) => (
+                <option key={option.value} value={option.value} disabled={option.disabled}>
+                  {option.label}
+                  {option.note ? ` (${option.note.toLowerCase()})` : ""}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+        <p className="text-sm text-muted">
+          Fills the title, items, units, and spec notes from the church spend list. Edit
+          anything before you open the bid.
+        </p>
+        {templateError ? (
+          <p className="text-sm text-ink" role="alert">
+            {templateError}
+          </p>
+        ) : null}
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <Label htmlFor="bid-category">Category</Label>
+          <select
+            id="bid-category"
+            className={SELECT_CLASS}
+            value={category}
+            onChange={(event) => {
+              setCategory(event.target.value);
+              setSubcategory("");
+            }}
+            disabled={disabled || busy}
+          >
+            <option value="">No category</option>
+            {SPEND_CATEGORIES.map((row) => (
+              <option
+                key={row.id}
+                value={row.id}
+                disabled={row.subcategories.every((sub) => isLicensed(row, sub))}
+              >
+                {row.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="bid-subcategory">Subcategory</Label>
+          <select
+            id="bid-subcategory"
+            className={SELECT_CLASS}
+            value={subcategory}
+            onChange={(event) => setSubcategory(event.target.value)}
+            disabled={disabled || busy || !chosen}
+          >
+            <option value="">{chosen ? "Whole category" : "Pick a category first"}</option>
+            {subOptions.map((sub) => (
+              <option key={sub.id} value={sub.id} disabled={chosen ? isLicensed(chosen, sub) : false}>
+                {sub.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       <div className="grid gap-1.5">
         <Label htmlFor="bid-title">What are we buying?</Label>
         <Input
@@ -252,7 +382,9 @@ function CreateBidForm({
               onChange={(event) =>
                 setItems((rows) =>
                   rows.map((row, rowIndex) =>
-                    rowIndex === index ? { ...row, description: event.target.value } : row,
+                    rowIndex === index
+                      ? { ...row, description: event.target.value, catalogItem: "" }
+                      : row,
                   ),
                 )
               }
@@ -657,5 +789,67 @@ function QuoteForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+function CoverageView({ desk }: { desk: SourceDesk }) {
+  const view = coverage(desk.bids);
+  const covered = view.rows.length - view.referralOnly.length - view.gaps.length;
+  return (
+    <section className="mt-8 rounded-xl bg-cream p-5 shadow-[var(--shadow-border)]">
+      <h2 className="font-display text-xl">Coverage</h2>
+      <p className="mt-2 max-w-2xl text-sm text-muted">
+        {covered} of {view.rows.length - view.referralOnly.length} biddable categories have an
+        open bid or a published price.
+        {view.uncategorized.openBids || view.uncategorized.bookItems
+          ? ` Untagged: ${view.uncategorized.openBids} open ${view.uncategorized.openBids === 1 ? "bid" : "bids"}, ${view.uncategorized.bookItems} published.`
+          : ""}
+      </p>
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[32rem] text-left text-sm">
+          <thead>
+            <tr className="text-xs uppercase tracking-[0.14em] text-subtle">
+              <th className="py-2 pr-3 font-medium">Category</th>
+              <th className="py-2 pr-3 font-medium">Open bids</th>
+              <th className="py-2 pr-3 font-medium">Published</th>
+              <th className="py-2 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-rule">
+            {view.rows.map((row) => (
+              <tr key={row.category.id}>
+                <td className="py-2 pr-3">
+                  <a
+                    href={catalogPath(row.category)}
+                    className="text-ink underline-offset-4 hover:underline"
+                  >
+                    {row.category.name}
+                  </a>
+                </td>
+                <td className="py-2 pr-3">{row.openBids}</td>
+                <td className="py-2 pr-3">{row.bookItems}</td>
+                <td className="py-2 text-muted">
+                  {row.referralOnly
+                    ? "Referral only"
+                    : row.gap
+                      ? "Nothing yet"
+                      : row.openBids
+                        ? "Bidding"
+                        : "Published"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {view.gaps.length ? (
+        <div className="mt-5">
+          <h3 className="text-sm font-medium text-ink">Nothing yet</h3>
+          <p className="mt-1 text-sm text-muted">
+            {view.gaps.map((row) => row.name).join(", ")}
+          </p>
+        </div>
+      ) : null}
+    </section>
   );
 }

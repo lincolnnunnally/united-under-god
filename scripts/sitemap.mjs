@@ -78,6 +78,15 @@ export function churchAvPaths(root = ROOT) {
 }
 
 /**
+ * /buying/<category> catalog pages, from src/data/church-spend.json. A
+ * category with its own `route` (church AV) has no catalog page of its own.
+ */
+export function buyingPaths(root = ROOT) {
+  const list = JSON.parse(readFileSync(join(root, "src/data/church-spend.json"), "utf8"));
+  return list.categories.filter((c) => !c.route).map((c) => `/buying/${c.id}`);
+}
+
+/**
  * The files a page is built from. A page's <lastmod> is the last commit that
  * touched any of them, so it moves when that page's words change and not on
  * every deploy. Unknown paths return [] and get no <lastmod>.
@@ -92,6 +101,9 @@ export function sourcesFor(path, root = ROOT) {
   };
   const av = ["src/data/church-av.json", "src/lib/church-av.ts", "src/components/church-av.tsx"];
   if (path === "/") return ["src/routes/index.tsx"];
+  if (path.startsWith("/buying/")) {
+    return ["src/data/church-spend.json", "src/lib/church-spend.ts", "src/routes/buying/$category.tsx"];
+  }
   if (path.startsWith("/bible/")) return ["src/data/bible-library.json", "src/routes/bible/$slug.tsx"];
   if (path === "/church-av/help") return ["src/lib/church-av-help.ts", "src/routes/church-av/help/index.tsx"];
   if (path.startsWith("/church-av/help/")) return ["src/lib/church-av-help.ts", "src/routes/church-av/help/$slug.tsx"];
@@ -153,7 +165,7 @@ export function renderSitemap(paths, lastmodFor = () => null) {
 export function buildSitemap(root = ROOT) {
   const committed = committedLastmods(root);
   return renderSitemap(
-    [...STATIC_PATHS, ...churchAvPaths(root), ...biblePaths(root)],
+    [...STATIC_PATHS, ...buyingPaths(root), ...churchAvPaths(root), ...biblePaths(root)],
     (path, loc) => gitLastmod(sourcesFor(path, root), root) ?? committed.get(loc) ?? null,
   );
 }

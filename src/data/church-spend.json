@@ -1,0 +1,3830 @@
+{
+  "$comment": "Everything a church spends money on, for the United Under God buying program. Category, then subcategories, then typical items. No prices or vendor names: prices come only from awarded bids in the buying book.",
+  "version": 1,
+  "categories": [
+    {
+      "id": "office-supplies",
+      "name": "Office supplies and paper",
+      "short": "Copy paper, pens, folders, labels, and the everyday desk supplies every church office runs on.",
+      "summary": "Every church office goes through the same paper, pens, folders, and labels. These are stocked items with a unit price, so they suit a standing group catalog that any church can order from when it needs to.",
+      "metaDescription": "Group buying for church office supplies: copy paper, cardstock, pens, folders, labels, and binders, priced from bids churches can order from as needed.",
+      "subcategories": [
+        {
+          "id": "office-paper",
+          "name": "Paper",
+          "specs": [
+            "Sizes and weights you use",
+            "Monthly volume",
+            "Delivery address and dock access"
+          ],
+          "items": [
+            {
+              "id": "copy-paper-letter",
+              "name": "Copy paper, letter size, 20 lb",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Sheets per ream and reams per case",
+                "Brightness",
+                "Recycled content"
+              ]
+            },
+            {
+              "id": "copy-paper-legal",
+              "name": "Copy paper, legal size",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "copy-paper-tabloid",
+              "name": "Copy paper, 11 x 17",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "cardstock",
+              "name": "Cardstock, white and colors",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog",
+              "specs": [
+                "Weight",
+                "Colors"
+              ]
+            },
+            {
+              "id": "colored-paper",
+              "name": "Colored copy paper",
+              "unit": "ream",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "bulletin-paper",
+              "name": "Pre-printed bulletin shells",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog",
+              "specs": [
+                "Design or season",
+                "Fold"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "office-desk",
+          "name": "Desk supplies",
+          "items": [
+            {
+              "id": "pens",
+              "name": "Pens and markers",
+              "unit": "box",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "folders",
+              "name": "File folders and hanging files",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "labels",
+              "name": "Address and file labels",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog",
+              "specs": [
+                "Label size and printer type"
+              ]
+            },
+            {
+              "id": "sticky-notes",
+              "name": "Sticky notes",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "binders",
+              "name": "Binders and sheet protectors",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "staples-clips",
+              "name": "Staples, clips, and rubber bands",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "tape",
+              "name": "Tape and dispensers",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "calendars-planners",
+              "name": "Wall calendars and planners",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "office-storage",
+          "name": "Storage and filing",
+          "items": [
+            {
+              "id": "file-boxes",
+              "name": "Records storage boxes",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "shredder",
+              "name": "Office shredder",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "laminating",
+              "name": "Laminating pouches",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "batteries",
+              "name": "Batteries, AA, AAA, and 9-volt",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "printing-copiers",
+      "name": "Printing, copiers, and signage",
+      "short": "Toner, copier leases, bulletins, offering envelopes, and signs.",
+      "summary": "Toner and copiers are where many churches overpay first. Toner is a stocked item with a unit price; copier leases and service are recurring contracts; printed pieces and signs are quoted jobs.",
+      "metaDescription": "Group buying for church printing: toner, copier leases and service, bulletins, offering envelopes, and signage, from bids churches can buy from.",
+      "subcategories": [
+        {
+          "id": "toner-ink",
+          "name": "Toner and ink",
+          "specs": [
+            "Printer and copier makes and models",
+            "Pages printed per month"
+          ],
+          "items": [
+            {
+              "id": "toner-cartridge",
+              "name": "Toner cartridges",
+              "unit": "each",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Printer make and model",
+                "Original or compatible",
+                "Page yield"
+              ]
+            },
+            {
+              "id": "ink-cartridge",
+              "name": "Ink cartridges",
+              "unit": "each",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Printer make and model"
+              ]
+            },
+            {
+              "id": "drum-unit",
+              "name": "Drum and imaging units",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "waste-toner",
+              "name": "Waste toner containers",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "copiers",
+          "name": "Copier leases and service",
+          "items": [
+            {
+              "id": "copier-lease",
+              "name": "Copier lease",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Pages per month, black and color",
+                "Finishing needs",
+                "Lease term"
+              ]
+            },
+            {
+              "id": "copier-service",
+              "name": "Copier service and supplies agreement",
+              "unit": "per page",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Cost per page, black and color",
+                "Response time"
+              ]
+            },
+            {
+              "id": "printer-repair",
+              "name": "Printer repair",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "print-management",
+              "name": "Printer monitoring and automatic toner reorder",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "printed-pieces",
+          "name": "Bulletins and printed pieces",
+          "items": [
+            {
+              "id": "bulletins",
+              "name": "Printed bulletins",
+              "unit": "per week",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Page count and fold",
+                "Copies per week",
+                "Color or black"
+              ]
+            },
+            {
+              "id": "offering-envelopes",
+              "name": "Offering envelopes",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog",
+              "specs": [
+                "Boxed sets or bulk",
+                "Numbering",
+                "Imprint"
+              ]
+            },
+            {
+              "id": "pew-envelopes",
+              "name": "Pew and visitor envelopes",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "business-cards",
+              "name": "Business cards",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "letterhead",
+              "name": "Letterhead and #10 envelopes",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "invite-cards",
+              "name": "Invitation and door-hanger cards",
+              "unit": "box",
+              "frequency": "seasonal",
+              "model": "project"
+            },
+            {
+              "id": "directories",
+              "name": "Church directory printing",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "signage",
+          "name": "Signs",
+          "items": [
+            {
+              "id": "indoor-signs",
+              "name": "Indoor and wayfinding signs",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "outdoor-sign",
+              "name": "Outdoor monument or marquee sign",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Permits",
+                "Lit or unlit",
+                "Message board type"
+              ]
+            },
+            {
+              "id": "vinyl-lettering",
+              "name": "Vinyl lettering and window graphics",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "parking-signs",
+              "name": "Parking and safety signs",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "postage-mailing",
+      "name": "Postage and mailing",
+      "short": "Postage meters, bulk mail, mailers, and shipping.",
+      "summary": "Newsletters, giving statements, and appeal letters all go through the mail. Meters and shipping accounts are recurring contracts; mailing jobs are quoted per piece.",
+      "metaDescription": "Group buying for church postage and mailing: postage meter leases, bulk mail services, mailers, and shipping rates, from bids.",
+      "subcategories": [
+        {
+          "id": "postage-equipment",
+          "name": "Postage equipment",
+          "items": [
+            {
+              "id": "postage-meter",
+              "name": "Postage meter lease",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Pieces mailed per month",
+                "Scale needed"
+              ]
+            },
+            {
+              "id": "postage-ink",
+              "name": "Postage meter ink",
+              "unit": "each",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "postage-scale",
+              "name": "Postage scale",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "mail-services",
+          "name": "Mail services",
+          "items": [
+            {
+              "id": "mail-house",
+              "name": "Mailing house for newsletters and appeals",
+              "unit": "per project",
+              "frequency": "quarterly",
+              "model": "project",
+              "specs": [
+                "Piece count",
+                "Nonprofit mail permit",
+                "Addressing and inserting"
+              ]
+            },
+            {
+              "id": "address-cleanup",
+              "name": "Address list cleanup before a mailing",
+              "unit": "per project",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "shipping-rates",
+              "name": "Parcel shipping account",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "mailing-supplies",
+          "name": "Mailing supplies",
+          "items": [
+            {
+              "id": "mail-envelopes",
+              "name": "Mailing envelopes, #10 and 9 x 12",
+              "unit": "box",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "padded-mailers",
+              "name": "Padded mailers and boxes",
+              "unit": "pack",
+              "frequency": "as needed",
+              "model": "catalog"
+            },
+            {
+              "id": "return-envelopes",
+              "name": "Printed return envelopes",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "communion-baptism",
+      "name": "Communion and baptism",
+      "short": "Communion cups, bread, juice, trays, and baptism robes and towels.",
+      "summary": "Communion supplies are bought on a steady rhythm by nearly every church, which makes them a natural group catalog. Baptism supplies are smaller, steady purchases.",
+      "metaDescription": "Group buying for communion and baptism supplies: prefilled cups, wafers, juice, trays, baptism robes, and towels, from bids.",
+      "subcategories": [
+        {
+          "id": "communion",
+          "name": "Communion",
+          "items": [
+            {
+              "id": "prefilled-cups",
+              "name": "Prefilled communion cups with wafer",
+              "unit": "box",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Cups per box",
+                "Juice or wine",
+                "Gluten-sensitive option"
+              ]
+            },
+            {
+              "id": "communion-cups",
+              "name": "Disposable communion cups",
+              "unit": "box",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "communion-wafers",
+              "name": "Communion wafers or bread",
+              "unit": "box",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "communion-juice",
+              "name": "Communion juice",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "communion-trays",
+              "name": "Communion trays and covers",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "cup-filler",
+              "name": "Communion cup filler",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "baptism",
+          "name": "Baptism",
+          "items": [
+            {
+              "id": "baptism-robes",
+              "name": "Baptism robes",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Sizes",
+                "Weighted hem"
+              ]
+            },
+            {
+              "id": "baptism-towels",
+              "name": "Towels",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "baptism-certificates",
+              "name": "Baptism certificates",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "baptistry-heater",
+              "name": "Baptistry heater and pump service",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "worship-music",
+      "name": "Worship, choir, and music",
+      "short": "Music licenses, hymnals, choir robes, sheet music, and piano tuning.",
+      "summary": "Worship carries steady costs: the licenses to sing and stream songs, hymnals and choir music, robes, and keeping instruments in tune.",
+      "metaDescription": "Group buying for church worship and music: copyright and streaming licenses, hymnals, choir robes, sheet music, and piano and organ service.",
+      "subcategories": [
+        {
+          "id": "music-licensing",
+          "name": "Music licensing",
+          "items": [
+            {
+              "id": "copyright-license",
+              "name": "Church copyright license (for example CCLI)",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral",
+              "specs": [
+                "Average weekend attendance"
+              ]
+            },
+            {
+              "id": "streaming-license",
+              "name": "Streaming license for online services",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "performance-license",
+              "name": "Performance license for concerts and events",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "video-license",
+              "name": "Movie and video screening license",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "hymnals-music",
+          "name": "Hymnals and music",
+          "items": [
+            {
+              "id": "hymnals",
+              "name": "Hymnals",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Title and edition",
+                "Imprint or dedication plates"
+              ]
+            },
+            {
+              "id": "choir-octavos",
+              "name": "Choir octavos and anthems",
+              "unit": "each",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "music-folders",
+              "name": "Choir music folders",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "music-stands",
+              "name": "Music stands",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "robes",
+          "name": "Robes and vestments",
+          "items": [
+            {
+              "id": "choir-robes",
+              "name": "Choir robes",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Sizes",
+                "Color and fabric",
+                "Stoles"
+              ]
+            },
+            {
+              "id": "clergy-robes",
+              "name": "Clergy robes and stoles",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "robe-cleaning",
+              "name": "Robe cleaning",
+              "unit": "per project",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "instruments",
+          "name": "Instruments",
+          "items": [
+            {
+              "id": "piano-tuning",
+              "name": "Piano tuning",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract"
+            },
+            {
+              "id": "organ-service",
+              "name": "Organ maintenance",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "instrument-repair",
+              "name": "Instrument repair",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "handbells",
+              "name": "Handbell and chime maintenance",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "children-youth",
+      "name": "Children's and youth ministry",
+      "short": "Curriculum, VBS, camp, crafts, snacks, and check-in supplies.",
+      "summary": "Children's and youth ministry buys the same things on the same calendar: curriculum each quarter, VBS each summer, camp, crafts, and snacks every week.",
+      "metaDescription": "Group buying for children's and youth ministry: Sunday school curriculum, VBS kits, camp, craft supplies, snacks, and check-in labels, from bids.",
+      "subcategories": [
+        {
+          "id": "children-curriculum",
+          "name": "Curriculum",
+          "items": [
+            {
+              "id": "kids-curriculum",
+              "name": "Children's Sunday school curriculum",
+              "unit": "quarter",
+              "frequency": "quarterly",
+              "model": "catalog",
+              "specs": [
+                "Publisher preference",
+                "Age groups",
+                "Number of classes"
+              ]
+            },
+            {
+              "id": "youth-curriculum",
+              "name": "Youth curriculum",
+              "unit": "quarter",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "take-home-papers",
+              "name": "Take-home papers",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "vbs",
+          "name": "Vacation Bible School",
+          "items": [
+            {
+              "id": "vbs-kit",
+              "name": "VBS starter kit",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "vbs-shirts",
+              "name": "VBS T-shirts",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog",
+              "specs": [
+                "Sizes",
+                "Ink colors"
+              ]
+            },
+            {
+              "id": "vbs-crafts",
+              "name": "VBS craft packs",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "vbs-decor",
+              "name": "VBS decorations",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "camp",
+          "name": "Camp and retreats",
+          "items": [
+            {
+              "id": "summer-camp",
+              "name": "Summer camp registration",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "contract",
+              "specs": [
+                "Dates",
+                "Campers and chaperones"
+              ]
+            },
+            {
+              "id": "retreat-lodging",
+              "name": "Retreat lodging and meals",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "project"
+            },
+            {
+              "id": "lock-in",
+              "name": "Lock-in and event supplies",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "kids-supplies",
+          "name": "Classroom, crafts, and snacks",
+          "items": [
+            {
+              "id": "craft-supplies",
+              "name": "Craft supplies",
+              "unit": "pack",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "crayons-markers",
+              "name": "Crayons, markers, and glue",
+              "unit": "box",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "snack-crackers",
+              "name": "Snack crackers and pretzels",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Allergy-friendly options"
+              ]
+            },
+            {
+              "id": "juice-boxes",
+              "name": "Juice boxes and water",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "prizes",
+              "name": "Prizes and incentives",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "checkin-labels",
+              "name": "Check-in labels",
+              "unit": "roll",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Printer make and model",
+                "Label size"
+              ]
+            },
+            {
+              "id": "checkin-printer",
+              "name": "Check-in label printer",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bible-study",
+      "name": "Bibles and Bible study",
+      "short": "Pew and outreach Bibles, study books, and devotionals.",
+      "summary": "Bibles for the pews, Bibles to give away, and study books for every small group are steady purchases that add up across a congregation.",
+      "metaDescription": "Group buying for Bibles and Bible study: pew Bibles, outreach Bibles, children's Bibles, small group study books, and devotionals.",
+      "subcategories": [
+        {
+          "id": "bibles",
+          "name": "Bibles",
+          "specs": [
+            "Translation",
+            "Quantity",
+            "Imprint"
+          ],
+          "items": [
+            {
+              "id": "pew-bibles",
+              "name": "Pew Bibles",
+              "unit": "case",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Translation",
+                "Cover color",
+                "Imprint"
+              ]
+            },
+            {
+              "id": "outreach-bibles",
+              "name": "Outreach and gift Bibles",
+              "unit": "case",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "kids-bibles",
+              "name": "Children's Bibles",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "large-print-bibles",
+              "name": "Large-print Bibles",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "spanish-bibles",
+              "name": "Spanish and other-language Bibles",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "study",
+          "name": "Studies and devotionals",
+          "items": [
+            {
+              "id": "study-books",
+              "name": "Small group study books",
+              "unit": "each",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "leader-guides",
+              "name": "Leader guides",
+              "unit": "each",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "video-studies",
+              "name": "Video study access",
+              "unit": "per project",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "devotionals",
+              "name": "Quarterly devotional booklets",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "tracts",
+              "name": "Tracts and gospel booklets",
+              "unit": "pack",
+              "frequency": "as needed",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "kitchen-fellowship",
+      "name": "Kitchen and fellowship",
+      "short": "Plates, cups, coffee, food for meals, kitchen equipment, and hood cleaning.",
+      "summary": "Wednesday suppers, funerals, and fellowship meals run on paper goods, coffee, and a working kitchen. Supplies suit a catalog; equipment is quoted; hood cleaning and repair are service contracts.",
+      "metaDescription": "Group buying for church kitchens and fellowship halls: paper goods, coffee, food for meals, kitchen appliances, and hood and grease trap service.",
+      "subcategories": [
+        {
+          "id": "paper-goods",
+          "name": "Paper goods and disposables",
+          "items": [
+            {
+              "id": "plates",
+              "name": "Disposable plates and bowls",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "cups",
+              "name": "Hot and cold cups with lids",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "cutlery",
+              "name": "Plastic cutlery",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "napkins",
+              "name": "Napkins",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "table-covers",
+              "name": "Table covers",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "foil-film",
+              "name": "Foil, film, and food storage bags",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "food-gloves",
+              "name": "Food service gloves",
+              "unit": "box",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "to-go-containers",
+              "name": "To-go containers",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "beverages",
+          "name": "Coffee and beverages",
+          "items": [
+            {
+              "id": "coffee",
+              "name": "Coffee",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Ground or whole bean",
+                "Brewer type"
+              ]
+            },
+            {
+              "id": "creamer-sugar",
+              "name": "Creamer, sugar, and stir sticks",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "tea",
+              "name": "Tea",
+              "unit": "box",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "bottled-water",
+              "name": "Bottled water",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "meal-food",
+          "name": "Food for meals",
+          "items": [
+            {
+              "id": "fellowship-groceries",
+              "name": "Groceries for fellowship meals",
+              "unit": "case",
+              "frequency": "weekly",
+              "model": "catalog"
+            },
+            {
+              "id": "catering",
+              "name": "Catering for events and funerals",
+              "unit": "per person",
+              "frequency": "per event",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "kitchen-equipment",
+          "name": "Kitchen equipment",
+          "items": [
+            {
+              "id": "commercial-fridge",
+              "name": "Commercial refrigerator or freezer",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "range-oven",
+              "name": "Range and oven",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "commercial-dishwasher",
+              "name": "Commercial dishwasher",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "ice-machine",
+              "name": "Ice machine",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "coffee-brewer",
+              "name": "Commercial coffee brewer",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "serving-equipment",
+              "name": "Chafing dishes and serving equipment",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "kitchen-service",
+          "name": "Kitchen service",
+          "items": [
+            {
+              "id": "hood-cleaning",
+              "name": "Kitchen hood cleaning",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract"
+            },
+            {
+              "id": "grease-trap",
+              "name": "Grease trap pumping",
+              "unit": "per visit",
+              "frequency": "quarterly",
+              "model": "contract"
+            },
+            {
+              "id": "appliance-repair",
+              "name": "Kitchen appliance repair",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "janitorial-supplies",
+      "name": "Janitorial and restroom supplies",
+      "short": "Toilet tissue, paper towels, soap, cleaners, trash liners, and mats.",
+      "summary": "Restroom paper, soap, cleaners, and trash liners are bought by the case every month. They are the easiest group catalog to set up and to order from.",
+      "metaDescription": "Group buying for church janitorial and restroom supplies: toilet tissue, paper towels, hand soap, cleaners, can liners, and entrance mats.",
+      "subcategories": [
+        {
+          "id": "restroom",
+          "name": "Restroom",
+          "specs": [
+            "Dispenser makes and models",
+            "Restrooms",
+            "Cases per month"
+          ],
+          "items": [
+            {
+              "id": "toilet-tissue",
+              "name": "Toilet tissue",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Dispenser type",
+                "Roll size"
+              ]
+            },
+            {
+              "id": "paper-towels",
+              "name": "Paper towels",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Dispenser type"
+              ]
+            },
+            {
+              "id": "hand-soap",
+              "name": "Hand soap refills",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "seat-covers",
+              "name": "Toilet seat covers",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "feminine-products",
+              "name": "Feminine product refills",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "dispensers",
+              "name": "Restroom dispensers",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "cleaning",
+          "name": "Cleaning products",
+          "items": [
+            {
+              "id": "all-purpose-cleaner",
+              "name": "All-purpose cleaner",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "disinfectant",
+              "name": "Disinfectant",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "glass-cleaner",
+              "name": "Glass cleaner",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "floor-cleaner",
+              "name": "Floor cleaner and finish",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "can-liners",
+              "name": "Trash can liners",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Sizes and thickness"
+              ]
+            },
+            {
+              "id": "mops-brooms",
+              "name": "Mops, brooms, and buckets",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "vacuum",
+              "name": "Commercial vacuum",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "mats",
+          "name": "Mats",
+          "items": [
+            {
+              "id": "mat-service",
+              "name": "Entrance mat rental and service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "janitorial-service",
+      "name": "Janitorial service",
+      "short": "Weekly cleaning, carpet cleaning, floor care, and windows.",
+      "summary": "Many churches clean with volunteers until they cannot. A janitorial contract is a recurring service bid by region, so churches in the same area can be bid together.",
+      "metaDescription": "Group bids for church janitorial service: weekly cleaning, after-event cleaning, carpet cleaning, floor stripping and waxing, and window washing.",
+      "subcategories": [
+        {
+          "id": "cleaning-service",
+          "name": "Cleaning service",
+          "specs": [
+            "Square footage",
+            "Address",
+            "Visit schedule",
+            "Proof of insurance and background checks"
+          ],
+          "items": [
+            {
+              "id": "weekly-cleaning",
+              "name": "Weekly janitorial cleaning",
+              "unit": "month",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Square footage",
+                "Cleanings per week",
+                "Restrooms and floor types"
+              ]
+            },
+            {
+              "id": "event-cleaning",
+              "name": "After-event cleaning",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "contract"
+            },
+            {
+              "id": "carpet-cleaning",
+              "name": "Carpet cleaning",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract"
+            },
+            {
+              "id": "floor-strip-wax",
+              "name": "Floor strip and wax",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "window-washing",
+              "name": "Window washing",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract"
+            },
+            {
+              "id": "pressure-washing",
+              "name": "Pressure washing walks and entries",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "upholstery-cleaning",
+              "name": "Pew and upholstery cleaning",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "facilities",
+      "name": "Facilities maintenance",
+      "short": "HVAC service, plumbing, electrical, roofing, painting, flooring, pews, and elevators.",
+      "summary": "Buildings are a church's largest asset and often its largest surprise expense. Routine service suits a regional contract; repairs and replacements are quoted projects.",
+      "metaDescription": "Group bids for church facilities maintenance: HVAC service, plumbing, electrical, roofing, painting, flooring, pew refinishing, and elevator service.",
+      "subcategories": [
+        {
+          "id": "hvac",
+          "name": "Heating and air",
+          "items": [
+            {
+              "id": "hvac-maintenance",
+              "name": "HVAC preventive maintenance",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract",
+              "specs": [
+                "Number and type of units",
+                "Tonnage",
+                "Age of equipment"
+              ]
+            },
+            {
+              "id": "hvac-filters",
+              "name": "HVAC filters",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog",
+              "specs": [
+                "Filter sizes and ratings"
+              ]
+            },
+            {
+              "id": "hvac-repair",
+              "name": "HVAC repair",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "hvac-replacement",
+              "name": "HVAC system replacement",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "hvac-controls",
+              "name": "Thermostats and building controls",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "plumbing",
+          "name": "Plumbing",
+          "items": [
+            {
+              "id": "plumbing-service",
+              "name": "Plumbing service",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "water-heater",
+              "name": "Water heater replacement",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "backflow-testing",
+              "name": "Backflow testing",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "drain-cleaning",
+              "name": "Drain and sewer line cleaning",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "electrical",
+          "name": "Electrical",
+          "items": [
+            {
+              "id": "electrical-service",
+              "name": "Electrical service",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "generator-service",
+              "name": "Generator maintenance",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "exit-lights",
+              "name": "Exit and emergency light testing",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "roofing",
+          "name": "Roofing and gutters",
+          "items": [
+            {
+              "id": "roof-inspection",
+              "name": "Roof inspection",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "roof-repair",
+              "name": "Roof repair",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "roof-replacement",
+              "name": "Roof replacement",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Roof area and type",
+                "Number of layers",
+                "Steeple or special areas"
+              ]
+            },
+            {
+              "id": "gutter-cleaning",
+              "name": "Gutter cleaning",
+              "unit": "per visit",
+              "frequency": "twice a year",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "painting-flooring",
+          "name": "Painting and flooring",
+          "items": [
+            {
+              "id": "interior-painting",
+              "name": "Interior painting",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            },
+            {
+              "id": "exterior-painting",
+              "name": "Exterior painting",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            },
+            {
+              "id": "carpet-replacement",
+              "name": "Carpet replacement",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project",
+              "specs": [
+                "Square yards",
+                "Commercial grade",
+                "Furniture moving"
+              ]
+            },
+            {
+              "id": "hard-flooring",
+              "name": "Vinyl, tile, and hard flooring",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "pews",
+          "name": "Pews and pew cushions",
+          "items": [
+            {
+              "id": "pew-refinishing",
+              "name": "Pew refinishing and repair",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "pew-cushions",
+              "name": "Pew cushions",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Linear feet of pews",
+                "Fabric and color"
+              ]
+            },
+            {
+              "id": "pew-upholstery",
+              "name": "Pew re-upholstery",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "pew-racks",
+              "name": "Pew Bible and hymnal racks",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "building-other",
+          "name": "Elevators, doors, and general repair",
+          "items": [
+            {
+              "id": "elevator-service",
+              "name": "Elevator or lift maintenance",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "door-hardware",
+              "name": "Door and lock repair",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "handyman",
+              "name": "General handyman service",
+              "unit": "per hour",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "steeple-repair",
+              "name": "Steeple and bell tower repair",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "stained-glass",
+              "name": "Stained glass repair and protective glazing",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "grounds",
+      "name": "Grounds and parking",
+      "short": "Lawn care, landscaping, snow removal, parking lot sealing and striping, and tree service.",
+      "summary": "Grounds care is the first impression of a church and a recurring bill. Lawn care and snow removal are seasonal contracts bid by region; paving and tree work are quoted projects.",
+      "metaDescription": "Group bids for church grounds: lawn care, landscaping, mulch, snow removal, parking lot sealing and striping, asphalt repair, and tree service.",
+      "subcategories": [
+        {
+          "id": "lawn-landscape",
+          "name": "Lawn and landscaping",
+          "items": [
+            {
+              "id": "lawn-care",
+              "name": "Lawn mowing and trimming",
+              "unit": "per visit",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Acreage",
+                "Season length",
+                "Visit schedule"
+              ]
+            },
+            {
+              "id": "landscaping",
+              "name": "Landscape maintenance",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "mulch-pine-straw",
+              "name": "Mulch and pine straw",
+              "unit": "bag",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "irrigation",
+              "name": "Irrigation service",
+              "unit": "per visit",
+              "frequency": "seasonal",
+              "model": "contract"
+            },
+            {
+              "id": "fertilization",
+              "name": "Weed control and fertilization",
+              "unit": "per visit",
+              "frequency": "seasonal",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "snow",
+          "name": "Snow and ice",
+          "items": [
+            {
+              "id": "snow-removal",
+              "name": "Snow plowing",
+              "unit": "per visit",
+              "frequency": "seasonal",
+              "model": "contract",
+              "specs": [
+                "Lot size",
+                "Walks to clear",
+                "Trigger depth"
+              ]
+            },
+            {
+              "id": "ice-melt",
+              "name": "Ice melt",
+              "unit": "bag",
+              "frequency": "seasonal",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "parking",
+          "name": "Parking lot",
+          "items": [
+            {
+              "id": "seal-coating",
+              "name": "Parking lot seal coating",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project",
+              "specs": [
+                "Square footage",
+                "Cracks and patching",
+                "Restriping layout"
+              ]
+            },
+            {
+              "id": "striping",
+              "name": "Parking lot striping",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            },
+            {
+              "id": "asphalt-repair",
+              "name": "Asphalt patching and repair",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "paving",
+              "name": "Repaving",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "trees",
+          "name": "Trees",
+          "items": [
+            {
+              "id": "tree-trimming",
+              "name": "Tree trimming",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "tree-removal",
+              "name": "Tree and stump removal",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pest-control",
+      "name": "Pest control",
+      "short": "General pest service, termite protection, rodents, and wildlife.",
+      "summary": "Pest service is a recurring contract nearly every church carries. It bids well by region, since providers already route trucks through the same neighborhoods.",
+      "metaDescription": "Group bids for church pest control: general pest service, termite protection, rodent control, mosquito service, and wildlife removal.",
+      "subcategories": [
+        {
+          "id": "pest-service",
+          "name": "Pest service",
+          "items": [
+            {
+              "id": "general-pest",
+              "name": "General pest service",
+              "unit": "per visit",
+              "frequency": "quarterly",
+              "model": "contract",
+              "specs": [
+                "Square footage",
+                "Kitchen and nursery areas",
+                "Visit schedule"
+              ]
+            },
+            {
+              "id": "termite",
+              "name": "Termite protection plan",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "rodent",
+              "name": "Rodent control",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "mosquito",
+              "name": "Mosquito service",
+              "unit": "per visit",
+              "frequency": "seasonal",
+              "model": "contract"
+            },
+            {
+              "id": "wildlife",
+              "name": "Wildlife removal and exclusion",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "bed-bug",
+              "name": "Bed bug treatment for shelters and guest rooms",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "security-safety",
+      "name": "Security and life safety",
+      "short": "Cameras, access control, alarm monitoring, fire inspections, first aid and AEDs, and volunteer background checks.",
+      "summary": "Keeping people safe has recurring costs: alarm monitoring, required fire inspections, AED supplies, and background checks for anyone who works with children.",
+      "metaDescription": "Group buying for church security and safety: cameras, access control, alarm monitoring, fire extinguisher and sprinkler inspection, AEDs, and background checks.",
+      "subcategories": [
+        {
+          "id": "security-systems",
+          "name": "Security systems",
+          "items": [
+            {
+              "id": "cameras",
+              "name": "Security cameras",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Number of cameras",
+                "Indoor and outdoor",
+                "Recording and retention"
+              ]
+            },
+            {
+              "id": "access-control",
+              "name": "Access control and key fobs",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "alarm-monitoring",
+              "name": "Alarm monitoring",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "locksmith",
+              "name": "Locksmith and rekeying",
+              "unit": "per visit",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "radios",
+              "name": "Two-way radios for safety teams",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "fire-safety",
+          "name": "Fire safety",
+          "items": [
+            {
+              "id": "extinguisher-inspection",
+              "name": "Fire extinguisher inspection",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract",
+              "specs": [
+                "Number of extinguishers"
+              ]
+            },
+            {
+              "id": "fire-alarm-inspection",
+              "name": "Fire alarm inspection",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "sprinkler-inspection",
+              "name": "Sprinkler inspection",
+              "unit": "per visit",
+              "frequency": "annual",
+              "model": "contract"
+            },
+            {
+              "id": "extinguishers",
+              "name": "Fire extinguishers",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "first-aid",
+          "name": "First aid and AEDs",
+          "items": [
+            {
+              "id": "first-aid-kits",
+              "name": "First aid kits and refills",
+              "unit": "each",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "aed",
+              "name": "AED units",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "catalog"
+            },
+            {
+              "id": "aed-pads",
+              "name": "AED pads and batteries",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "cpr-training",
+              "name": "CPR and first aid training",
+              "unit": "per person",
+              "frequency": "every few years",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "screening",
+          "name": "Volunteer screening",
+          "requires": {
+            "kind": "care",
+            "note": "Background checks need each person's written consent and follow federal and state consumer-report rules. The screening company handles the consent and the report."
+          },
+          "items": [
+            {
+              "id": "background-checks",
+              "name": "Background checks for staff and volunteers",
+              "unit": "per person",
+              "frequency": "as needed",
+              "model": "contract",
+              "specs": [
+                "Checks per year",
+                "Search types needed"
+              ]
+            },
+            {
+              "id": "child-safety-training",
+              "name": "Child safety training for volunteers",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities and telecom",
+      "short": "Electric and gas supply, water, waste and recycling, internet, phones, and mobile lines.",
+      "summary": "Utilities are paid every month whether anyone notices or not. Some can be bid, such as waste hauling, internet, and phones; energy supply can be bid only where the state lets customers choose a supplier.",
+      "metaDescription": "Group bids for church utilities: electric and natural gas supply where choice is allowed, waste and recycling, internet, phone service, and mobile lines.",
+      "subcategories": [
+        {
+          "id": "energy-supply",
+          "name": "Electric, gas, and fuel",
+          "requires": {
+            "kind": "care",
+            "note": "Electric and gas supply can be bid only where the state allows customers to choose a supplier. Elsewhere the local utility sets the rate."
+          },
+          "items": [
+            {
+              "id": "electric-supply",
+              "name": "Electric supply",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Twelve months of bills",
+                "Utility and account numbers"
+              ]
+            },
+            {
+              "id": "gas-supply",
+              "name": "Natural gas supply",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "propane",
+              "name": "Propane",
+              "unit": "gallon",
+              "frequency": "seasonal",
+              "model": "contract"
+            },
+            {
+              "id": "heating-oil",
+              "name": "Heating oil",
+              "unit": "gallon",
+              "frequency": "seasonal",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "water",
+          "name": "Water and sewer",
+          "items": [
+            {
+              "id": "water-bill-review",
+              "name": "Water and sewer bill review",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "referral"
+            },
+            {
+              "id": "leak-detection",
+              "name": "Leak detection",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "waste",
+          "name": "Waste and recycling",
+          "items": [
+            {
+              "id": "dumpster",
+              "name": "Dumpster service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Container size",
+                "Pickups per week"
+              ]
+            },
+            {
+              "id": "recycling",
+              "name": "Recycling service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "shredding",
+              "name": "Document shredding service",
+              "unit": "per visit",
+              "frequency": "quarterly",
+              "model": "contract"
+            },
+            {
+              "id": "bulk-pickup",
+              "name": "Bulk and junk removal",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "telecom",
+          "name": "Internet and phones",
+          "items": [
+            {
+              "id": "internet",
+              "name": "Business internet",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Service address",
+                "Speed needed",
+                "Current bill"
+              ]
+            },
+            {
+              "id": "phone-service",
+              "name": "Phone service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "mobile-lines",
+              "name": "Mobile phone lines",
+              "unit": "per line per month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "phone-system",
+              "name": "Phone system hardware",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "energy",
+      "name": "Energy savings",
+      "short": "LED lighting retrofits, energy audits, smart thermostats, and solar where offered.",
+      "summary": "Lowering what a building uses is the other half of the utility bill. Retrofits and solar are quoted projects; rebates and incentives depend on where the church is.",
+      "metaDescription": "Group bids for church energy savings: LED lighting retrofits, energy audits, smart thermostats, lighting controls, and solar where offered.",
+      "subcategories": [
+        {
+          "id": "efficiency",
+          "name": "Efficiency",
+          "items": [
+            {
+              "id": "energy-audit",
+              "name": "Energy audit",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "led-retrofit",
+              "name": "LED lighting retrofit",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Fixture counts and types",
+                "Hours of use",
+                "Utility rebates available"
+              ]
+            },
+            {
+              "id": "lighting-controls",
+              "name": "Occupancy sensors and lighting controls",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "smart-thermostats",
+              "name": "Smart thermostats",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "catalog"
+            },
+            {
+              "id": "window-film",
+              "name": "Window film and weatherization",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "rebate-help",
+              "name": "Utility rebate paperwork",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "solar-power",
+          "name": "Solar",
+          "requires": {
+            "kind": "care",
+            "note": "Solar is offered only where providers serve the area, and incentives for nonprofits vary by state and utility."
+          },
+          "items": [
+            {
+              "id": "solar",
+              "name": "Solar installation",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Roof age and orientation",
+                "Twelve months of bills"
+              ]
+            },
+            {
+              "id": "solar-assessment",
+              "name": "Solar site assessment",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "technology",
+      "name": "Technology",
+      "short": "Computers, software subscriptions, church management, website, email, IT support, cybersecurity, and backup.",
+      "summary": "A church office runs on a few computers and a handful of subscriptions. Hardware suits a catalog; IT support, security, and backup are recurring contracts.",
+      "metaDescription": "Group buying for church technology: computers, software subscriptions, church management software, websites, email, IT support, cybersecurity, and data backup.",
+      "subcategories": [
+        {
+          "id": "hardware",
+          "name": "Hardware",
+          "items": [
+            {
+              "id": "laptops",
+              "name": "Laptops",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Specs needed",
+                "Warranty"
+              ]
+            },
+            {
+              "id": "desktops",
+              "name": "Desktop computers",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "monitors",
+              "name": "Monitors",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "office-printers",
+              "name": "Office printers",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "tablets",
+              "name": "Tablets for check-in and kiosks",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "network-equipment",
+              "name": "Wi-Fi and network equipment",
+              "unit": "per project",
+              "frequency": "every few years",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "software",
+          "name": "Software",
+          "items": [
+            {
+              "id": "office-suite",
+              "name": "Office and email suite",
+              "unit": "per user per month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "church-management",
+              "name": "Church management software",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "design-software",
+              "name": "Design and presentation software",
+              "unit": "per user per month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "antivirus",
+              "name": "Antivirus and device protection",
+              "unit": "per user per month",
+              "frequency": "monthly",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "web-email",
+          "name": "Website and email",
+          "items": [
+            {
+              "id": "website",
+              "name": "Church website",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "domain",
+              "name": "Domain name",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "email-hosting",
+              "name": "Email hosting",
+              "unit": "per user per month",
+              "frequency": "monthly",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "it-services",
+          "name": "IT services",
+          "items": [
+            {
+              "id": "it-support",
+              "name": "IT support",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Computers and users",
+                "On-site or remote"
+              ]
+            },
+            {
+              "id": "cybersecurity",
+              "name": "Cybersecurity monitoring",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "data-backup",
+              "name": "Data backup",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "security-training",
+              "name": "Staff security awareness training",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "audio-visual",
+      "name": "Sound, livestream, and lighting",
+      "short": "Sound, livestream, lighting, projectors and screens, video, and hearing assistance.",
+      "summary": "Sound, livestream, and lighting are planned for each sanctuary and installed as projects, with your volunteers trained.",
+      "metaDescription": "Church sound, livestream, lighting, projectors, video, and hearing assistance, planned for your sanctuary.",
+      "route": "/church-av",
+      "subcategories": [
+        {
+          "id": "av-systems",
+          "name": "Systems",
+          "items": [
+            {
+              "id": "sound-system",
+              "name": "Sound system",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "livestream",
+              "name": "Livestream system",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "stage-lighting",
+              "name": "Stage and worship lighting",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "projection",
+              "name": "Projectors and screens",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "video-cameras",
+              "name": "Video cameras",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "hearing-assistance",
+              "name": "Hearing assistance system",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "av-supplies",
+          "name": "Supplies",
+          "items": [
+            {
+              "id": "mic-batteries",
+              "name": "Microphone batteries",
+              "unit": "pack",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "av-cables",
+              "name": "Audio and video cables",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "catalog"
+            },
+            {
+              "id": "projector-lamps",
+              "name": "Projector lamps",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "transportation",
+      "name": "Transportation",
+      "short": "Church vans and buses, fuel, maintenance, tires, and charter trips.",
+      "summary": "A church van or bus carries youth trips, senior outings, and Sunday pickups. Vehicles are quoted purchases; fuel and maintenance are contracts; vehicle insurance goes through a licensed agent.",
+      "metaDescription": "Group buying for church transportation: vans and buses, fleet fuel, vehicle maintenance, tires, charter buses, and driver checks.",
+      "subcategories": [
+        {
+          "id": "vehicles",
+          "name": "Vehicles",
+          "items": [
+            {
+              "id": "church-van",
+              "name": "Church van or activity bus",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "project",
+              "specs": [
+                "Seating",
+                "License class needed",
+                "Wheelchair lift"
+              ]
+            },
+            {
+              "id": "church-bus",
+              "name": "Church bus",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "project"
+            },
+            {
+              "id": "charter-bus",
+              "name": "Charter bus for trips",
+              "unit": "per trip",
+              "frequency": "per event",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "fleet",
+          "name": "Fuel and maintenance",
+          "items": [
+            {
+              "id": "fleet-fuel",
+              "name": "Fleet fuel card",
+              "unit": "gallon",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "vehicle-maintenance",
+              "name": "Preventive vehicle maintenance",
+              "unit": "per visit",
+              "frequency": "quarterly",
+              "model": "contract"
+            },
+            {
+              "id": "tires",
+              "name": "Tires",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "driver-checks",
+              "name": "Driver record checks",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "vehicle-insurance",
+          "name": "Vehicle insurance",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, through a licensed insurance agent or broker. United Under God does not sell insurance, quote it, or advise on coverage. A licensed professional reviews your church and recommends coverage."
+          },
+          "items": [
+            {
+              "id": "auto-insurance",
+              "name": "Commercial auto insurance",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "insurance",
+      "name": "Insurance",
+      "short": "Property, liability, abuse and molestation, directors and officers, and workers' compensation.",
+      "summary": "Insurance is one of a church's largest fixed costs, and it is handled only by licensed professionals. We introduce churches to licensed agents and brokers who serve churches; we do not sell or quote coverage.",
+      "metaDescription": "Church insurance by introduction to a licensed agent or broker: property, general liability, abuse and molestation, directors and officers, and workers' compensation.",
+      "requires": {
+        "kind": "licensed",
+        "note": "Referral only, through a licensed insurance agent or broker. United Under God does not sell insurance, quote it, or advise on coverage. A licensed professional reviews your church and recommends coverage."
+      },
+      "subcategories": [
+        {
+          "id": "church-coverage",
+          "name": "Church coverage",
+          "items": [
+            {
+              "id": "property-insurance",
+              "name": "Property insurance",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "liability-insurance",
+              "name": "General liability insurance",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "abuse-insurance",
+              "name": "Abuse and molestation coverage",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "do-insurance",
+              "name": "Directors and officers coverage",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "workers-comp",
+              "name": "Workers' compensation",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "umbrella-insurance",
+              "name": "Umbrella coverage",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "cyber-insurance",
+              "name": "Cyber liability coverage",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "event-insurance",
+              "name": "Special event coverage",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "referral"
+            },
+            {
+              "id": "trip-insurance",
+              "name": "Mission trip travel coverage",
+              "unit": "per trip",
+              "frequency": "per event",
+              "model": "referral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "financial-services",
+      "name": "Financial services",
+      "short": "Bookkeeping, online giving and card processing, payroll, audit and tax, and banking.",
+      "summary": "Money handling is where trust matters most. Bookkeeping and giving tools can be bid. Payroll and tax, audits, and banking and loans are by introduction to a licensed or qualified provider only.",
+      "metaDescription": "Church financial services: bookkeeping, online giving and card processing, and introductions to qualified payroll, audit, tax, and banking providers.",
+      "subcategories": [
+        {
+          "id": "bookkeeping-billpay",
+          "name": "Bookkeeping and bill pay",
+          "items": [
+            {
+              "id": "bookkeeping",
+              "name": "Bookkeeping",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Transactions per month",
+                "Accounting software",
+                "Funds tracked"
+              ]
+            },
+            {
+              "id": "bill-pay",
+              "name": "Bill pay service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "contribution-statements",
+              "name": "Giving statement preparation",
+              "unit": "per project",
+              "frequency": "annual",
+              "model": "contract"
+            }
+          ]
+        },
+        {
+          "id": "giving",
+          "name": "Online giving and card processing",
+          "items": [
+            {
+              "id": "online-giving",
+              "name": "Online giving platform",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract",
+              "specs": [
+                "Monthly giving volume",
+                "Average gift",
+                "Fees passed to giver or not"
+              ]
+            },
+            {
+              "id": "card-processing",
+              "name": "Card processing",
+              "unit": "per transaction",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "giving-kiosk",
+              "name": "Giving kiosk",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "payroll-and-tax",
+          "name": "Payroll and payroll tax",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, through a qualified payroll provider or tax professional such as a CPA or enrolled agent. United Under God does not process payroll or give tax advice."
+          },
+          "items": [
+            {
+              "id": "payroll",
+              "name": "Payroll processing",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "payroll-tax",
+              "name": "Payroll tax filing",
+              "unit": "quarter",
+              "frequency": "quarterly",
+              "model": "referral"
+            },
+            {
+              "id": "clergy-tax",
+              "name": "Clergy compensation and tax guidance",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "audit-tax",
+          "name": "Audit and tax preparation",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, through a licensed CPA firm. United Under God does not perform audits or prepare tax filings."
+          },
+          "items": [
+            {
+              "id": "audit",
+              "name": "Financial audit or review",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            },
+            {
+              "id": "information-returns",
+              "name": "Information returns (W-2 and 1099)",
+              "unit": "year",
+              "frequency": "annual",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "banking",
+          "name": "Banking and loans",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, to a licensed lender or chartered bank or credit union. United Under God does not lend money, arrange loans, or advise on banking."
+          },
+          "items": [
+            {
+              "id": "checking",
+              "name": "Operating accounts",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "building-loan",
+              "name": "Building and renovation loans",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "referral"
+            },
+            {
+              "id": "refinance",
+              "name": "Loan refinancing",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "referral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hr-benefits",
+      "name": "Staff, HR, and benefits",
+      "short": "Health insurance, retirement plans, office help, nursery workers, and HR support.",
+      "summary": "Staff are a church's largest expense. Health and retirement benefits go through licensed professionals only; office help, nursery staffing, and HR support can be bid.",
+      "metaDescription": "Church staffing and benefits: introductions to licensed health and retirement benefit providers, plus office help, nursery staffing, and HR support.",
+      "subcategories": [
+        {
+          "id": "health-benefits",
+          "name": "Health benefits",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, through a licensed benefits agent or broker. United Under God does not sell insurance or advise on benefits."
+          },
+          "items": [
+            {
+              "id": "health-insurance",
+              "name": "Group health insurance",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "dental-vision",
+              "name": "Dental and vision coverage",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            },
+            {
+              "id": "life-disability",
+              "name": "Life and disability coverage",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "retirement",
+          "name": "Retirement plans",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, through a licensed financial professional or plan provider. United Under God does not offer or advise on retirement plans."
+          },
+          "items": [
+            {
+              "id": "retirement-plan",
+              "name": "403(b) retirement plan",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "staffing",
+          "name": "Office help and staffing",
+          "items": [
+            {
+              "id": "office-help",
+              "name": "Part-time office help",
+              "unit": "per hour",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Hours per week",
+                "Tasks",
+                "On-site or remote"
+              ]
+            },
+            {
+              "id": "answering-service",
+              "name": "Phone answering service",
+              "unit": "month",
+              "frequency": "monthly",
+              "model": "contract"
+            },
+            {
+              "id": "bulletin-service",
+              "name": "Bulletin and announcement preparation",
+              "unit": "per week",
+              "frequency": "weekly",
+              "model": "contract"
+            },
+            {
+              "id": "nursery-workers",
+              "name": "Paid nursery workers",
+              "unit": "per hour",
+              "frequency": "weekly",
+              "model": "contract"
+            },
+            {
+              "id": "musicians",
+              "name": "Accompanists and supply musicians",
+              "unit": "per service",
+              "frequency": "weekly",
+              "model": "contract"
+            },
+            {
+              "id": "supply-preaching",
+              "name": "Supply preaching",
+              "unit": "per service",
+              "frequency": "as needed",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "hr-support",
+          "name": "HR support",
+          "items": [
+            {
+              "id": "hr-consulting",
+              "name": "HR policies and handbook help",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "labor-posters",
+              "name": "Workplace labor law posters",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "professional-services",
+      "name": "Professional services",
+      "short": "Legal, architecture and engineering, appraisals, and consulting.",
+      "summary": "Churches need professionals now and then: an architect for a building, an appraiser for a sale, a consultant for a campaign. Legal work goes through a licensed attorney only.",
+      "metaDescription": "Professional services for churches: introductions to licensed attorneys, plus architecture, engineering, appraisals, and campaign and planning consultants.",
+      "subcategories": [
+        {
+          "id": "legal",
+          "name": "Legal",
+          "requires": {
+            "kind": "licensed",
+            "note": "Referral only, to a licensed attorney. United Under God does not give legal advice."
+          },
+          "items": [
+            {
+              "id": "bylaws-review",
+              "name": "Bylaws and governance review",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "referral"
+            },
+            {
+              "id": "real-estate-legal",
+              "name": "Real estate and property matters",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "referral"
+            },
+            {
+              "id": "employment-legal",
+              "name": "Employment matters",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "referral"
+            },
+            {
+              "id": "contract-review",
+              "name": "Contract review",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "referral"
+            }
+          ]
+        },
+        {
+          "id": "design",
+          "name": "Architecture and engineering",
+          "requires": {
+            "kind": "care",
+            "note": "Architecture and engineering are performed by licensed professionals. Bids compare licensed firms."
+          },
+          "items": [
+            {
+              "id": "architecture",
+              "name": "Architectural design",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project",
+              "specs": [
+                "Scope and square footage",
+                "Budget range",
+                "Timeline"
+              ]
+            },
+            {
+              "id": "engineering",
+              "name": "Structural and civil engineering",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "master-plan",
+              "name": "Campus master planning",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "advisory",
+          "name": "Appraisals and consulting",
+          "items": [
+            {
+              "id": "appraisal",
+              "name": "Property appraisal",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "campaign-consulting",
+              "name": "Capital campaign consulting",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "strategic-planning",
+              "name": "Strategic planning facilitation",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "events",
+      "name": "Events and promotion",
+      "short": "Tents, rentals, T-shirts, banners, promotional items, and event supplies.",
+      "summary": "Fall festivals, revivals, and homecomings bring rental and printing costs. Shirts and printed items suit a catalog; rentals are quoted per event.",
+      "metaDescription": "Group buying for church events: tent and table rentals, portable restrooms, T-shirts, banners, yard signs, and promotional items.",
+      "subcategories": [
+        {
+          "id": "rentals",
+          "name": "Rentals",
+          "items": [
+            {
+              "id": "tent-rental",
+              "name": "Tent rental",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "project",
+              "specs": [
+                "Size",
+                "Date and site",
+                "Setup and permits"
+              ]
+            },
+            {
+              "id": "table-chair-rental",
+              "name": "Table and chair rental",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "project"
+            },
+            {
+              "id": "portable-restrooms",
+              "name": "Portable restrooms",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "project"
+            },
+            {
+              "id": "inflatables",
+              "name": "Inflatables and games",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "project"
+            },
+            {
+              "id": "staging",
+              "name": "Staging and event power",
+              "unit": "per event",
+              "frequency": "per event",
+              "model": "project"
+            }
+          ]
+        },
+        {
+          "id": "promo",
+          "name": "Shirts and promotional items",
+          "items": [
+            {
+              "id": "t-shirts",
+              "name": "Printed T-shirts",
+              "unit": "each",
+              "frequency": "per event",
+              "model": "catalog",
+              "specs": [
+                "Quantity and sizes",
+                "Ink colors",
+                "Shirt style"
+              ]
+            },
+            {
+              "id": "banners",
+              "name": "Vinyl banners",
+              "unit": "each",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "yard-signs",
+              "name": "Yard signs",
+              "unit": "each",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "promo-items",
+              "name": "Printed pens, cups, and giveaways",
+              "unit": "each",
+              "frequency": "per event",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "event-supplies",
+          "name": "Event supplies",
+          "items": [
+            {
+              "id": "wristbands",
+              "name": "Wristbands and tickets",
+              "unit": "pack",
+              "frequency": "per event",
+              "model": "catalog"
+            },
+            {
+              "id": "name-tags",
+              "name": "Name tags",
+              "unit": "pack",
+              "frequency": "per event",
+              "model": "catalog"
+            },
+            {
+              "id": "party-decor",
+              "name": "Decorations and balloons",
+              "unit": "pack",
+              "frequency": "per event",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "outreach-missions",
+      "name": "Outreach and missions",
+      "short": "Benevolence supplies, food pantry stock, hygiene kits, and mission trip costs.",
+      "summary": "Outreach budgets stretch furthest when supplies are bought together: pantry stock by the case, hygiene kit items in bulk, and coats and socks before winter.",
+      "metaDescription": "Group buying for church outreach and missions: food pantry stock, hygiene kit supplies, blankets, socks, school supplies, and mission trip lodging.",
+      "subcategories": [
+        {
+          "id": "pantry",
+          "name": "Food pantry stock",
+          "items": [
+            {
+              "id": "canned-goods",
+              "name": "Canned goods",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog",
+              "specs": [
+                "Items and sizes",
+                "Cases per month"
+              ]
+            },
+            {
+              "id": "dry-goods",
+              "name": "Rice, pasta, cereal, and dry goods",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "pantry-bags",
+              "name": "Grocery bags and boxes",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "pantry-shelving",
+              "name": "Pantry shelving",
+              "unit": "each",
+              "frequency": "one time",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "hygiene",
+          "name": "Hygiene kits",
+          "items": [
+            {
+              "id": "toothbrushes",
+              "name": "Toothbrushes and toothpaste",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "soap-shampoo",
+              "name": "Soap, shampoo, and deodorant",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "hygiene-feminine",
+              "name": "Feminine hygiene products",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "kit-bags",
+              "name": "Kit bags",
+              "unit": "pack",
+              "frequency": "quarterly",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "benevolence",
+          "name": "Benevolence supplies",
+          "items": [
+            {
+              "id": "blankets",
+              "name": "Blankets",
+              "unit": "each",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "socks",
+              "name": "Socks and underwear",
+              "unit": "pack",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "coats",
+              "name": "Coats and gloves",
+              "unit": "each",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "school-supplies",
+              "name": "School supplies",
+              "unit": "pack",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "baby-supplies",
+              "name": "Diapers and wipes for families",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "missions",
+          "name": "Mission trips",
+          "items": [
+            {
+              "id": "mission-lodging",
+              "name": "Mission trip lodging",
+              "unit": "per person",
+              "frequency": "annual",
+              "model": "project"
+            },
+            {
+              "id": "mission-shirts",
+              "name": "Team shirts",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "group-travel",
+              "name": "Group travel booking",
+              "unit": "per trip",
+              "frequency": "annual",
+              "model": "referral"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cemetery",
+      "name": "Cemetery care",
+      "short": "Cemetery mowing, grave opening and closing, monument repair, and records.",
+      "summary": "Churches with a cemetery carry a second set of grounds costs. Mowing and grave services are contracts; monument repair and mapping are quoted projects.",
+      "metaDescription": "Group bids for church cemetery care: cemetery mowing, grave opening and closing, monument cleaning and repair, fencing, and plot mapping.",
+      "subcategories": [
+        {
+          "id": "cemetery-care",
+          "name": "Cemetery care",
+          "items": [
+            {
+              "id": "cemetery-mowing",
+              "name": "Cemetery mowing and trimming",
+              "unit": "per visit",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Acreage",
+                "Headstone trimming",
+                "Season length"
+              ]
+            },
+            {
+              "id": "grave-opening",
+              "name": "Grave opening and closing",
+              "unit": "per service",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "monument-repair",
+              "name": "Monument cleaning and repair",
+              "unit": "per project",
+              "frequency": "as needed",
+              "model": "project"
+            },
+            {
+              "id": "cemetery-fencing",
+              "name": "Cemetery fencing and gates",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "plot-mapping",
+              "name": "Plot mapping and records",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "furniture",
+      "name": "Furniture",
+      "short": "Chairs, tables, office and classroom furniture, and storage.",
+      "summary": "Stacking chairs, folding tables, classroom sets, and office desks are bought in quantity and replaced on a cycle, which suits a group catalog.",
+      "metaDescription": "Group buying for church furniture: stacking chairs, folding tables, classroom furniture, office desks and chairs, chancel furniture, and storage.",
+      "subcategories": [
+        {
+          "id": "chairs-tables",
+          "name": "Chairs and tables",
+          "items": [
+            {
+              "id": "stacking-chairs",
+              "name": "Stacking chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Quantity",
+                "Fabric and frame finish",
+                "Ganging"
+              ]
+            },
+            {
+              "id": "folding-chairs",
+              "name": "Folding chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "folding-tables",
+              "name": "Folding tables",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "round-tables",
+              "name": "Round banquet tables",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "carts",
+              "name": "Chair and table carts",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "rooms",
+          "name": "Office, classroom, and lobby",
+          "items": [
+            {
+              "id": "office-desks",
+              "name": "Office desks",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "office-chairs",
+              "name": "Office chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "classroom-furniture",
+              "name": "Classroom tables and chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "lobby-furniture",
+              "name": "Lobby seating",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "chancel-furniture",
+              "name": "Pulpit, lectern, and chancel furniture",
+              "unit": "per project",
+              "frequency": "one time",
+              "model": "project"
+            },
+            {
+              "id": "shelving",
+              "name": "Shelving and storage cabinets",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nursery",
+      "name": "Nursery",
+      "short": "Cribs, changing tables, toys, diapers and wipes, and safety supplies.",
+      "summary": "A clean, safe nursery tells young families they are expected. Equipment is replaced on a cycle; diapers, wipes, and sanitizer are monthly supplies.",
+      "metaDescription": "Group buying for church nurseries: cribs, changing tables, high chairs, toys, diapers and wipes, sanitizer, and safety gates.",
+      "subcategories": [
+        {
+          "id": "nursery-equipment",
+          "name": "Equipment",
+          "items": [
+            {
+              "id": "cribs",
+              "name": "Cribs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog",
+              "specs": [
+                "Meets current crib safety standards",
+                "Size and finish"
+              ]
+            },
+            {
+              "id": "changing-tables",
+              "name": "Changing tables",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "high-chairs",
+              "name": "High chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "rocking-chairs",
+              "name": "Rocking and glider chairs",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "safety-gates",
+              "name": "Safety gates and outlet covers",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "catalog"
+            },
+            {
+              "id": "nursery-toys",
+              "name": "Toys",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "pagers",
+              "name": "Parent pagers",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "nursery-supplies",
+          "name": "Supplies",
+          "items": [
+            {
+              "id": "diapers-wipes",
+              "name": "Diapers and wipes",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "sanitizer",
+              "name": "Sanitizing wipes and hand sanitizer",
+              "unit": "case",
+              "frequency": "monthly",
+              "model": "catalog"
+            },
+            {
+              "id": "crib-sheets",
+              "name": "Crib sheets",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flowers-decor",
+      "name": "Flowers, candles, and decor",
+      "short": "Altar flowers, candles, paraments, and sanctuary decor.",
+      "summary": "Altar flowers each week and candles for every service are steady, quiet costs. A standing flower order is a contract; candles and paraments suit a catalog.",
+      "metaDescription": "Group buying for church flowers and decor: weekly altar flowers, memorial arrangements, altar candles, paraments, and sanctuary decor.",
+      "subcategories": [
+        {
+          "id": "flowers",
+          "name": "Flowers and plants",
+          "items": [
+            {
+              "id": "altar-flowers",
+              "name": "Weekly altar flowers",
+              "unit": "per week",
+              "frequency": "weekly",
+              "model": "contract",
+              "specs": [
+                "Arrangements per week",
+                "Delivery day"
+              ]
+            },
+            {
+              "id": "memorial-flowers",
+              "name": "Memorial and funeral arrangements",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "contract"
+            },
+            {
+              "id": "live-plants",
+              "name": "Live plants",
+              "unit": "each",
+              "frequency": "seasonal",
+              "model": "catalog"
+            },
+            {
+              "id": "silk-arrangements",
+              "name": "Silk arrangements",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "candles-decor",
+          "name": "Candles and decor",
+          "items": [
+            {
+              "id": "altar-candles",
+              "name": "Altar candles",
+              "unit": "box",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "candle-oil",
+              "name": "Candle oil and followers",
+              "unit": "case",
+              "frequency": "quarterly",
+              "model": "catalog"
+            },
+            {
+              "id": "paraments",
+              "name": "Paraments and banners",
+              "unit": "each",
+              "frequency": "every few years",
+              "model": "catalog"
+            },
+            {
+              "id": "sanctuary-decor",
+              "name": "Sanctuary and lobby decor",
+              "unit": "each",
+              "frequency": "as needed",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "seasonal",
+      "name": "Christmas, Easter, and the church year",
+      "short": "Poinsettias, Christmas candles, Easter lilies, egg hunts, and Advent and Palm Sunday supplies.",
+      "summary": "The church year brings the same purchases every season. Ordering them together, early, is exactly what a group bid is for.",
+      "metaDescription": "Group buying for Christmas, Easter, and the church year: poinsettias, candlelight service candles, Easter lilies, egg hunt supplies, palms, and Advent candles.",
+      "subcategories": [
+        {
+          "id": "christmas",
+          "name": "Christmas",
+          "items": [
+            {
+              "id": "poinsettias",
+              "name": "Poinsettias",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog",
+              "specs": [
+                "Pot size",
+                "Colors",
+                "Delivery date"
+              ]
+            },
+            {
+              "id": "candlelight-candles",
+              "name": "Candlelight service candles with drip guards",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "christmas-trees",
+              "name": "Christmas trees and greenery",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "christmas-decor",
+              "name": "Christmas decorations",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "christmas-invites",
+              "name": "Christmas invitation cards",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "easter",
+          "name": "Easter",
+          "items": [
+            {
+              "id": "easter-lilies",
+              "name": "Easter lilies",
+              "unit": "each",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "egg-hunt",
+              "name": "Egg hunt eggs and fillers",
+              "unit": "case",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "easter-invites",
+              "name": "Easter invitation cards",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        },
+        {
+          "id": "church-year",
+          "name": "Through the year",
+          "items": [
+            {
+              "id": "advent-candles",
+              "name": "Advent wreath candles",
+              "unit": "box",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "palms",
+              "name": "Palm Sunday palms",
+              "unit": "bundle",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "thanksgiving-supplies",
+              "name": "Thanksgiving meal supplies",
+              "unit": "case",
+              "frequency": "annual",
+              "model": "catalog"
+            },
+            {
+              "id": "fall-festival",
+              "name": "Fall festival supplies",
+              "unit": "pack",
+              "frequency": "annual",
+              "model": "catalog"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

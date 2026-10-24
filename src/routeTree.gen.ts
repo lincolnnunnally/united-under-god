@@ -37,6 +37,7 @@ import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
+import { Route as BuyingCategoryRouteImport } from './routes/buying/$category'
 import { Route as BuyingDeskRouteImport } from './routes/buying/desk'
 import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
 import { Route as ChurchAvBlendedRouteImport } from './routes/church-av/blended'
@@ -196,6 +197,11 @@ const BuyingIndexRoute = BuyingIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const BuyingCategoryRoute = BuyingCategoryRouteImport.update({
+  id: '/$category',
+  path: '/$category',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const BuyingDeskRoute = BuyingDeskRouteImport.update({
   id: '/desk',
   path: '/desk',
@@ -314,6 +320,7 @@ export interface FileRoutesByFullPath {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
@@ -359,6 +366,7 @@ export interface FileRoutesByTo {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
@@ -408,6 +416,7 @@ export interface FileRoutesById {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/bible/$slug': typeof BibleSlugRoute
+  '/buying/$category': typeof BuyingCategoryRoute
   '/buying/desk': typeof BuyingDeskRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
@@ -458,6 +467,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/$category'
     | '/buying/desk'
     | '/church-av/blended'
     | '/church-av/livestream-ministry'
@@ -503,6 +513,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/$category'
     | '/buying/desk'
     | '/church-av/blended'
     | '/church-av/livestream-ministry'
@@ -551,6 +562,7 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/bible/$slug'
+    | '/buying/$category'
     | '/buying/desk'
     | '/church-av/blended'
     | '/church-av/livestream-ministry'
@@ -812,6 +824,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingIndexRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/buying/$category': {
+      id: '/buying/$category'
+      path: '/$category'
+      fullPath: '/buying/$category'
+      preLoaderRoute: typeof BuyingCategoryRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/buying/desk': {
       id: '/buying/desk'
       path: '/desk'
@@ -974,11 +993,13 @@ const BibleRouteRouteWithChildren = BibleRouteRoute._addFileChildren(
 )
 
 interface BuyingRouteRouteChildren {
+  BuyingCategoryRoute: typeof BuyingCategoryRoute
   BuyingDeskRoute: typeof BuyingDeskRoute
   BuyingIndexRoute: typeof BuyingIndexRoute
 }
 
 const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
+  BuyingCategoryRoute: BuyingCategoryRoute,
   BuyingDeskRoute: BuyingDeskRoute,
   BuyingIndexRoute: BuyingIndexRoute,
 }

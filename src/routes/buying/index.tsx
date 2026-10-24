@@ -5,6 +5,7 @@ import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
+import { SPEND_CATEGORIES, groupBookByCategory } from "@/lib/church-spend";
 import { readMyPlace } from "@/lib/member-actions";
 import { listPublishedBook, type PublicBookEntry } from "@/lib/source-actions";
 import { pageHead, serviceJsonLd } from "@/lib/seo";
@@ -115,6 +116,8 @@ function BuyingPage() {
         </div>
       </section>
 
+      <CatalogDirectory />
+
       <section className="border-t border-rule bg-cream">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
           <h2 className="max-w-2xl text-3xl">Church office help, without hiring full-time staff</h2>
@@ -182,30 +185,102 @@ function BuyingBook({
         ) : entries.length === 0 ? (
           <p className="mt-3 max-w-2xl text-muted">
             We are gathering our first group orders now. As prices are secured, they will be listed
-            here for members. Join below and we will let you know as soon as savings are available
+            here for every church. Join below and we will let you know as soon as savings are available
             for the things you buy.
           </p>
         ) : (
-          <ul className="mt-6 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
-            {entries.map((entry) => (
-              <li key={entry.id} className="px-5 py-4">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <h3 className="font-display text-lg">{entry.title}</h3>
-                  <p className="text-sm font-medium text-forest">
-                    {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
-                    {entry.unit ? ` / ${entry.unit}` : ""}
-                  </p>
-                </div>
-                <p className="mt-1 text-sm text-muted">
-                  {entry.vendorName}
-                  {entry.quantity ? ` · ${entry.quantity}` : ""}
-                  {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
-                </p>
-                {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
-              </li>
+          <div className="mt-6 grid gap-8">
+            {groupBookByCategory(entries).map((group) => (
+              <div key={group.category?.id ?? "other"}>
+                <h3 className="font-display text-xl">
+                  {group.category ? (
+                    group.category.route ? (
+                      group.category.name
+                    ) : (
+                      <Link
+                        to="/buying/$category"
+                        params={{ category: group.category.id }}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {group.category.name}
+                      </Link>
+                    )
+                  ) : (
+                    "Other group prices"
+                  )}
+                </h3>
+                <BookList entries={group.entries} />
+              </div>
             ))}
-          </ul>
+          </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+function BookList({ entries }: { entries: PublicBookEntry[] }) {
+  return (
+    <ul className="mt-3 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
+      {entries.map((entry) => (
+        <li key={entry.id} className="px-5 py-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h4 className="font-display text-lg">{entry.title}</h4>
+            <p className="text-sm font-medium text-forest">
+              {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
+              {entry.unit ? ` / ${entry.unit}` : ""}
+            </p>
+          </div>
+          <p className="mt-1 text-sm text-muted">
+            {entry.vendorName}
+            {entry.quantity ? ` · ${entry.quantity}` : ""}
+            {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
+          </p>
+          {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Every category on the church spend list, two to a row. */
+function CatalogDirectory() {
+  return (
+    <section className="border-t border-rule">
+      <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
+        <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
+          Buying catalogs
+        </p>
+        <h2 className="mt-3 max-w-2xl text-3xl">Everything a church buys, one catalog at a time</h2>
+        <p className="mt-4 max-w-2xl text-muted">
+          Supplies, services, repairs, and the bills that come every month. We bid each catalog for
+          the group, and each church buys what it needs when it needs it at the group price. Prices
+          appear only after a bid is awarded.
+        </p>
+        <ul className="mt-10 grid gap-4 md:grid-cols-2">
+          {SPEND_CATEGORIES.map((category) => (
+            <li key={category.id}>
+              {category.route ? (
+                <Link
+                  to={category.route as "/church-av"}
+                  className="flex h-full flex-col rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]"
+                >
+                  <h3 className="font-display text-lg">{category.name}</h3>
+                  <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
+                </Link>
+              ) : (
+                <Link
+                  to="/buying/$category"
+                  params={{ category: category.id }}
+                  className="flex h-full flex-col rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]"
+                >
+                  <h3 className="font-display text-lg">{category.name}</h3>
+                  <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
+                </Link>
+              )}
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );
