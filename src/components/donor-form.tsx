@@ -7,6 +7,7 @@ import { InquiryDone } from "@/components/inquiry-done";
 import { DONOR_PATHS, PLENTY_STORES } from "@/lib/content";
 import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitInquiry } from "@/lib/desk-actions";
+import { inquiryProof } from "@/lib/inquiry-client";
 import { cn } from "@/lib/utils";
 
 type DonorKind = (typeof DONOR_PATHS)[number]["id"];
@@ -45,6 +46,11 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
     }
     const days = PICKUP_DAYS.filter((day) => data.get(`day-${day}`)).join(", ");
     const intent = kind === "food" ? "food" : kind === "org" ? "org" : "goods";
+    const proof = await inquiryProof();
+    if (!proof.ok) {
+      setError(proof.error);
+      return;
+    }
     const result = await submitInquiry({
       data: {
         intent,
@@ -64,6 +70,8 @@ export function DonorForm({ initialKind, lockKind = false, className }: Props) {
         vehicle: "",
         helpers: "",
         hp: String(data.get("website") ?? ""),
+        powChallenge: proof.powChallenge,
+        powNonce: proof.powNonce,
       },
     });
     if (!result.ok) {

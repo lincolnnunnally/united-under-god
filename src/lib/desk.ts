@@ -66,6 +66,8 @@ export type InquiryInput = {
   vehicle: string;
   helpers: string;
   hp: string;
+  powChallenge?: string;
+  powNonce?: string;
 };
 
 const PICKUP_KINDS = new Set([

@@ -5,6 +5,7 @@ import { describe, it } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
 import { sendAvConfirmation } from "./church-av-confirm.ts";
+import { DbUnavailableError, isDbFailure, rethrowQueryError } from "./db.ts";
 import {
   AV_DAILY_CAP,
   AV_MONTHLY_CAP,
@@ -14,10 +15,16 @@ import {
   DESK_MONTHLY_CAP,
   deskBuckets,
   deskSendAllowed,
+  isProviderLimit,
   listDeskMailSkips,
   OWNER_DAILY_CAP,
   OWNER_MONTHLY_CAP,
   sendHardcodedOwnerEmail,
+  SHARED_DAILY_CAP,
+  sharedDayBucket,
+  UNSAVED_PER_HOUR,
+  VERSE_HOLD_CEILING,
+  verseHoldDateKey,
 } from "./desk-mail.ts";
 import {
   buildConfirmMail,
@@ -44,6 +51,7 @@ import {
   RESEND_DAILY_CAP,
   RESEND_MONTHLY_CAP,
   SHARED_IP_BUCKET,
+  SUBSCRIBE_IP_PER_HOUR,
   signVerseToken,
   solveVersePow,
   subscribeIpBucket,
@@ -62,6 +70,7 @@ import {
 import {
   confirmVerseToken,
   deliverDailyVerse,
+  guardInquirySubmit,
   issueVerseSignupChallenge,
   requestVerseSubscription,
   unsubscribeVerseToken,
@@ -186,8 +195,21 @@ describe("verse mail tokens and caps", () => {
   });
 
   it("keeps confirmations in their own slice", () => {
-    assert.equal(CONFIRM_DAILY_CAP, 15);
-    assert.equal(CONFIRM_MONTHLY_CAP, 450);
+    assert.equal(CONFIRM_DAILY_CAP, 5);
+    assert.equal(CONFIRM_MONTHLY_CAP, CONFIRM_DAILY_CAP * 31);
+    assert.equal(
+      VERSE_DAILY_SEND_CEILING + CONFIRM_DAILY_CAP + DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP,
+      SHARED_DAILY_CAP,
+    );
+    assert.equal(SHARED_DAILY_CAP, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
+    assert.equal(AV_DAILY_CAP, 3);
+    assert.equal(VERSE_HOLD_CEILING, VERSE_DAILY_SEND_CEILING);
+    assert.equal(verseHoldDateKey(new Date("2026-10-24T00:30:00.000Z")), verseRunDateKey(new Date("2026-10-24T00:30:00.000Z")));
+    assert.equal(DESK_MONTHLY_RESERVE, DESK_FAMILY_MONTHLY_CAP);
+    assert.ok(
+      VERSE_DAILY_SEND_CEILING * 31 + CONFIRM_MONTHLY_CAP + DESK_MONTHLY_CAP + OWNER_MONTHLY_CAP + AV_MONTHLY_CAP <=
+        RESEND_MONTHLY_CAP,
+    );
     assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 3);
     assert.equal(confirmHardCeilings().dailyHard, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
     assert.equal(confirmHardCeilings().monthlyHard, RESEND_MONTHLY_CAP - DESK_MONTHLY_RESERVE);
@@ -199,6 +221,16 @@ describe("verse mail tokens and caps", () => {
     assert.equal(confirmSendAllowed({ confirmsToday: CONFIRM_DAILY_CAP, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), false);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: CONFIRM_MONTHLY_CAP, otherToday: 0, otherThisMonth: 0 }), false);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 80, otherThisMonth: 0 }), true);
+    assert.equal(
+      confirmSendAllowed({
+        confirmsToday: 0,
+        confirmsThisMonth: 0,
+        otherToday: SHARED_DAILY_CAP - VERSE_DAILY_SEND_CEILING,
+        otherThisMonth: 0,
+        verseHold: VERSE_DAILY_SEND_CEILING,
+      }),
+      false,
+    );
     assert.equal(
       confirmSendAllowed({
         confirmsToday: 0,
@@ -910,14 +942,16 @@ describe("verse confirm defenses", () => {
     assert.equal(otherV4.ok, true);
     assert.equal(calls, 4);
 
+    const nextDay = new Date("2026-10-24T21:00:00Z");
+    const v6base = { ...base, now: nextDay };
     for (let n = 0; n < 3; n += 1) {
-      const result = await ask(sql, { ...base, email: `v6-${n}@example.com`, ip: `2001:db8:85a3:${n}::1` });
+      const result = await ask(sql, { ...v6base, email: `v6-${n}@example.com`, ip: `2001:db8:85a3:${n}::1` });
       assert.equal(result.ok, true);
     }
-    const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::9" });
+    const blockedV6 = await ask(sql, { ...v6base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::9" });
     assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
     assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
-    const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
+    const otherV6 = await ask(sql, { ...v6base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
     assert.equal(otherV6.ok, true);
     assert.equal(calls, 8);
     const nets = await sql<{ bucket: string; used: number }>`
@@ -928,8 +962,8 @@ describe("verse confirm defenses", () => {
       [
         `${confirmNetBucket("203.0.113.1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
         `${confirmNetBucket("203.0.114.8", now)}=1`,
-        `${confirmNetBucket("2001:db8:85a3::1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
-        `${confirmNetBucket("2001:db8:85a4::1", now)}=1`,
+        `${confirmNetBucket("2001:db8:85a3::1", nextDay)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
+        `${confirmNetBucket("2001:db8:85a4::1", nextDay)}=1`,
       ].sort(),
     );
     await pg.close();
@@ -1202,19 +1236,13 @@ describe("verse confirm defenses", () => {
     });
     assert.equal(delivered.sent, VERSE_DAILY_SEND_CEILING);
     assert.equal(verseSends, VERSE_DAILY_SEND_CEILING);
-    // 15 confirms + 80 verse letters fill the provider cap minus the 5-letter
-    // desk reserve, and they do not go past it. The cap-hit note is the one
-    // desk send. It spends one reserved slot, so the three together stay
-    // inside the provider cap and inside the cap minus the reserve still unused.
+    // Five confirmations, the owner cap note, and the 80-letter verse stay
+    // inside the shared day. The note spends one shared slot, so the three
+    // together stay under 95.
     assert.equal(deskSends, 1);
-    assert.equal(confirmSends + verseSends, RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
-    assert.ok(deskSends <= DESK_DAILY_RESERVE);
+    assert.equal(confirmSends, CONFIRM_DAILY_CAP);
+    assert.ok(confirmSends + verseSends + deskSends <= SHARED_DAILY_CAP);
     assert.ok(confirmSends + verseSends + deskSends <= RESEND_DAILY_CAP);
-    assert.ok(
-      confirmSends + verseSends + deskSends <=
-        RESEND_DAILY_CAP - (DESK_DAILY_RESERVE - deskSends),
-    );
-    assert.ok(confirmSends + verseSends + DESK_DAILY_RESERVE <= RESEND_DAILY_CAP);
     assert.ok(CONFIRM_MONTHLY_CAP + VERSE_DAILY_SEND_CEILING * 30 + DESK_MONTHLY_RESERVE <= RESEND_MONTHLY_CAP);
     await pg.close();
   });
@@ -1336,10 +1364,9 @@ describe("verse confirm defenses", () => {
     await pg.close();
   });
 
-  it("stops public desk mail at five a day and still allows an owner notice", async () => {
+  it("stops public desk mail at its daily cap and still allows an owner notice", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-12-03T15:00:00.000Z");
-    assert.equal(DESK_DAILY_CAP, DESK_DAILY_RESERVE);
     assert.equal(deskSendAllowed(DESK_DAILY_CAP - 1), true);
     assert.equal(deskSendAllowed(DESK_DAILY_CAP), false);
     for (let n = 0; n < DESK_DAILY_CAP; n += 1) {
@@ -1369,8 +1396,10 @@ describe("verse confirm defenses", () => {
     const now = new Date("2026-12-03T15:00:00.000Z");
     let fetches = 0;
     let sqlCalls = 0;
-    const fetchImpl = (async () => {
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
       fetches += 1;
+      bodies.push(String(init?.body ?? ""));
       return new Response("{}", { status: 200 });
     }) as typeof fetch;
     const down = throwingSql(() => {
@@ -1389,6 +1418,7 @@ describe("verse confirm defenses", () => {
     assert.deepEqual(sent, { sent: 1, attempted: 1 });
     assert.equal(fetches, 1);
     assert.equal(sqlCalls, 0);
+    assert.deepEqual((JSON.parse(bodies[0] ?? "{}") as { to?: string[] }).to, ["lincoln@unitedundergod.org"]);
 
     const { pg, sql } = await db();
     const month = deskBuckets("owner", now).monthBucket;
@@ -1423,7 +1453,7 @@ describe("verse confirm defenses", () => {
     await pg.close();
   });
 
-  it("sends a saved owner notice when the claim throws", async () => {
+  it("does not send a saved owner notice when the claim throws", async () => {
     const now = new Date("2026-12-05T15:00:00.000Z");
     let fetches = 0;
     const sent = await sendHardcodedOwnerEmail({
@@ -1439,12 +1469,48 @@ describe("verse confirm defenses", () => {
         return new Response("{}", { status: 200 });
       }) as typeof fetch,
     });
-    assert.deepEqual(sent, { sent: 1, attempted: 1 });
-    assert.equal(fetches, 1);
+    assert.deepEqual(sent, { sent: 0, attempted: 0 });
+    assert.equal(fetches, 0);
     const claim = await claimDeskSend(throwingSql(), now, "owner", "food");
-    assert.equal(claim.ok, true);
+    assert.equal(claim.ok, false);
     assert.equal(claim.reserved, false);
     await assert.rejects(() => claimDeskSend(throwingSql(), now, "desk"));
+  });
+
+  it("stops the unsaved fallback at three an hour and only writes lincoln", async () => {
+    const now = new Date("2026-12-04T16:00:00.000Z");
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body ?? ""));
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    for (let n = 0; n < UNSAVED_PER_HOUR; n += 1) {
+      const sent = await sendHardcodedOwnerEmail({
+        subject: "NOT SAVED",
+        text: "typed@example.com",
+        apiKey: "re_test",
+        logKind: "food",
+        logLabel: "unsaved",
+        sql: throwingSql(),
+        now,
+        fetchImpl,
+      });
+      assert.equal(sent.sent, 1);
+    }
+    const fourth = await sendHardcodedOwnerEmail({
+      subject: "NOT SAVED",
+      text: "typed@example.com",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "unsaved",
+      now,
+      fetchImpl,
+    });
+    assert.deepEqual(fourth, { sent: 0, attempted: 0 });
+    assert.equal(bodies.length, UNSAVED_PER_HOUR);
+    for (const body of bodies) {
+      assert.deepEqual((JSON.parse(body) as { to?: string[] }).to, ["lincoln@unitedundergod.org"]);
+    }
   });
 
   it("gives owner notices their own daily allowance and records the skip", async () => {
@@ -1587,7 +1653,7 @@ describe("verse confirm defenses", () => {
     await pg.close();
   });
 
-  it("holds a church confirmation inside the owner-style allowance and fails open", async () => {
+  it("holds a church confirmation and does not send without a reserved slot", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-08-04T15:00:00.000Z");
     const buckets = deskBuckets("av", now);
@@ -1615,15 +1681,23 @@ describe("verse confirm defenses", () => {
     const skips = await listDeskMailSkips(sql);
     assert.equal(skips[0]?.lane, "av");
     assert.equal(skips[0]?.reason, "daily cap");
-    const open = await sendAvConfirmation({
+    const closed = await sendAvConfirmation({
       inquiry: { ...inquiry, id: "av-3" },
       apiKey: "re_test",
       sql: throwingSql(),
       now,
       fetchImpl,
     });
-    assert.deepEqual(open, { sent: true });
-    assert.equal(fetches, 2);
+    assert.deepEqual(closed, { sent: false });
+    assert.equal(fetches, 1);
+    const noSql = await sendAvConfirmation({
+      inquiry: { ...inquiry, id: "av-4" },
+      apiKey: "re_test",
+      now,
+      fetchImpl,
+    });
+    assert.deepEqual(noSql, { sent: false });
+    assert.equal(fetches, 1);
     await pg.close();
   });
 
@@ -1640,21 +1714,232 @@ describe("verse confirm defenses", () => {
     assert.equal(unsaved[1].includes("sql"), false);
     assert.match(mailOwnerFn, /logLabel,\s*\n\s*sql,/);
     assert.match(actions, /sendAvConfirmation\(\{[^}]*sql: avSql/);
+    assert.match(actions, /settled\.ok && kind === "av"[\s\S]{0,300}sendAvConfirmation\(/);
+    assert.match(actions, /guardInquirySubmit/);
+    assert.match(actions, /powChallenge/);
+    assert.match(actions, /ownerDesk = me\.email === OWNER_EMAIL/);
     assert.match(actions, /listDeskMailSkips/);
     assert.equal(actions.includes("delete from desk_mail_skips"), false);
     assert.equal(actions.includes("update desk_mail_skips"), false);
+    assert.match(admin, /glance\?\.ownerDesk \? <HeldMail/);
     const held = admin.slice(admin.indexOf("function HeldMail"), admin.indexOf("function FilterChip"));
     assert.match(held, /Held mail/);
     assert.equal(held.includes("<button"), false);
     assert.equal(held.includes("onClick"), false);
     assert.equal(held.includes("updateInquiry"), false);
     assert.match(confirm, /claimDeskSend\([\s\S]*"av"/);
+    assert.match(confirm, /if \(!claimed\.reserved\)/);
     assert.match(server, /claimDeskSend\(sql, now, "desk", "inquiry"\)/);
     assert.match(server, /releaseDeskSend\(sql, now, "desk"\)/);
+    assert.match(server, /provider cap/);
+    const donor = readFileSync(new URL("../components/donor-form.tsx", import.meta.url), "utf8");
+    const goods = readFileSync(new URL("../components/give-goods-form.tsx", import.meta.url), "utf8");
+    const involvement = readFileSync(new URL("../components/involvement-form.tsx", import.meta.url), "utf8");
+    assert.match(donor, /powNonce/);
+    assert.match(goods, /powNonce/);
+    assert.match(involvement, /powNonce/);
     assert.match(manual, /create table if not exists desk_mail_skips/i);
     assert.match(manual, /desk_reserve_send/);
+    assert.match(manual, /mail_verse_hold/);
+    assert.match(manual, /reserve_shared_mail/);
+    assert.match(manual, /'shared cap'/);
+    assert.match(manual, /'provider cap'/);
     assert.match(manual, /revoke all on table desk_mail_skips from public/i);
     assert.equal(manual.includes("create policy"), false);
+    const dbSource = readFileSync(new URL("./db.ts", import.meta.url), "utf8");
+    assert.equal((dbSource.match(/rethrowQueryError\(error\)/g) ?? []).length >= 2, true);
+  });
+
+  it("keeps every lane on one day and still sends the verse hold", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-24T13:00:00.000Z");
+    await sql`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      select 'hold-' || g, 'hold-' || g || '@example.com', 'confirmed', ${now.toISOString()}::timestamptz
+      from generate_series(1, ${VERSE_DAILY_SEND_CEILING}) as g
+    `;
+    for (const lane of ["desk", "owner", "av"] as const) {
+      const cap = lane === "desk" ? DESK_DAILY_CAP : lane === "owner" ? OWNER_DAILY_CAP : AV_DAILY_CAP;
+      for (let n = 0; n < cap; n += 1) {
+        const claimed = await claimDeskSend(sql, now, lane, lane);
+        assert.equal(claimed.ok, true);
+        assert.equal(claimed.reserved, true);
+      }
+    }
+    let confirmSends = 0;
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      const payload = JSON.parse(String(init?.body ?? "{}")) as { to?: string[] };
+      if (!(payload.to ?? []).includes("lincoln@unitedundergod.org")) confirmSends += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    for (let n = 0; n < CONFIRM_DAILY_CAP + 2; n += 1) {
+      await ask(sql, {
+        email: `lane-${n}@example.com`,
+        sourcePath: "/verse",
+        now,
+        ip: `203.0.${n}.1`,
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: true,
+        fetchImpl,
+      });
+    }
+    assert.equal(confirmSends, CONFIRM_DAILY_CAP);
+    const before = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    assert.equal(Number(before[0]?.used), DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP + CONFIRM_DAILY_CAP);
+    let verseSends = 0;
+    const delivered = await deliverDailyVerse(sql, {
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      postalAddress: POSTAL,
+      days: [verse("2026-10-24")],
+      fetchImpl: (async (_url: string | URL | Request, init?: RequestInit) => {
+        const batch = JSON.parse(String(init?.body ?? "[]")) as unknown[];
+        verseSends += batch.length;
+        return new Response("{}", { status: 200 });
+      }) as typeof fetch,
+    });
+    assert.equal(delivered.sent, VERSE_DAILY_SEND_CEILING);
+    assert.equal(verseSends, VERSE_DAILY_SEND_CEILING);
+    const after = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    const used = Number(after[0]?.used);
+    assert.equal(used, SHARED_DAILY_CAP);
+    assert.ok(used <= RESEND_DAILY_CAP - DESK_DAILY_RESERVE);
+    await pg.close();
+
+    const { pg: pg2, sql: sql2 } = await db();
+    await sql2`
+      insert into verse_subscribers (id, email, status, confirmed_at)
+      select 'hold-' || g, 'hold-' || g || '@example.com', 'confirmed', ${now.toISOString()}::timestamptz
+      from generate_series(1, ${VERSE_DAILY_SEND_CEILING}) as g
+    `;
+    await sql2`
+      insert into desk_send_budget (bucket, used)
+      values (${sharedDayBucket(now)}, ${SHARED_DAILY_CAP - VERSE_HOLD_CEILING})
+    `;
+    const blocked = await claimDeskSend(sql2, now, "desk", "inquiry");
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.reason, "shared cap");
+    const skips = await listDeskMailSkips(sql2);
+    assert.equal(skips[0]?.reason, "shared cap");
+    const verseRoom = await sql2<{ result: number }>`
+      select reserve_shared_mail(${sharedDayBucket(now)}, ${SHARED_DAILY_CAP}, ${VERSE_DAILY_SEND_CEILING}) as result
+    `;
+    assert.equal(Number(verseRoom[0]?.result), VERSE_DAILY_SEND_CEILING);
+    await pg2.close();
+  });
+
+  it("writes a skip when Resend rejects at its limit", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-09-02T15:00:00.000Z");
+    assert.equal(isProviderLimit(429, ""), true);
+    assert.equal(isProviderLimit(400, "nope"), false);
+    const sent = await sendHardcodedOwnerEmail({
+      subject: "Routes",
+      text: "hello",
+      apiKey: "re_test",
+      logKind: "food",
+      logLabel: "routes",
+      sql,
+      now,
+      fetchImpl: (async () =>
+        new Response('{"message":"You have reached your daily email sending quota."}', {
+          status: 429,
+        })) as typeof fetch,
+    });
+    assert.equal(sent.sent, 0);
+    const skips = await listDeskMailSkips(sql);
+    assert.equal(skips[0]?.lane, "owner");
+    assert.equal(skips[0]?.reason, "provider cap");
+    const used = await sql<{ used: number }>`
+      select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+    `;
+    assert.equal(Number(used[0]?.used ?? 0), 0);
+    await pg.close();
+  });
+
+  it("guards an inquiry with the verse honeypot, proof of work, and per-IP limit", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-09-01T15:00:00.000Z");
+    const honeypot = await guardInquirySubmit(sql, {
+      hp: "http://spam.example",
+      powChallenge: "nope",
+      powNonce: "0",
+      ip: "198.51.100.8",
+      now,
+      secret: SECRET,
+    });
+    assert.deepEqual(honeypot, { ok: true, ignored: true });
+    const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
+    const used = await sql<{ n: number }>`select count(*)::int as n from verse_pow_used`;
+    assert.equal(Number(hits[0]?.n), 0);
+    assert.equal(Number(used[0]?.n), 0);
+    const bad = await guardInquirySubmit(sql, {
+      hp: "",
+      powChallenge: "bad",
+      powNonce: "1",
+      ip: "198.51.100.8",
+      now,
+      secret: SECRET,
+    });
+    assert.equal(bad.ok, false);
+    const afterBad = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
+    assert.equal(Number(afterBad[0]?.n), 0);
+    for (let n = 0; n < SUBSCRIBE_IP_PER_HOUR; n += 1) {
+      await sql`
+        insert into verse_subscribe_hits (id, ip, created_at)
+        values (${`hit-${n}`}, ${"198.51.100.8"}, ${now.toISOString()}::timestamptz)
+      `;
+    }
+    const limitedIssued = issueVersePow(
+      SECRET,
+      Math.floor(now.getTime() / 1000),
+      8,
+      subscribeIpBucket("198.51.100.8"),
+    );
+    const limited = await guardInquirySubmit(sql, {
+      powChallenge: limitedIssued.challenge,
+      powNonce: solveVersePow(limitedIssued.challenge, limitedIssued.bits),
+      ip: "198.51.100.8",
+      now,
+      secret: SECRET,
+    });
+    assert.deepEqual(limited, { ok: true, ignored: true });
+    const still = await sql<{ n: number }>`
+      select count(*)::int as n from verse_subscribe_hits where ip = ${"198.51.100.8"}
+    `;
+    assert.equal(Number(still[0]?.n), SUBSCRIBE_IP_PER_HOUR);
+    const issued = issueVersePow(SECRET, Math.floor(now.getTime() / 1000), 8, subscribeIpBucket("198.51.100.9"));
+    const good = await guardInquirySubmit(sql, {
+      powChallenge: issued.challenge,
+      powNonce: solveVersePow(issued.challenge, issued.bits),
+      ip: "198.51.100.9",
+      now,
+      secret: SECRET,
+    });
+    assert.deepEqual(good, { ok: true, ignored: false });
+    const added = await sql<{ n: number }>`
+      select count(*)::int as n from verse_subscribe_hits where ip = ${"198.51.100.9"}
+    `;
+    assert.equal(Number(added[0]?.n), 1);
+    await pg.close();
+  });
+
+  it("treats a connection error as a database failure and leaves a duplicate row alone", () => {
+    const down = Object.assign(new Error("admin shutdown"), { code: "57P01" });
+    assert.equal(isDbFailure(down), true);
+    assert.throws(() => rethrowQueryError(down), DbUnavailableError);
+    const duplicate = Object.assign(new Error("duplicate"), { code: "23505" });
+    assert.equal(isDbFailure(duplicate), false);
+    assert.throws(() => rethrowQueryError(duplicate), (error: unknown) => error === duplicate);
+    const missing = Object.assign(new Error("missing relation"), { code: "42P01" });
+    assert.equal(isDbFailure(missing), false);
   });
 
   it("holds the rest of the month so desk mail cannot shrink the letter", async () => {

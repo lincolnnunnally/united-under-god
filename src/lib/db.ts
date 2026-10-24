@@ -20,6 +20,43 @@ export class DbUnavailableError extends Error {
   }
 }
 
+const DB_FAILURE_CODES = new Set([
+  "57P01",
+  "57P02",
+  "57P03",
+  "08000",
+  "08001",
+  "08003",
+  "08004",
+  "08006",
+  "53300",
+  "3D000",
+  "ECONNREFUSED",
+  "ENOTFOUND",
+  "EAI_AGAIN",
+  "ETIMEDOUT",
+  "ECONNRESET",
+]);
+
+const DB_FAILURE_MESSAGE =
+  /pglite\.data|PGLite bootstrap|PGLite instance|database is not available|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|Connection terminated|password authentication failed|timeout expired|the database system is (?:starting|shutting)/i;
+
+/**
+ * A connection or shutdown failure, not a missing table or a constraint.
+ * 42P01 and 23505 stay ordinary query errors so a missing migration can fail
+ * open and a duplicate row stays a duplicate row.
+ */
+export function isDbFailure(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  if (error instanceof DbUnavailableError) return true;
+  const name = "name" in error ? String((error as { name?: unknown }).name ?? "") : "";
+  if (name === "DbUnavailableError") return true;
+  const code = "code" in error ? String((error as { code?: unknown }).code ?? "") : "";
+  if (DB_FAILURE_CODES.has(code)) return true;
+  const message = error instanceof Error ? error.message : "";
+  return DB_FAILURE_MESSAGE.test(message);
+}
+
 // An empty/whitespace connection string (an easy misconfig in deploy UIs) must
 // mean "unset" — otherwise production would silently run on the PGLite fallback.
 // Prefer DATABASE_URL, then sister aliases SUPABASE_DB_URL and
@@ -109,8 +146,12 @@ function createPostgresSql(): Promise<Sql> {
     types.setTypeParser(OID_INTERVAL, identity);
     const pool = new Pool({ connectionString: databaseUrl });
     return toSql(async <T>(text: string, params: unknown[]) => {
-      const res = await pool.query(text, params);
-      return res.rows as T[];
+      try {
+        const res = await pool.query(text, params);
+        return res.rows as T[];
+      } catch (error) {
+        rethrowQueryError(error);
+      }
     });
   })().catch((err) => {
     globalRef.__pgSqlPromise__ = undefined;
@@ -186,12 +227,28 @@ async function createPgliteSql(): Promise<Sql> {
   await pass;
 
   return toSql(async <T>(text: string, params: unknown[]) => {
-    const result = await pg.query<T>(text, params);
-    return result.rows;
+    try {
+      const result = await pg.query<T>(text, params);
+      return result.rows;
+    } catch (error) {
+      rethrowQueryError(error);
+    }
   });
 }
 
 let sqlPromise: Promise<Sql> | null = null;
+
+/**
+ * Connection failures become DbUnavailableError and drop the memoized client
+ * so the next getSql() opens a new one. Other query errors are rethrown as-is.
+ */
+export function rethrowQueryError(error: unknown): never {
+  if (!isDbFailure(error)) throw error;
+  sqlPromise = null;
+  globalRef.__pgSqlPromise__ = undefined;
+  if (error instanceof DbUnavailableError) throw error;
+  throw new DbUnavailableError();
+}
 
 async function createSql(): Promise<Sql> {
   if (typeof window !== "undefined") {
@@ -263,6 +320,9 @@ export async function getPglite(): Promise<import("@electric-sql/pglite").PGlite
 export function ensureDbReady(): Promise<void> {
   if (dbSource !== "pglite") return Promise.resolve();
   if (!pgliteBootstrapAllowed()) return Promise.resolve();
+  // migrations/*.sql are inlined by Vite's import.meta.glob. A plain Node
+  // process (the test runner) has no glob, so there is nothing to apply here.
+  if (typeof import.meta.glob !== "function") return Promise.resolve();
   return getSql().then(() => undefined);
 }
 
@@ -272,7 +332,12 @@ export function ensureDbReady(): Promise<void> {
 const globalBoot = globalThis as typeof globalThis & {
   __pgBootstrapPromise__?: Promise<void>;
 };
-if (typeof window === "undefined" && dbSource === "pglite" && pgliteBootstrapAllowed()) {
+if (
+  typeof window === "undefined" &&
+  dbSource === "pglite" &&
+  pgliteBootstrapAllowed() &&
+  typeof import.meta.glob === "function"
+) {
   globalBoot.__pgBootstrapPromise__ ??= ensureDbReady().catch((err) => {
     globalBoot.__pgBootstrapPromise__ = undefined;
     console.error("[db] PGLite bootstrap failed:", err);

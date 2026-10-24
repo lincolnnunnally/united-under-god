@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
@@ -16,6 +17,7 @@ import {
   type OpsStats,
 } from "@/lib/ops-report.server";
 import {
+  OWNER_EMAIL,
   SUPER_EMAILS,
   coversKind,
   kindsFromSubmission,
@@ -85,7 +87,22 @@ const inquiryInput = z.object({
   vehicle: z.string().optional().default(""),
   helpers: z.string().optional().default(""),
   hp: z.string().optional().default(""),
+  powChallenge: z.string().optional().default(""),
+  powNonce: z.string().optional().default(""),
 });
+
+function callerIp() {
+  try {
+    const request = getRequest();
+    const forwarded = request.headers.get("x-forwarded-for") ?? "";
+    const ip = forwarded.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim() || "";
+    return ip.slice(0, 64);
+  } catch {
+    return "";
+  }
+}
+
+const INQUIRY_LATER = "We could not take that just now. Please try again in a little while.";
 
 function asBool(value: unknown) {
   return value === true || value === "t" || value === "true";
@@ -214,10 +231,34 @@ async function notifyInquiry(inquiry: InquiryRow, extra?: string[]) {
   });
 }
 
+export const inquiryChallenge = createServerFn({ method: "POST" }).handler(async () => {
+  const { issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
+  return issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+});
+
 export const submitInquiry = createServerFn({ method: "POST" })
   .validator(inquiryInput)
   .handler(async ({ data, context }) => {
     if (data.hp) {
+      return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
+    }
+    let guardSql: Awaited<ReturnType<typeof getSql>>;
+    try {
+      guardSql = await getSql();
+    } catch {
+      return { ok: false as const, error: INQUIRY_LATER, saved: false as const, emailed: false as const };
+    }
+    const { guardInquirySubmit } = await import("@/lib/verse-mail.server");
+    const guard = await guardInquirySubmit(guardSql, {
+      hp: data.hp,
+      powChallenge: data.powChallenge,
+      powNonce: data.powNonce,
+      ip: callerIp(),
+    });
+    if (!guard.ok) {
+      return { ok: false as const, error: guard.error, saved: false as const, emailed: false as const };
+    }
+    if (guard.ignored) {
       return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
     }
     const name = data.name.trim();
@@ -287,9 +328,12 @@ export const submitInquiry = createServerFn({ method: "POST" })
       await forwardInquiryToDashboard(inquiry).catch(() => undefined);
     }
     if (settled.ok && kind === "av") {
-      let avSql: Awaited<ReturnType<typeof getSql>> | undefined;
-      try { avSql = await getSql(); } catch { avSql = undefined; }
-      await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY, sql: avSql }).catch(() => undefined);
+      try {
+        const avSql = await getSql();
+        await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY, sql: avSql });
+      } catch {
+        /* no reserved slot, no church note */
+      }
     }
     if (!settled.ok) {
       return {
@@ -314,26 +358,31 @@ export const getDeskMe = createServerFn({ method: "GET" })
 export const readDeskGlance = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    await requireDeskStaff(context.userId);
+    const me = await requireDeskStaff(context.userId);
+    const ownerDesk = me.email === OWNER_EMAIL;
     const [stats, skips] = await Promise.all([
       readOpsStats(),
-      (async (): Promise<DeskMailSkip[]> => {
-        try {
-          return await listDeskMailSkips(await getSql());
-        } catch {
-          return [];
-        }
-      })(),
+      ownerDesk
+        ? (async (): Promise<DeskMailSkip[]> => {
+            try {
+              return await listDeskMailSkips(await getSql());
+            } catch {
+              return [];
+            }
+          })()
+        : Promise.resolve([] as DeskMailSkip[]),
     ]);
     return {
       stats,
       skips,
+      ownerDesk,
       reportingArmed: reportingArmed(),
       dashboardUrl: DASHBOARD_ORIGIN,
       publicUrl: PUBLIC_URL,
     } satisfies {
       stats: OpsStats;
       skips: DeskMailSkip[];
+      ownerDesk: boolean;
       reportingArmed: boolean;
       dashboardUrl: string;
       publicUrl: string;

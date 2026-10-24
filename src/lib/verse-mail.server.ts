@@ -1,6 +1,14 @@
 import { timingSafeEqual } from "node:crypto";
 import type { Sql } from "./db.ts";
-import { sendHardcodedOwnerEmail, sendResendBatch, sendResendText } from "./desk-mail.ts";
+import {
+  recordDeskSkip,
+  sendHardcodedOwnerEmail,
+  sendResendBatch,
+  sendResendText,
+  SHARED_DAILY_CAP,
+  sharedDayBucket,
+  VERSE_HOLD_CEILING,
+} from "./desk-mail.ts";
 import { groupVerseDays, type VerseDay } from "./verse.ts";
 import { isMissingRelation, loadVerseDays } from "./verse-feed.ts";
 import {
@@ -128,12 +136,19 @@ async function budgetUsed(sql: Sql, bucket: string) {
   return Number(rows[0]?.used ?? 0);
 }
 
+async function sharedToday(sql: Sql, now: Date) {
+  const rows = await sql<{ used: number }>`
+    select used from desk_send_budget where bucket = ${sharedDayBucket(now)}
+  `;
+  return Number(rows[0]?.used ?? 0);
+}
+
 async function otherMail(sql: Sql, now: Date) {
-  // Verse letters already sent. Desk mail has its own 5-a-day cap inside the
-  // reserve, so it is not subtracted here and cannot shrink the letter.
-  const dayStart = utcDayStart(now);
+  // Today's number is the shared day: verse, confirms, desk, owner, and church.
+  // The month still counts verse letters. The desk-family reserve is subtracted
+  // in the ceiling, so those lanes are not counted a second time.
   const monthStart = utcMonthStart(now);
-  const otherToday = await countKind(sql, dayStart, "daily");
+  const otherToday = await sharedToday(sql, now);
   const otherThisMonth = await countKind(sql, monthStart, "daily");
   return { otherToday, otherThisMonth };
 }
@@ -202,7 +217,11 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
       ${otherToday},
       ${otherThisMonth},
       ${caps.dailyHard},
-      ${caps.monthlyHard}
+      ${caps.monthlyHard},
+      ${sharedDayBucket(now)},
+      ${SHARED_DAILY_CAP},
+      ${verseRunDateKey(now)},
+      ${VERSE_HOLD_CEILING}
     ) as result
   `;
   return rows[0]?.result ?? "global";
@@ -219,6 +238,62 @@ async function releaseConfirm(sql: Sql, now: Date, ip: string | undefined) {
       where bucket = ${bucket}
     `;
   }
+  await sql`
+    update desk_send_budget
+    set used = greatest(used - 1, 0), updated_at = now()
+    where bucket = ${sharedDayBucket(now)}
+  `;
+}
+
+/**
+ * Honeypot, then the same proof of work and per-IP limit as a verse sign-up.
+ * A filled honeypot does not spend a challenge or an IP hit.
+ */
+export async function guardInquirySubmit(
+  sql: Sql,
+  input: {
+    hp?: string;
+    powChallenge?: string;
+    powNonce?: string;
+    ip?: string;
+    now?: Date;
+    secret?: string;
+  },
+): Promise<{ ok: true; ignored: boolean } | { ok: false; error: string }> {
+  if (input.hp?.trim()) return { ok: true, ignored: true };
+  const secret = input.secret ?? verseLinkSecret();
+  if (!secret) return { ok: false, error: CHALLENGE_LATER };
+  const now = input.now ?? new Date();
+  const nowSec = Math.floor(now.getTime() / 1000);
+  const bucket = subscribeIpBucket(input.ip);
+  if (!verifyVersePow(input.powChallenge ?? "", input.powNonce ?? "", secret, nowSec, bucket)) {
+    return { ok: false, error: CHALLENGE_LATER };
+  }
+  if (!(await spendPow(sql, input.powChallenge ?? "", now))) {
+    return { ok: false, error: CHALLENGE_LATER };
+  }
+  if (await ipOverLimit(sql, bucket, now)) return { ok: true, ignored: true };
+  await sql`
+    insert into verse_subscribe_hits (id, ip, created_at)
+    values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
+  `;
+  return { ok: true, ignored: false };
+}
+
+async function reserveSharedMail(sql: Sql, now: Date, count: number) {
+  const rows = await sql<{ result: number }>`
+    select reserve_shared_mail(${sharedDayBucket(now)}, ${SHARED_DAILY_CAP}, ${count}) as result
+  `;
+  return Number(rows[0]?.result ?? 0);
+}
+
+async function releaseSharedMail(sql: Sql, now: Date, count: number) {
+  if (count <= 0) return;
+  await sql`
+    update desk_send_budget
+    set used = greatest(used - ${count}, 0), updated_at = now()
+    where bucket = ${sharedDayBucket(now)}
+  `;
 }
 
 async function spendPow(sql: Sql, challenge: string, now: Date) {
@@ -790,8 +865,9 @@ export async function deliverDailyVerse(
   }
   const dayStart = utcDayStart(now);
   const monthStart = utcMonthStart(now);
-  // Desk mail stays inside its own cap and the fixed reserve. Counting it
-  // here as well would shrink today's letter by every desk note already sent.
+  // The shared day already counts desk, owner, church, and confirmations.
+  // This allowance still stops the letter at 80. The reserve below takes
+  // only the room those other lanes left.
   const sentToday = await countKind(sql, dayStart, "daily");
   const sentThisMonth = await countKind(sql, monthStart, "daily");
   const budget = verseSendAllowance({
@@ -835,6 +911,13 @@ export async function deliverDailyVerse(
     return { ok: true, sent: 0, skipped: skippedLive, reason: "replay empty", indexNow };
   }
 
+  const room = await reserveSharedMail(sql, now, chosen.length);
+  if (room < chosen.length) chosen = chosen.slice(0, room);
+  if (chosen.length === 0) {
+    await finishRun(sql, dateKey, "capped", 0, skippedLive, "daily cap headroom");
+    return { ok: true, sent: 0, skipped: skippedLive, reason: "daily cap headroom", indexNow };
+  }
+
   const exp = Math.floor(now.getTime() / 1000) + UNSUBSCRIBE_TTL_SEC;
   const messages = chosen.map((row) => {
     const token = signVerseToken({ email: row.email, purpose: "unsubscribe", exp }, secret);
@@ -849,6 +932,10 @@ export async function deliverDailyVerse(
   });
   if (!sent.ok) {
     console.error(`[verse-mail] daily batch failed date=${dateKey}`);
+    if (sent.rejected || sent.error === "") await releaseSharedMail(sql, now, chosen.length);
+    if (sent.limited) {
+      await recordDeskSkip(sql, { lane: "verse", kind: "daily", reason: "provider cap" });
+    }
     await finishRun(sql, dateKey, "partial", 0, skippedLive, "send failed");
     return { ok: false, sent: 0, skipped: skippedLive, reason: "send failed", indexNow };
   }

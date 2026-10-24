@@ -1,5 +1,5 @@
 import { getSql } from "@/lib/db";
-import { claimDeskSend, releaseDeskSend, sendResendText } from "@/lib/desk-mail";
+import { claimDeskSend, recordDeskSkip, releaseDeskSend, sendResendText } from "@/lib/desk-mail";
 
 type SendArgs = {
   inquiryId: string;
@@ -12,14 +12,19 @@ async function sendOne(
   to: string,
   subject: string,
   text: string,
-): Promise<{ status: string; error: string; rejected: boolean }> {
+): Promise<{ status: string; error: string; rejected: boolean; limited: boolean }> {
   const key = process.env.RESEND_API_KEY?.trim();
 
   if (key) {
     const result = await sendResendText({ to, subject, text, apiKey: key });
     return result.ok
-      ? { status: "sent", error: "", rejected: false }
-      : { status: "failed", error: result.error, rejected: result.rejected || result.error === "" };
+      ? { status: "sent", error: "", rejected: false, limited: false }
+      : {
+          status: "failed",
+          error: result.error,
+          rejected: result.rejected || result.error === "",
+          limited: result.limited,
+        };
   }
 
   const res = await fetch(
@@ -40,9 +45,9 @@ async function sendOne(
   );
   if (!res.ok) {
     const body = await res.text();
-    return { status: "failed", error: body.slice(0, 400), rejected: true };
+    return { status: "failed", error: body.slice(0, 400), rejected: true, limited: false };
   }
-  return { status: "sent", error: "", rejected: false };
+  return { status: "sent", error: "", rejected: false, limited: false };
 }
 
 export async function sendDeskEmails(args: SendArgs) {
@@ -60,11 +65,19 @@ export async function sendDeskEmails(args: SendArgs) {
       if (!claimed.ok) {
         console.error(`[desk-mail] ${claimed.reason} reached inquiry=${args.inquiryId}`);
         status = "skipped";
-        error = claimed.reason === "monthly cap" ? "desk monthly cap" : "desk daily cap";
+        error =
+          claimed.reason === "monthly cap"
+            ? "desk monthly cap"
+            : claimed.reason === "shared cap"
+              ? "desk shared cap"
+              : "desk daily cap";
       } else {
         const result = await sendOne(to, args.subject, args.text);
         status = result.status;
         error = result.error;
+        if (result.limited && claimed.reserved) {
+          await recordDeskSkip(sql, { lane: "desk", kind: "inquiry", reason: "provider cap" });
+        }
         if (status === "sent") sent += 1;
         else if (result.rejected && claimed.reserved) await releaseDeskSend(sql, now, "desk");
       }

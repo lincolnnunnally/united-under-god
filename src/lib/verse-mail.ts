@@ -1,6 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { LEGAL } from "./content.ts";
-import { DESK_FAMILY_MONTHLY_CAP } from "./desk-mail.ts";
+import { DESK_FAMILY_MONTHLY_CAP, SHARED_DAILY_CAP } from "./desk-mail.ts";
 import { OWNER_EMAIL } from "./desk.ts";
 import { isPublicDomainTranslation, verseSlug, type VerseDay } from "./verse.ts";
 
@@ -9,15 +9,14 @@ export const RESEND_DAILY_CAP = 100;
 export const RESEND_MONTHLY_CAP = 3000;
 
 /**
- * Left unused on purpose. Public desk replies fit here, and confirmations
- * are not allowed to spend it. Owner notices are a separate lane and are
- * not subtracted on the day: another 20 would shrink the verse letter
- * below 80. The free plan rejects mail at the cap rather than billing.
+ * Left unused under the provider's 100-letter day. Every lane shares the
+ * other 95. See SHARED_DAILY_CAP. The free plan rejects mail at the cap
+ * rather than billing an overage.
  */
 export const DESK_DAILY_RESERVE = 5;
 /**
- * What the owner, public desk, and church lanes may spend in a month.
- * See DESK_FAMILY_MONTHLY_CAP. This is not (20 + 5) × 31.
+ * Owner, public desk, and church letters for a 31-day month.
+ * Confirmations have their own monthly cap. See DESK_FAMILY_MONTHLY_CAP.
  */
 export const DESK_MONTHLY_RESERVE = DESK_FAMILY_MONTHLY_CAP;
 
@@ -31,12 +30,12 @@ export const VERSE_DAILY_SEND_CEILING = 80;
 
 /**
  * Confirmations, across every address.
- * 15 a day is what remains of a 100-letter day after the 5-letter desk reserve
- * and an 80-letter verse run. 450 a month is 15 × 30. An 80-letter verse on
- * each of 31 days is 2,480. 2,480 + 450 + the 70-letter desk reserve is 3,000.
+ * 5 a day, with the public desk (3), owner notices (4), and church notes (3),
+ * leaves the 80-letter verse inside the 95-letter shared day.
+ * 5 × 31 is the month. 80 × 31 + 155 + the desk-family reserve stays under 3,000.
  */
-export const CONFIRM_DAILY_CAP = 15;
-export const CONFIRM_MONTHLY_CAP = 450;
+export const CONFIRM_DAILY_CAP = 5;
+export const CONFIRM_MONTHLY_CAP = CONFIRM_DAILY_CAP * 31;
 
 /** One address may receive this many confirmation notes per UTC day. */
 export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
@@ -246,11 +245,12 @@ export function confirmHardCeilings(
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
   const verseHold = Math.max(0, input.verseHold ?? 0);
   const verseMonthHold = Math.max(0, input.verseMonthHold ?? 0);
+  const sharedCap = input.dailyCap == null ? SHARED_DAILY_CAP : dailyCap - DESK_DAILY_RESERVE;
   return {
     dayCap: CONFIRM_DAILY_CAP,
     monthCap: CONFIRM_MONTHLY_CAP,
     netCap: CONFIRM_PER_NETWORK_PER_DAY,
-    dailyHard: dailyCap - DESK_DAILY_RESERVE - verseHold,
+    dailyHard: sharedCap - verseHold,
     monthlyHard: monthlyCap - DESK_MONTHLY_RESERVE - verseMonthHold,
     verseHold,
     verseMonthHold,
@@ -275,7 +275,8 @@ export function confirmSendAllowed(input: {
   const caps = confirmHardCeilings(input);
   if (input.confirmsToday >= caps.dayCap) return false;
   if (input.confirmsThisMonth >= caps.monthCap) return false;
-  if (input.otherToday + input.confirmsToday >= caps.dailyHard) return false;
+  const sharedCap = (input.dailyCap ?? RESEND_DAILY_CAP) - DESK_DAILY_RESERVE;
+  if (input.otherToday + caps.verseHold >= sharedCap) return false;
   if (input.otherThisMonth + input.confirmsThisMonth >= caps.monthlyHard) return false;
   return true;
 }

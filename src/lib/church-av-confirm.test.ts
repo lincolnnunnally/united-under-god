@@ -1,11 +1,31 @@
+import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { PGlite } from "@electric-sql/pglite";
+import type { Sql } from "./db.ts";
 import {
   AV_PLANNER_URL,
   buildAvConfirmation,
   sendAvConfirmation,
 } from "./church-av-confirm.ts";
 import { DESK_REPLY_TO, deskFromAddress } from "./desk-mail.ts";
+
+async function db() {
+  const pg = new PGlite();
+  await pg.waitReady;
+  await pg.exec(readFileSync(new URL("../../migrations/manual/0005_verse_subscribers.sql", import.meta.url), "utf8"));
+  const run = async <T>(text: string, params: unknown[]): Promise<T[]> => {
+    const result = await pg.query<T>(text, params);
+    return result.rows;
+  };
+  const sql = (async <T = Record<string, unknown>>(strings: TemplateStringsArray, ...values: unknown[]): Promise<T[]> => {
+    let text = strings[0] ?? "";
+    for (let i = 0; i < values.length; i += 1) text += `$${i + 1}${strings[i + 1] ?? ""}`;
+    return run<T>(text, values);
+  }) as Sql;
+  sql.query = (text, params = []) => run(text, params);
+  return { pg, sql };
+}
 
 // Banned words assembled from pieces so this file passes the same source scan
 // (scripts/church-av.test.mjs) that it enforces on the email.
@@ -104,15 +124,24 @@ describe("buildAvConfirmation", () => {
 
 describe("sendAvConfirmation", () => {
   it("sends one Resend email to the requester from the desk sender, reply-to the owner", async () => {
+    const { pg, sql } = await db();
     const calls: { url: string; body: Record<string, unknown> }[] = [];
     const fetchImpl = (async (url: string, init: RequestInit) => {
       calls.push({ url, body: JSON.parse(String(init.body)) });
       return new Response("{}", { status: 200 });
     }) as unknown as typeof fetch;
+    const held = await sendAvConfirmation({
+      inquiry: { id: "i0", name: "Ruth", email: "ruth@example.org", phone: "", message: "" },
+      apiKey: "re_test",
+      fetchImpl,
+    });
+    assert.deepEqual(held, { sent: false });
+    assert.equal(calls.length, 0);
     const result = await sendAvConfirmation({
       inquiry: { id: "i1", name: "Ruth", email: "ruth@example.org", phone: "", message: "" },
       apiKey: "re_test",
       fetchImpl,
+      sql,
     });
     assert.deepEqual(result, { sent: true });
     assert.equal(calls.length, 1);
@@ -121,9 +150,11 @@ describe("sendAvConfirmation", () => {
     assert.equal(calls[0].body.from, deskFromAddress());
     assert.equal(calls[0].body.reply_to, DESK_REPLY_TO);
     assert.equal(DESK_REPLY_TO, "lincoln@unitedundergod.org");
+    await pg.close();
   });
 
   it("a failed send resolves, logs the inquiry id only, and never throws", async () => {
+    const { pg, sql } = await db();
     const errors: string[] = [];
     const original = console.error;
     console.error = (line: string) => errors.push(line);
@@ -135,6 +166,7 @@ describe("sendAvConfirmation", () => {
         inquiry: { id: "i2", name: "Ruth", email: "ruth@example.org" },
         apiKey: "re_test",
         fetchImpl,
+        sql,
       });
       assert.deepEqual(result, { sent: false });
       assert.equal(errors.length, 1);
@@ -142,6 +174,7 @@ describe("sendAvConfirmation", () => {
       assert.ok(!errors[0].includes("ruth@"));
     } finally {
       console.error = original;
+      await pg.close();
     }
   });
 

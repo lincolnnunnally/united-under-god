@@ -12,8 +12,9 @@
 -- The app connects with DATABASE_URL (table owner) and bypasses RLS.
 -- The Data API roles get no grants and no policies, so anon cannot read
 -- or write these rows. There is no policy that allows a public select.
--- Apply this file as that same role. verse_reserve_confirm and
--- desk_reserve_send are granted to the role that runs this file, and to nobody else.
+-- Apply this file as that same role. verse_reserve_confirm, desk_reserve_send,
+-- mail_verse_hold, and reserve_shared_mail are granted to the role that runs
+-- this file, and to nobody else.
 
 create table if not exists verse_subscribers (
   id text primary key,
@@ -128,11 +129,14 @@ create table if not exists verse_pow_rate (
   constraint verse_pow_rate_used_check check (used >= 0)
 );
 
--- One row per lane and period. desk_reserve_send moves the day and the month
--- together, or neither.
---   desk:YYYY-MM-DD / desk:YYYY-MM — public replies, 5 a day and 15 a month
---   owner:YYYY-MM-DD / owner:YYYY-MM — notices to the owner, 20 a day and 40 a month
---   av:YYYY-MM-DD / av:YYYY-MM — church confirmations, 20 a day and 15 a month
+-- One row per lane and period, plus shared:YYYY-MM-DD for the whole day.
+-- desk_reserve_send moves the lane day, the lane month, and the shared day
+-- together, or neither. The shared day stops at 95, and it will not take a
+-- slot the morning verse letter still needs.
+--   desk:YYYY-MM-DD / desk:YYYY-MM — public replies, 3 a day
+--   owner:YYYY-MM-DD / owner:YYYY-MM — notices to the owner, 4 a day
+--   av:YYYY-MM-DD / av:YYYY-MM — church confirmations, 3 a day
+--   shared:YYYY-MM-DD — verse, confirmations, desk, owner, and church together
 create table if not exists desk_send_budget (
   bucket text primary key,
   used integer not null,
@@ -147,10 +151,15 @@ create table if not exists desk_mail_skips (
   kind text not null default '',
   reason text not null,
   created_at timestamptz not null default now(),
-  constraint desk_mail_skips_reason_check check (reason in ('daily cap', 'monthly cap'))
+  constraint desk_mail_skips_reason_check check (reason in ('daily cap', 'monthly cap', 'shared cap', 'provider cap'))
 );
 
 create index if not exists desk_mail_skips_created_idx on desk_mail_skips (created_at);
+
+-- A database that already has the table keeps the old check until this runs.
+alter table desk_mail_skips drop constraint if exists desk_mail_skips_reason_check;
+alter table desk_mail_skips add constraint desk_mail_skips_reason_check
+  check (reason in ('daily cap', 'monthly cap', 'shared cap', 'provider cap'));
 
 -- Atomic confirm reservations. used increases only while it is still under the cap.
 -- bucket is day:YYYY-MM-DD, month:YYYY-MM, or net:<network>:YYYY-MM-DD.
@@ -187,9 +196,78 @@ revoke all on table verse_confirm_budget from public;
 revoke all on table desk_send_budget from public;
 revoke all on table desk_mail_skips from public;
 
--- One statement, so a day, a month, and a network are reserved together or not at all.
+-- Letters still owed for the morning verse on this ministry date.
+-- Zero once that run is sent. Otherwise the confirmed list, never above the ceiling.
+create or replace function mail_verse_hold(p_date_key text, p_ceiling integer)
+returns integer
+language sql
+stable
+set search_path = pg_catalog, public
+as $$
+  select case
+    when exists (
+      select 1 from public.verse_mail_runs r
+      where r.date_key = p_date_key and r.status = 'sent'
+    ) then 0
+    else least(p_ceiling, (
+      select count(*)::integer from public.verse_subscribers s
+      where s.status = 'confirmed'
+        and not exists (
+          select 1 from public.verse_mail_deliveries d
+          where d.subscriber_id = s.id
+            and d.date_key = p_date_key
+            and d.status = 'sent'
+        )
+    ))
+  end
+$$;
+
+revoke all on function mail_verse_hold(text, integer) from public;
+grant execute on function mail_verse_hold(text, integer) to current_user;
+
+-- Room in the shared day for the verse letter itself. The hold is not subtracted:
+-- those slots are this letter. Other lanes already refused to take them.
+create or replace function reserve_shared_mail(shared_bucket text, shared_cap integer, n integer)
+returns integer
+language plpgsql
+set search_path = pg_catalog, public
+as $shared$
+declare
+  current_used integer := 0;
+  room integer := 0;
+begin
+  if n <= 0 then
+    return 0;
+  end if;
+  insert into public.desk_send_budget (bucket, used)
+  values (shared_bucket, 0)
+  on conflict (bucket) do nothing;
+  select used into current_used
+  from public.desk_send_budget
+  where bucket = shared_bucket
+  for update;
+  room := least(n, greatest(shared_cap - current_used, 0));
+  if room <= 0 then
+    return 0;
+  end if;
+  update public.desk_send_budget
+  set used = used + room, updated_at = now()
+  where bucket = shared_bucket;
+  return room;
+end
+$shared$;
+
+revoke all on function reserve_shared_mail(text, integer, integer) from public;
+grant execute on function reserve_shared_mail(text, integer, integer) to current_user;
+
+-- One statement, so a day, a month, a network, and the shared day move together.
+-- The old 10-argument form did not touch the shared day. Drop it so it cannot be called.
+drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer);
+
 -- security invoker (the default): the caller still needs table privileges.
 -- Execute is revoked from the Data API roles below.
+-- other_today and daily_hard stay in the argument list so a caller can pass them,
+-- and the shared row is what actually guards the day.
 create or replace function verse_reserve_confirm(
   day_bucket text,
   day_cap integer,
@@ -200,7 +278,11 @@ create or replace function verse_reserve_confirm(
   other_today integer,
   other_month integer,
   daily_hard integer,
-  monthly_hard integer
+  monthly_hard integer,
+  shared_bucket text,
+  shared_cap integer,
+  verse_date text,
+  verse_ceiling integer
 ) returns text
 language plpgsql
 set search_path = pg_catalog, public
@@ -210,6 +292,7 @@ declare
   day_used integer := 0;
   month_used integer := 0;
   net_used integer := 0;
+  shared_used integer := 0;
 begin
   insert into public.verse_confirm_budget (bucket, used)
   values (day_bucket, 0), (month_bucket, 0), (net_bucket, 0)
@@ -233,10 +316,21 @@ begin
 
   if day_used >= day_cap
      or month_used >= month_cap
-     or day_used + other_today >= daily_hard
      or month_used + other_month >= monthly_hard then
     return 'global';
   end if;
+
+  insert into public.desk_send_budget (bucket, used)
+  values (shared_bucket, 0)
+  on conflict (bucket) do nothing;
+  select used into shared_used
+  from public.desk_send_budget
+  where bucket = shared_bucket
+  for update;
+  if shared_used + public.mail_verse_hold(verse_date, verse_ceiling) >= shared_cap then
+    return 'global';
+  end if;
+
   if net_used >= net_cap then
     return 'net';
   end if;
@@ -244,20 +338,31 @@ begin
   update public.verse_confirm_budget
   set used = used + 1, updated_at = now()
   where bucket in (day_bucket, month_bucket, net_bucket);
+  update public.desk_send_budget
+  set used = used + 1, updated_at = now()
+  where bucket = shared_bucket;
   return 'ok';
 end
 $verse$;
 
-revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from public;
-grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) to current_user;
+revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) from public;
+grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) to current_user;
 
--- Day and month together. Returns ok, day, or month.
+-- The old 4-argument form did not touch the shared day.
+drop function if exists desk_reserve_send(text, integer, text, integer);
+
+-- Lane day, lane month, and the shared day together.
+-- Returns ok, day, month, or shared.
 -- security invoker (the default): the caller still needs table privileges.
 create or replace function desk_reserve_send(
   day_bucket text,
   day_cap integer,
   month_bucket text,
-  month_cap integer
+  month_cap integer,
+  shared_bucket text,
+  shared_cap integer,
+  verse_date text,
+  verse_ceiling integer
 ) returns text
 language plpgsql
 set search_path = pg_catalog, public
@@ -266,15 +371,16 @@ declare
   rec record;
   day_used integer := 0;
   month_used integer := 0;
+  shared_used integer := 0;
 begin
   insert into public.desk_send_budget (bucket, used)
-  values (day_bucket, 0), (month_bucket, 0)
+  values (day_bucket, 0), (month_bucket, 0), (shared_bucket, 0)
   on conflict (bucket) do nothing;
 
   for rec in
     select bucket, used
     from public.desk_send_budget
-    where bucket in (day_bucket, month_bucket)
+    where bucket in (day_bucket, month_bucket, shared_bucket)
     order by bucket
     for update
   loop
@@ -282,6 +388,8 @@ begin
       day_used := rec.used;
     elsif rec.bucket = month_bucket then
       month_used := rec.used;
+    elsif rec.bucket = shared_bucket then
+      shared_used := rec.used;
     end if;
   end loop;
 
@@ -291,16 +399,19 @@ begin
   if month_used >= month_cap then
     return 'month';
   end if;
+  if shared_used + public.mail_verse_hold(verse_date, verse_ceiling) >= shared_cap then
+    return 'shared';
+  end if;
 
   update public.desk_send_budget
   set used = used + 1, updated_at = now()
-  where bucket in (day_bucket, month_bucket);
+  where bucket in (day_bucket, month_bucket, shared_bucket);
   return 'ok';
 end
 $desk$;
 
-revoke all on function desk_reserve_send(text, integer, text, integer) from public;
-grant execute on function desk_reserve_send(text, integer, text, integer) to current_user;
+revoke all on function desk_reserve_send(text, integer, text, integer, text, integer, text, integer) from public;
+grant execute on function desk_reserve_send(text, integer, text, integer, text, integer, text, integer) to current_user;
 
 do $$
 declare
@@ -326,11 +437,19 @@ begin
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;
       execute format(
-        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from %I',
+        'revoke all on function mail_verse_hold(text, integer) from %I',
         role_name
       );
       execute format(
-        'revoke all on function desk_reserve_send(text, integer, text, integer) from %I',
+        'revoke all on function reserve_shared_mail(text, integer, integer) from %I',
+        role_name
+      );
+      execute format(
+        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer) from %I',
+        role_name
+      );
+      execute format(
+        'revoke all on function desk_reserve_send(text, integer, text, integer, text, integer, text, integer) from %I',
         role_name
       );
     end if;

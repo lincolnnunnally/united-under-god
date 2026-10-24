@@ -95,7 +95,7 @@ function InboxPage() {
         waiting across every app.
       </p>
 
-      <HeldMail skips={glance?.skips ?? []} />
+      {glance?.ownerDesk ? <HeldMail skips={glance.skips ?? []} /> : null}
 
       <div className="mt-6 flex flex-wrap gap-2">
         <FilterChip label="All" on={kind === "all"} onClick={() => setKind("all")} />
