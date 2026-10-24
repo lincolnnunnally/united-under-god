@@ -94,11 +94,11 @@
       "summary": "A 10-year relationship. The 4,500-seat worship center received a complete HD livestream setup with 5 cameras, a 40' × 9' LED wall, new speakers so the stage and choir can hear themselves, and new projectors and simple controls for the Chapel and Fellowship Hall.",
       "highlights": [
         "Complete HD livestream setup with 5 cameras",
-        "40' × 9' 1.9mm LED wall (ground-stacked and flown)",
+        "A 40' × 9' LED wall",
         "New speakers so the stage and choir can hear themselves",
         "A screen facing the choir so they can read the words",
-        "Meyer Sound systems for the Chapel and Fellowship Hall",
-        "Panasonic projection with Q-SYS control (Chapel and Fellowship Hall)"
+        "New sound systems for the Chapel and Fellowship Hall",
+        "New projectors and simple controls (Chapel and Fellowship Hall)"
       ],
       "tech": [
         "Q-SYS",
@@ -116,11 +116,11 @@
       "highlights": [
         "Relationship since 2007",
         "Scaled from 3 to 9 campuses plus 2 schools",
-        "Acoustic treatment and system design for a 2,200-seat monolithic dome",
+        "Sound panels and a sound system for a 2,200-seat dome",
         "Central campus livestream and big-screen video on LED walls",
         "The same stage and room lighting at every campus",
         "Sound and screens carried across the campus",
-        "School gyms, including a four-court complex with a high-output system"
+        "School gyms, including a four-court gym with a powerful sound system"
       ],
       "tech": [
         "LED walls",
@@ -136,8 +136,8 @@
       "city": "Madison, GA",
       "summary": "A clean worship-space presentation with dependable weekly audio, video, and stage support.",
       "highlights": [
-        "Coordinated room, stage, and display presentation for worship services",
-        "Visual support for liturgy, teaching, and congregational participation",
+        "Room, stage, and screens that work together for worship",
+        "Screens that help with the liturgy, the teaching, and singing together",
         "Sound, video, and lighting set up to run together every week",
         "A clean, modern worship environment carried from concept to installed space"
       ],
@@ -146,11 +146,11 @@
     "rock-springs": {
       "name": "Rock Springs",
       "city": "Milner, GA",
-      "summary": "An 1,100-seat worship center upgrade centered on a 57' × 17' curved 1.9mm LED wall.",
+      "summary": "An 1,100-seat worship center upgrade centered on a 57' × 17' curved LED wall.",
       "highlights": [
-        "57' × 17' curved LED wall (1.9mm pitch)",
+        "A 57' × 17' curved LED wall",
         "Curved and placed so all 1,100 seats can see it",
-        "Rigging and ground-support plan with service access",
+        "A safe plan for hanging and supporting it, with room to service it",
         "Color and brightness adjusted so the picture looks right"
       ],
       "tech": [
@@ -169,8 +169,8 @@
         "One lighting control system with the same saved looks at every campus",
         "Big-screen video on LED walls at every campus",
         "Video sent between rooms and to the livestream",
-        "Centralized comms and tally for multi-site weekends",
-        "Redundant record/stream architecture for reliability"
+        "Headsets and on-air lights so every campus team stays in step",
+        "A backup recording and livestream path, so one failure does not stop the service"
       ],
       "tech": [
         "Sony broadcast",
@@ -228,7 +228,7 @@
       "highlights": [
         "LED walls in several rooms",
         "Worship center audio update and tuning",
-        "Chapel modernization: audio, LED, and lighting",
+        "Chapel update: sound, LED wall, and lighting",
         "Back-lit baptistery cross"
       ],
       "tech": [
@@ -257,9 +257,9 @@
       "city": "Atlanta, GA",
       "summary": "Discreet upgrades for a traditional space: consistent microphones, natural lighting, and a livestream that respects the room.",
       "highlights": [
-        "Choir microphone voicing",
-        "Architectural light balance",
-        "Stream loudness compliance"
+        "Choir microphones set up for the choir",
+        "Lighting that suits the building",
+        "Livestream volume that stays even"
       ],
       "tech": ["Choir mics", "Architectural lighting", "Loudness", "Broadcast"]
     },
@@ -269,7 +269,7 @@
       "summary": "Main sanctuary update with two new LED walls, stage lights upgraded to LED, and sound panels so it is clearer and the microphones can get louder before they squeal.",
       "highlights": [
         "Two new LED walls in the main sanctuary",
-        "Production lighting upgraded to LED with refreshed looks",
+        "Stage lights upgraded to LED with refreshed looks",
         "Sound panels so speech and music are clear"
       ],
       "tech": ["LED walls", "Production lighting (LED)", "Sound panels"]
@@ -299,9 +299,9 @@
       "city": "El Paso, TX",
       "summary": "Screens and signs, LED walls, and full sound, video, and projector systems, with sound and video carried across the campus and the rooms tuned.",
       "highlights": [
-        "Multiple LED walls for worship and overflow",
+        "LED walls for worship and overflow rooms",
         "Screens and signs across the campus",
-        "Distributed video to lobbies and classrooms",
+        "Video carried to the lobbies and classrooms",
         "Sound and projectors designed, put in, and tested",
         "Sound panels for clearer sound"
       ],
@@ -320,9 +320,9 @@
       "city": "St. Augustine, FL",
       "summary": "Big-screen video that feels clear and natural: several cameras, coached camera volunteers, and shots timed to the service.",
       "highlights": [
-        "Shot grid and camera moves",
-        "Camera shading for skin tones",
-        "Sync-safe video paths"
+        "A plan for each camera shot",
+        "Cameras adjusted so faces look natural",
+        "Picture and sound that stay in sync"
       ],
       "tech": ["Multi-camera", "CCU", "Sync", "Routing"]
     },
@@ -351,8 +351,8 @@
       "summary": "A clear livestream from an echoey room: steady sound from the clip-on and lectern microphones, with background noise gently reduced.",
       "highlights": [
         "Clip-on microphones paired and set to the right levels",
-        "Noise management",
-        "Speech-first tuning"
+        "Background noise kept down",
+        "Tuning that puts the spoken word first"
       ],
       "tech": ["Lav", "Noise reduction", "Speech EQ", "Limiter"]
     },
@@ -1249,7 +1249,7 @@
       "faq": [
         {
           "q": "Can the fellowship hall share the system for meals, meetings, and overflow?",
-          "a": "It can be planned that way. Word of Faith in Austell got new projection and Q-SYS control for its Chapel and Fellowship Hall alongside its worship center work."
+          "a": "It can be planned that way. Word of Faith in Austell got new projectors and simple controls for its Chapel and Fellowship Hall alongside its worship center work."
         }
       ]
     },

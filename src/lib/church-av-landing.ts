@@ -124,7 +124,7 @@ export const LANDING_PAGES: LandingPage[] = [
     slug: "modern",
     look: "modern",
     label: "Modern worship",
-    title: "LED Walls, Lighting & Broadcast for Modern Worship | United Under God",
+    title: "LED Walls, Lighting & Livestream for Modern Worship | United Under God",
     description:
       "LED walls, stage lighting, a band mix that works, and cameras and livestreaming for churches building a modern worship experience in the Southeast.",
     serviceName: "LED walls, stage lighting, band sound, and livestream for modern worship",
@@ -145,7 +145,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         title: "A band mix the room can sing with.",
-        body: "Clear vocals over the band, in-ear and wedge monitoring the band can trust, and a stage that is ready for visiting artists.",
+        body: "Clear vocals over the band, speakers and earpieces so the band can hear themselves, and a stage that is ready for visiting artists.",
       },
       {
         title: "Cameras for the big screen and the livestream.",
@@ -171,7 +171,7 @@ export const LANDING_PAGES: LandingPage[] = [
       },
       {
         q: "Can the work happen without missing a service?",
-        a: "Yes. Systems are pre-built and pre-programmed off site, and installation is phased around your services, because Sunday is always coming.",
+        a: "Yes. Equipment is built and set up ahead of time, and the work is done in stages around your services, because Sunday is always coming.",
       },
       WARRANTY_FAQ,
       PRICE_FAQ,
