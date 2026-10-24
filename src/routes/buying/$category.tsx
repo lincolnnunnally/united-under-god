@@ -19,6 +19,7 @@ import {
   type SpendCategory,
 } from "@/lib/church-spend";
 import { listCatalogBookForViewer } from "@/lib/membership-actions";
+import { readCatalogVendorsFn } from "@/lib/public-vendor-actions";
 import { absoluteUrl, pageHead, serviceJsonLd } from "@/lib/seo";
 
 export const Route = createFileRoute("/buying/$category")({
@@ -29,8 +30,13 @@ export const Route = createFileRoute("/buying/$category")({
     if (category.route) throw redirect({ href: category.route, statusCode: 301 });
     // Vendor names, prices, and notes come back only for a member church (or
     // staff); for everyone else the server has already removed them.
-    const read = await listCatalogBookForViewer();
-    return { categoryId: category.id, ...read };
+    // Program vendors go through the same gate: a non-member gets names and
+    // the Preferred badge only, never contacts, files, or reviews.
+    const [read, vendors] = await Promise.all([
+      listCatalogBookForViewer(),
+      readCatalogVendorsFn({ data: { categoryId: category.id } }),
+    ]);
+    return { categoryId: category.id, ...read, vendors };
   },
   component: CategoryPage,
   head: ({ loaderData }) => {
@@ -78,7 +84,7 @@ const STATUS_TEXT: Record<CatalogItemView["status"], string> = {
 };
 
 function CategoryPage() {
-  const { categoryId, entries, bidding, unavailable, member } = Route.useLoaderData();
+  const { categoryId, entries, bidding, unavailable, member, vendors } = Route.useLoaderData();
   const category = getSpendCategory(categoryId) as SpendCategory;
   const view = catalogView(category, entries, bidding);
   const mix = modelMix(allItems(category));
@@ -198,7 +204,7 @@ function CategoryPage() {
         )}
       </section>
 
-      <CatalogVendors categoryId={category.id} categoryName={category.name} />
+      <CatalogVendors categoryId={category.id} categoryName={category.name} read={vendors} />
 
       <section className="border-t border-rule">
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:px-8 md:py-20">

@@ -4,16 +4,20 @@ import { DbUnavailableError, getSql } from "@/lib/db";
 import { isBuyingDbUnavailable } from "@/lib/source-store";
 import { canViewVendorFiles } from "@/lib/vendor-file-access";
 import {
-  readCatalogVendors,
-  readVendorProfile,
-  type CatalogVendorsRead,
-  type VendorProfile,
+  catalogVendorsForViewer,
+  vendorProfileForViewer,
+  type CatalogVendorsForViewer,
+  type ViewerVendorProfile,
 } from "@/lib/vendor-listing";
 import { readReviewPage, submitReview, type ReviewPageView } from "@/lib/review-store";
 
 /**
  * Public reads: each catalog's ranked vendors and each vendor's profile, plus
  * the church's private review page. A missing database is an empty read.
+ *
+ * The member gate is applied here, on the server: a viewer who is not a member
+ * church (or staff) gets vendor names, the Preferred badge, and standing only.
+ * Contacts, phone, website, files, and reviews never leave the server for them.
  */
 
 async function publicSql() {
@@ -34,28 +38,39 @@ function unavailable(err: unknown) {
   return err instanceof DbUnavailableError || isBuyingDbUnavailable(err);
 }
 
+/** Member church or staff, decided by the same gate that guards vendor files. */
+async function viewerIsMember(): Promise<boolean> {
+  return canViewVendorFiles(await currentRequest());
+}
+
+export type CatalogVendorsView = CatalogVendorsForViewer & { unavailable: boolean };
+
 export const readCatalogVendorsFn = createServerFn({ method: "GET" })
   .validator(z.object({ categoryId: z.string().max(80) }))
-  .handler(async ({ data }): Promise<CatalogVendorsRead> => {
-    const canViewFiles = await canViewVendorFiles(await currentRequest());
+  .handler(async ({ data }): Promise<CatalogVendorsView> => {
+    const member = await viewerIsMember();
     try {
-      const read = await readCatalogVendors(await publicSql(), data.categoryId, { canViewFiles });
+      const read = await catalogVendorsForViewer(await publicSql(), data.categoryId, { member });
       return { ...read, unavailable: false };
     } catch (err) {
       if (!unavailable(err)) throw err;
       console.error("[vendors] catalog vendors unavailable");
-      return { vendors: [], ranked: false, unavailable: true, filesVisible: canViewFiles };
+      return { vendors: [], count: 0, ranked: false, unavailable: true, filesVisible: false, member };
     }
   });
 
 export const readVendorProfileFn = createServerFn({ method: "GET" })
   .validator(z.object({ vendorId: z.string().max(80) }))
   .handler(
-    async ({ data }): Promise<{ state: "ok"; profile: VendorProfile } | { state: "missing" | "unavailable" }> => {
-      const canViewFiles = await canViewVendorFiles(await currentRequest());
+    async ({
+      data,
+    }): Promise<
+      { state: "ok"; profile: ViewerVendorProfile; member: boolean } | { state: "missing" | "unavailable" }
+    > => {
+      const member = await viewerIsMember();
       try {
-        const profile = await readVendorProfile(await publicSql(), data.vendorId, { canViewFiles });
-        return profile ? { state: "ok", profile } : { state: "missing" };
+        const profile = await vendorProfileForViewer(await publicSql(), data.vendorId, { member });
+        return profile ? { state: "ok", profile, member } : { state: "missing" };
       } catch (err) {
         if (!unavailable(err)) throw err;
         return { state: "unavailable" };

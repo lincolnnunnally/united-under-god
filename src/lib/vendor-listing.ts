@@ -247,3 +247,83 @@ export async function readVendorProfile(
     filesVisible: options.canViewFiles,
   };
 }
+
+// ---------------------------------------------------------------------------
+// The member gate
+// ---------------------------------------------------------------------------
+
+/**
+ * What anyone may see of a catalog vendor: that it serves the catalog, its
+ * company name, and the Preferred badge. Built from an allow-list (as
+ * lockEntry in membership.ts), so a field added later is withheld by default.
+ */
+const OPEN_CATALOG_FIELDS = ["id", "company", "preferred"] as const;
+
+export type LockedCatalogVendor = Pick<CatalogVendor, (typeof OPEN_CATALOG_FIELDS)[number]> & {
+  locked: true;
+};
+
+export function lockCatalogVendor(vendor: CatalogVendor): LockedCatalogVendor {
+  const open: Record<string, unknown> = {};
+  for (const key of OPEN_CATALOG_FIELDS) open[key] = vendor[key];
+  return { ...open, locked: true } as LockedCatalogVendor;
+}
+
+export type ViewerCatalogVendor = (CatalogVendor & { locked?: false }) | LockedCatalogVendor;
+
+export type CatalogVendorsForViewer = Omit<CatalogVendorsRead, "vendors" | "unavailable"> & {
+  vendors: ViewerCatalogVendor[];
+  /** How many program vendors serve this catalog. */
+  count: number;
+  /** Member church or staff: the full listing was sent. */
+  member: boolean;
+};
+
+/**
+ * A catalog's vendors for one viewer. A non-member gets names and the
+ * Preferred badge only; files are not even read for them.
+ */
+export async function catalogVendorsForViewer(
+  sql: Sql,
+  categoryId: string,
+  options: { member: boolean; now?: Date },
+): Promise<CatalogVendorsForViewer> {
+  const read = await readCatalogVendors(sql, categoryId, {
+    canViewFiles: options.member,
+    now: options.now,
+  });
+  return {
+    ...read,
+    count: read.vendors.length,
+    member: options.member,
+    vendors: options.member ? read.vendors : read.vendors.map(lockCatalogVendor),
+  };
+}
+
+/** What anyone may see of a profile: the name, its catalogs, and its standing there. */
+const OPEN_PROFILE_FIELDS = ["id", "company", "catalogs"] as const;
+
+export type LockedVendorProfile = Pick<VendorProfile, (typeof OPEN_PROFILE_FIELDS)[number]> & {
+  locked: true;
+};
+
+export function lockVendorProfile(profile: VendorProfile): LockedVendorProfile {
+  const open: Record<string, unknown> = {};
+  for (const key of OPEN_PROFILE_FIELDS) open[key] = profile[key];
+  return { ...open, locked: true } as LockedVendorProfile;
+}
+
+export type ViewerVendorProfile = (VendorProfile & { locked?: false }) | LockedVendorProfile;
+
+export async function vendorProfileForViewer(
+  sql: Sql,
+  vendorId: string,
+  options: { member: boolean; now?: Date },
+): Promise<ViewerVendorProfile | null> {
+  const profile = await readVendorProfile(sql, vendorId, {
+    canViewFiles: options.member,
+    now: options.now,
+  });
+  if (!profile) return null;
+  return options.member ? profile : lockVendorProfile(profile);
+}

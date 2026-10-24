@@ -19,7 +19,6 @@ import {
   sniffFileType,
   startUpload,
 } from "./vendor-files.ts";
-import { canViewVendorFiles } from "./vendor-file-access.ts";
 
 const PDF = new TextEncoder().encode("%PDF-1.7\n%âãÏÓ\n1 0 obj\n<<>>\nendobj\n");
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13]);
@@ -143,9 +142,4 @@ test("storage: chunks, count limit, only ready files from listed vendors are ser
   await sql`update source_vendors set status = 'paused', consequence = 'suspension' where id = ${vendorId}`;
   assert.equal(await readServableFile(sql, listed[0]!.id), null);
   assert.equal(await readServableFile(sql, "not-a-uuid"), null);
-});
-
-test("every read goes through canViewVendorFiles, which is open for now", async () => {
-  assert.equal(await canViewVendorFiles(new Request("https://www.unitedundergod.org/api/vendor-files/x")), true);
-  assert.equal(await canViewVendorFiles(null), true);
 });

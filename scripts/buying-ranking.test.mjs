@@ -64,11 +64,15 @@ test("the disclosure renders wherever the Preferred badge appears", () => {
   }
 });
 
-test("catalog pages get one vendor section, in its own component", () => {
+test("catalog pages get one vendor section, fed by the gated loader", () => {
   const page = read("src/routes/buying/$category.tsx");
   assert.match(page, /import \{ CatalogVendors \} from "@\/components\/catalog-vendors"/);
   assert.equal(page.match(/<CatalogVendors\b/g)?.length, 1);
-  assert.ok(!/readCatalogVendors|vendor-rank|source_cases|case-store/.test(page));
+  assert.match(page, /readCatalogVendorsFn\(\{ data: \{ categoryId: category\.id \} \}\)/, "read in the loader, on the server");
+  assert.match(page, /read=\{vendors\}/);
+  assert.ok(!/useEffect/.test(read("src/components/catalog-vendors.tsx")), "no unguarded client fetch");
+  assert.match(read("src/components/catalog-vendors.tsx"), /<BecomeMemberCta\b/);
+  assert.ok(!/readCatalogVendors\(|vendor-rank|source_cases|case-store/.test(page), "no ungated vendor read");
   const section = read("src/components/catalog-vendors.tsx");
   assert.match(section, /<RankingDisclosure\b/);
   assert.match(section, /<PreferredBadge \/>/);
@@ -114,10 +118,13 @@ test("private pages are noindex, send no referrer, and stay out of the sitemap",
 
 test("every vendor file read goes through canViewVendorFiles", () => {
   const gate = read("src/lib/vendor-file-access.ts");
-  assert.match(gate, /export async function canViewVendorFiles\(request: Request \| null \| undefined\)/);
-  assert.match(gate, /return true;/);
+  assert.match(gate, /export async function canViewVendorFiles\(\n?\s*request: Request \| null \| undefined/);
+  // Member church or staff, through main's memberAccess; else only the owning vendor's portal session.
+  assert.match(gate, /memberAccess\(request\)\)\.canView\) return true/);
+  assert.match(gate, /portalVendorId\(request\)\) === options\.ownerVendorId/);
+  assert.ok(!/return true;\s*\}\s*$/.test(gate.trim()), "not open to everyone any more");
   const route = read("src/routes/api/vendor-files/$id.ts");
-  assert.match(route, /if \(!\(await canViewVendorFiles\(request\)\)\)/);
+  assert.match(route, /canViewVendorFiles\(request, \{ ownerVendorId: file\.vendorId \}\)/);
   assert.match(route, /fileHeaders\(file\)/);
   for (const file of SOURCE_FILES) {
     const rel = relative(ROOT, file);
@@ -128,7 +135,9 @@ test("every vendor file read goes through canViewVendorFiles", () => {
     }
   }
   const actions = read("src/lib/public-vendor-actions.ts");
-  assert.equal(actions.match(/canViewVendorFiles\(await currentRequest\(\)\)/g)?.length, 2);
+  assert.match(actions, /canViewVendorFiles\(await currentRequest\(\)\)/);
+  assert.match(actions, /catalogVendorsForViewer\(await publicSql\(\), data\.categoryId, \{ member \}\)/);
+  assert.match(actions, /vendorProfileForViewer\(await publicSql\(\), data\.vendorId, \{ member \}\)/);
 });
 
 test("migration 0010 is additive and idempotent", () => {
@@ -160,7 +169,6 @@ test("new copy keeps the owner's rules", () => {
       .join("\n");
     assert.ok(!/\bAI\b/.test(copy), `${file}: no 'AI'`);
     assert.ok(!NAME.test(copy), `${file}: never name the installer`);
-    assert.ok(!/\bmembers?(hip)?\b/i.test(copy), `${file}: no 'members'`);
     assert.ok(!/\blowest\b|\bcheapest\b|best price|save up to|guarantee/i.test(copy), `${file}: no promises`);
     assert.ok(!/will (?:get|win|bring) (?:you )?(?:more )?(?:sales|jobs|work)/i.test(copy), `${file}: no promised sales`);
     if (file.startsWith("src/routes") || file.startsWith("src/components")) {

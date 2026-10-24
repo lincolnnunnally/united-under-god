@@ -297,13 +297,15 @@ export async function listOwnFiles(sql: Sql, vendorId: string): Promise<VendorFi
 }
 
 /**
- * One file with its bytes, for the file route: ready, and from a vendor that
- * is listed in the catalogs (approved, not suspended or revoked).
+ * One ready file with its bytes, and whether its vendor is listed in the
+ * catalogs (approved, not suspended or revoked). The file route serves a
+ * listed vendor's file to a viewer the gate allows, and any of a vendor's own
+ * files to that vendor.
  */
-export async function readServableFile(
+export async function readStoredFile(
   sql: Sql,
   fileId: string,
-): Promise<(VendorFileRow & { content: Uint8Array }) | null> {
+): Promise<(VendorFileRow & { content: Uint8Array; vendorListed: boolean }) | null> {
   if (!/^[0-9a-f-]{36}$/i.test(fileId)) return null;
   const rows = await sql`
     select f.*, v.status as vendor_status,
@@ -314,11 +316,19 @@ export async function readServableFile(
   const row = rows[0];
   if (!row) return null;
   const consequence = text(row.vendor_consequence);
-  if (text(row.vendor_status) !== "approved" || consequence === "suspension" || consequence === "revocation") {
-    return null;
-  }
+  const vendorListed =
+    text(row.vendor_status) === "approved" && consequence !== "suspension" && consequence !== "revocation";
   const content = row.content instanceof Uint8Array ? row.content : new Uint8Array();
-  return { ...mapFile(row), content };
+  return { ...mapFile(row), content, vendorListed };
+}
+
+/** A file anyone the gate allows may be served: ready, from a listed vendor. */
+export async function readServableFile(
+  sql: Sql,
+  fileId: string,
+): Promise<(VendorFileRow & { content: Uint8Array }) | null> {
+  const file = await readStoredFile(sql, fileId);
+  return file?.vendorListed ? file : null;
 }
 
 /** "1.2 MB" or "340 KB". */

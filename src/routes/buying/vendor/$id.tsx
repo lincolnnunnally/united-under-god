@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BecomeMemberCta } from "@/components/member-gate";
 import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
 import { SiteShell } from "@/components/site-shell";
 import {
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/buying/vendor/$id")({
   component: VendorProfilePage,
   head: ({ loaderData, params }) => {
     const company = loaderData?.state === "ok" ? loaderData.profile.company : "Program vendor";
+    // The page a non-member sees is a thin stub; keep search engines on the catalogs.
     return pageHead({
       title: `${company}: program vendor | United Under God`,
       description: `${company} serves churches in the United Under God buying program. Verified church reviews and catalog standing.`,
@@ -41,7 +43,11 @@ function VendorProfilePage() {
             <span aria-current="page">Program vendor</span>
           </nav>
           {read.state === "ok" ? (
-            <Header profile={read.profile} />
+            read.profile.locked ? (
+              <LockedHeader company={read.profile.company} />
+            ) : (
+              <Header profile={read.profile} />
+            )
           ) : (
             <>
               <h1 className="mt-6 text-3xl">
@@ -59,12 +65,66 @@ function VendorProfilePage() {
           )}
         </div>
       </section>
-      {read.state === "ok" ? <Body profile={read.profile} /> : null}
+      {read.state === "ok" ? (
+        read.profile.locked ? (
+          <LockedBody profile={read.profile} />
+        ) : (
+          <Body profile={read.profile} />
+        )
+      ) : null}
     </SiteShell>
   );
 }
 
-type Profile = Extract<Awaited<ReturnType<typeof readVendorProfileFn>>, { state: "ok" }>["profile"];
+type ViewerProfile = Extract<Awaited<ReturnType<typeof readVendorProfileFn>>, { state: "ok" }>["profile"];
+type Profile = Exclude<ViewerProfile, { locked: true }>;
+type Locked = Extract<ViewerProfile, { locked: true }>;
+
+function LockedHeader({ company }: { company: string }) {
+  return (
+    <>
+      <p className="mt-6 text-xs font-semibold tracking-[0.18em] text-forest uppercase">
+        Program vendor
+      </p>
+      <h1 className="mt-3 text-4xl">{company}</h1>
+    </>
+  );
+}
+
+/** A viewer who is not a member church: the name, its catalogs and standing, and the invitation. */
+function LockedBody({ profile }: { profile: Locked }) {
+  return (
+    <section className="mx-auto max-w-4xl px-5 py-12 md:px-8">
+      <Catalogs catalogs={profile.catalogs} />
+      <BecomeMemberCta what={`${profile.company}'s contacts, brochures, and reviews`} className="mt-12" />
+    </section>
+  );
+}
+
+function Catalogs({ catalogs }: { catalogs: Profile["catalogs"] }) {
+  return (
+    <>
+      <h2 className="text-2xl">In the catalogs</h2>
+      <RankingDisclosure className="mt-2" />
+      <ul className="mt-4 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
+        {catalogs.map((catalog) => (
+          <li key={catalog.id} className="flex flex-wrap items-center gap-3 px-5 py-4">
+            <Link
+              to="/buying/$category"
+              params={{ category: catalog.id }}
+              className="font-medium underline-offset-4 hover:underline"
+            >
+              {catalog.name}
+            </Link>
+            {catalog.preferred ? <PreferredBadge /> : null}
+            {catalog.position ? <span className="text-sm text-muted">#{catalog.position}</span> : null}
+            <ScoreLine score={catalog.score} newToProgram={catalog.newToProgram} />
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
 
 function Header({ profile }: { profile: Profile }) {
   return (
@@ -100,24 +160,7 @@ function Header({ profile }: { profile: Profile }) {
 function Body({ profile }: { profile: Profile }) {
   return (
     <section className="mx-auto max-w-4xl px-5 py-12 md:px-8">
-      <h2 className="text-2xl">In the catalogs</h2>
-      <RankingDisclosure className="mt-2" />
-      <ul className="mt-4 divide-y divide-rule rounded-xl bg-cream shadow-[var(--shadow-border)]">
-        {profile.catalogs.map((catalog) => (
-          <li key={catalog.id} className="flex flex-wrap items-center gap-3 px-5 py-4">
-            <Link
-              to="/buying/$category"
-              params={{ category: catalog.id }}
-              className="font-medium underline-offset-4 hover:underline"
-            >
-              {catalog.name}
-            </Link>
-            {catalog.preferred ? <PreferredBadge /> : null}
-            {catalog.position ? <span className="text-sm text-muted">#{catalog.position}</span> : null}
-            <ScoreLine score={catalog.score} newToProgram={catalog.newToProgram} />
-          </li>
-        ))}
-      </ul>
+      <Catalogs catalogs={profile.catalogs} />
 
       <h2 className="mt-12 text-2xl">Verified church reviews</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted">
