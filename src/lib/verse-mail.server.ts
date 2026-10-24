@@ -6,19 +6,28 @@ import { isMissingRelation, loadVerseDays } from "./verse-feed.ts";
 import {
   CONFIRM_CAP_MESSAGE,
   CONFIRM_PER_ADDRESS_PER_DAY,
+  CONFIRM_PER_NETWORK_PER_DAY,
   CONFIRM_TTL_SEC,
+  POW_ISSUE_PER_HOUR,
   UNSUBSCRIBE_TTL_SEC,
   VERSE_NOT_OPEN,
+  VERSE_POW_BITS,
+  VERSE_POW_TTL_SEC,
   VERSE_SITE,
   batchIdempotencyKey,
   buildConfirmMail,
   buildDailyVerseMail,
   cleanSourcePath,
+  confirmDayBucket,
+  confirmHardCeilings,
+  confirmMonthBucket,
+  confirmNetBucket,
   confirmSendAllowed,
   fullPostalAddress,
   indexNowPayload,
   ipSubscribeLimited,
   isPlausibleEmail,
+  issueVersePow,
   liveMailAllowed,
   ministryToday,
   normalizeEmail,
@@ -35,6 +44,7 @@ import {
 } from "./verse-mail.ts";
 const NOT_OPEN = VERSE_NOT_OPEN;
 const TRY_LATER = "We could not send the confirmation email. Please try again in a little while.";
+const CHALLENGE_LATER = "We could not take that just now. Please try again in a little while.";
 const CHECK_INBOX = "Check your inbox for a note from United Under God. Open it and confirm, and the daily verse will start.";
 const SAME_REPLY = { ok: true as const, state: "pending" as const, message: CHECK_INBOX };
 
@@ -113,14 +123,71 @@ async function ipOverLimit(sql: Sql, ip: string, now: Date) {
   return ipSubscribeLimited(asCount(hour), asCount(day));
 }
 
-async function confirmSliceOpen(sql: Sql, now: Date) {
+async function budgetUsed(sql: Sql, bucket: string) {
+  const rows = await sql<{ used: number }>`
+    select used from verse_confirm_budget where bucket = ${bucket}
+  `;
+  return Number(rows[0]?.used ?? 0);
+}
+
+async function otherMail(sql: Sql, now: Date) {
   const dayStart = utcDayStart(now);
   const monthStart = utcMonthStart(now);
-  const confirmsToday = await countKind(sql, dayStart, "confirm");
-  const confirmsThisMonth = await countKind(sql, monthStart, "confirm");
   const otherToday = (await countKind(sql, dayStart, "daily")) + (await countDesk(sql, dayStart));
   const otherThisMonth = (await countKind(sql, monthStart, "daily")) + (await countDesk(sql, monthStart));
+  return { otherToday, otherThisMonth };
+}
+
+async function confirmSliceOpen(sql: Sql, now: Date) {
+  const confirmsToday = await budgetUsed(sql, confirmDayBucket(now));
+  const confirmsThisMonth = await budgetUsed(sql, confirmMonthBucket(now));
+  const { otherToday, otherThisMonth } = await otherMail(sql, now);
   return confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth });
+}
+
+async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
+  const { otherToday, otherThisMonth } = await otherMail(sql, now);
+  const caps = confirmHardCeilings();
+  const rows = await sql<{ result: string }>`
+    select verse_reserve_confirm(
+      ${confirmDayBucket(now)},
+      ${caps.dayCap},
+      ${confirmMonthBucket(now)},
+      ${caps.monthCap},
+      ${confirmNetBucket(ip, now)},
+      ${caps.netCap},
+      ${otherToday},
+      ${otherThisMonth},
+      ${caps.dailyHard},
+      ${caps.monthlyHard}
+    ) as result
+  `;
+  return rows[0]?.result ?? "global";
+}
+
+async function releaseConfirm(sql: Sql, now: Date, ip: string | undefined) {
+  const day = confirmDayBucket(now);
+  const month = confirmMonthBucket(now);
+  const net = confirmNetBucket(ip, now);
+  await sql`
+    update verse_confirm_budget
+    set used = greatest(used - 1, 0), updated_at = now()
+    where bucket = ${day} or bucket = ${month} or bucket = ${net}
+  `;
+}
+
+async function spendPow(sql: Sql, challenge: string, now: Date) {
+  const cutoff = new Date(now.getTime() - VERSE_POW_TTL_SEC * 1000).toISOString();
+  await sql`
+    delete from verse_pow_used where used_at < ${cutoff}::timestamptz
+  `;
+  const spent = await sql<{ challenge: string }>`
+    insert into verse_pow_used (challenge, used_at)
+    values (${challenge}, ${now.toISOString()}::timestamptz)
+    on conflict (challenge) do nothing
+    returning challenge
+  `;
+  return spent.length > 0;
 }
 
 async function noteConfirmCap(sql: Sql, now: Date, apiKey?: string, fetchImpl?: typeof fetch) {
@@ -162,25 +229,26 @@ async function sendConfirmation(args: {
   fetchImpl?: typeof fetch;
   site?: string;
   address: string;
+  ip?: string;
 }): Promise<SubscribeState> {
   if (!recipientAllowed(args.row.email, args.allowLive)) {
     console.error("[verse-mail] confirmation skipped; recipient is not allowed on this host");
     return { ok: false, error: TRY_LATER };
   }
-  const dayStart = utcDayStart(args.now);
-  const monthStart = utcMonthStart(args.now);
-  const confirmsToday = await countKind(args.sql, dayStart, "confirm");
-  const confirmsThisMonth = await countKind(args.sql, monthStart, "confirm");
-  const otherToday = (await countKind(args.sql, dayStart, "daily")) + (await countDesk(args.sql, dayStart));
-  const otherThisMonth = (await countKind(args.sql, monthStart, "daily")) + (await countDesk(args.sql, monthStart));
-  if (!confirmSendAllowed({ confirmsToday, confirmsThisMonth, otherToday, otherThisMonth })) {
-    await noteConfirmCap(args.sql, args.now, args.apiKey, args.fetchImpl);
-    return { ok: false, error: CONFIRM_CAP_MESSAGE };
-  }
   if (!args.address) {
     console.error("[verse-mail] confirmation skipped; VERSE_POSTAL_ADDRESS is not a street or PO box");
     return { ok: false, error: NOT_OPEN };
   }
+  const reserved = await reserveConfirm(args.sql, args.now, args.ip);
+  if (reserved !== "ok") {
+    if (reserved === "net") {
+      console.error("[verse-mail] confirm network cap reached");
+      return SAME_REPLY;
+    }
+    await noteConfirmCap(args.sql, args.now, args.apiKey, args.fetchImpl);
+    return { ok: false, error: CONFIRM_CAP_MESSAGE };
+  }
+  const dayStart = utcDayStart(args.now);
   const exp = Math.floor(args.now.getTime() / 1000);
   const confirmToken = signVerseToken(
     { email: args.row.email, purpose: "confirm", exp: exp + CONFIRM_TTL_SEC },
@@ -207,6 +275,9 @@ async function sendConfirmation(args: {
     idempotencyKey: `verse-confirm/${args.row.id}/${dayStart.slice(0, 10)}/${usedToday + 1}`,
     fetchImpl: args.fetchImpl,
   });
+  if (!result.ok) {
+    await releaseConfirm(args.sql, args.now, args.ip);
+  }
   await args.sql`
     insert into verse_send_log (id, kind, subscriber_id, status)
     values (
@@ -232,6 +303,46 @@ async function sendConfirmation(args: {
   return SAME_REPLY;
 }
 
+export async function issueVerseSignupChallenge(
+  sql: Sql,
+  input: { ip?: string; secret?: string; postalAddress?: string; now?: Date } = {},
+): Promise<{ ok: true; challenge: string; bits: number } | { ok: false; error: string }> {
+  const secret = input.secret ?? verseLinkSecret();
+  const address = fullPostalAddress(input.postalAddress ?? process.env.VERSE_POSTAL_ADDRESS);
+  if (!secret || !address) return { ok: false, error: NOT_OPEN };
+  const now = input.now ?? new Date();
+  const bucket = subscribeIpBucket(input.ip);
+  const hourAgo = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+  const pruneBefore = new Date(now.getTime() - 2 * 60 * 60 * 1000).toISOString();
+  try {
+    await sql`
+      delete from verse_pow_issued where created_at < ${pruneBefore}::timestamptz
+    `;
+    const rows = await sql<{ n: number }>`
+      select count(*)::int as n from verse_pow_issued
+      where ip = ${bucket} and created_at >= ${hourAgo}::timestamptz
+    `;
+    if (asCount(rows) >= POW_ISSUE_PER_HOUR) {
+      console.error(`[verse-mail] pow challenge limit reached bucket=${bucket}`);
+      return { ok: false, error: CHALLENGE_LATER };
+    }
+    await sql`
+      insert into verse_pow_issued (id, ip, created_at)
+      values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
+    `;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    if (isMissingRelation(error) || code === "42883") {
+      console.error("[verse-mail] pow challenge table is not ready");
+      return { ok: false, error: NOT_OPEN };
+    }
+    console.error("[verse-mail] pow challenge failed");
+    return { ok: false, error: CHALLENGE_LATER };
+  }
+  const issued = issueVersePow(secret, Math.floor(now.getTime() / 1000), VERSE_POW_BITS, bucket);
+  return { ok: true, challenge: issued.challenge, bits: issued.bits };
+}
+
 export async function requestVerseSubscription(
   sql: Sql,
   input: {
@@ -254,6 +365,7 @@ export async function requestVerseSubscription(
   if (!isPlausibleEmail(email)) {
     return { ok: false, error: "Please enter an email address we can write to." };
   }
+  if (input.hp?.trim()) return SAME_REPLY;
   const secret = input.secret ?? verseLinkSecret();
   if (!secret) {
     console.error("[verse-mail] confirmation not sent; link secret missing");
@@ -266,27 +378,24 @@ export async function requestVerseSubscription(
   }
   const now = input.now ?? new Date();
   const nowSec = Math.floor(now.getTime() / 1000);
-  if (!verifyVersePow(input.powChallenge ?? "", input.powNonce ?? "", secret, nowSec)) {
+  const bucket = subscribeIpBucket(input.ip);
+  if (!verifyVersePow(input.powChallenge ?? "", input.powNonce ?? "", secret, nowSec, bucket)) {
     return { ok: false, error: TRY_LATER };
   }
   const sourcePath = cleanSourcePath(input.sourcePath);
   const note = `Daily verse by email. Double opt-in from ${sourcePath}.`;
   const allowLive = input.allowLive ?? liveMailAllowed();
-  const bucket = subscribeIpBucket(input.ip);
   try {
-    const spent = await sql<{ challenge: string }>`
-      insert into verse_pow_used (challenge, used_at)
-      values (${input.powChallenge ?? ""}, ${now.toISOString()}::timestamptz)
-      on conflict (challenge) do nothing
-      returning challenge
-    `;
-    if (spent.length === 0) return { ok: false, error: TRY_LATER };
-    if (input.hp?.trim()) return SAME_REPLY;
+    if (!(await spendPow(sql, input.powChallenge ?? "", now))) return { ok: false, error: TRY_LATER };
     if (await ipOverLimit(sql, bucket, now)) return SAME_REPLY;
     await sql`
       insert into verse_subscribe_hits (id, ip, created_at)
       values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
     `;
+    if ((await budgetUsed(sql, confirmNetBucket(input.ip, now))) >= CONFIRM_PER_NETWORK_PER_DAY) {
+      console.error("[verse-mail] confirm network cap reached");
+      return SAME_REPLY;
+    }
     if (!(await confirmSliceOpen(sql, now))) {
       await noteConfirmCap(sql, now, input.apiKey, input.fetchImpl);
       return { ok: false, error: CONFIRM_CAP_MESSAGE };
@@ -338,10 +447,12 @@ export async function requestVerseSubscription(
       fetchImpl: input.fetchImpl,
       site: input.site,
       address,
+      ip: input.ip,
     });
   } catch (error) {
     if (input.hp?.trim()) return SAME_REPLY;
-    if (isMissingRelation(error)) {
+    const code = (error as { code?: string })?.code;
+    if (isMissingRelation(error) || code === "42883") {
       console.error("[verse-mail] subscriber table is not ready");
       return { ok: false, error: NOT_OPEN };
     }
@@ -612,7 +723,12 @@ export async function deliverDailyVerse(
   const monthStart = utcMonthStart(now);
   const sentToday = (await countKind(sql, dayStart, "daily")) + (await countDesk(sql, dayStart));
   const sentThisMonth = (await countKind(sql, monthStart, "daily")) + (await countDesk(sql, monthStart));
-  const budget = verseSendAllowance({ sentToday, sentThisMonth });
+  const budget = verseSendAllowance({
+    sentToday,
+    sentThisMonth,
+    confirmsToday: await budgetUsed(sql, confirmDayBucket(now)),
+    confirmsThisMonth: await budgetUsed(sql, confirmMonthBucket(now)),
+  });
 
   let chosen: { id: string; email: string }[];
   let idempotencyKey = claim.idempotencyKey;

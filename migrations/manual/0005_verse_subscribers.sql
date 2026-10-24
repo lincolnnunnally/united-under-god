@@ -12,6 +12,8 @@
 -- The app connects with DATABASE_URL (table owner) and bypasses RLS.
 -- The Data API roles get no grants and no policies, so anon cannot read
 -- or write these rows. There is no policy that allows a public select.
+-- Apply this file as that same role. verse_reserve_confirm is granted to
+-- the role that runs this file, and to nobody else.
 
 create table if not exists verse_subscribers (
   id text primary key,
@@ -99,9 +101,31 @@ create index if not exists verse_subscribe_hits_ip_idx
   on verse_subscribe_hits (ip, created_at);
 
 -- Solved proof-of-work challenges. One use each, so a single solution cannot spend the cap.
+-- The app deletes rows older than 10 minutes. A challenge itself expires on that same clock.
 create table if not exists verse_pow_used (
   challenge text primary key,
   used_at timestamptz not null default now()
+);
+
+create index if not exists verse_pow_used_used_idx on verse_pow_used (used_at);
+
+-- Challenges handed to one IP bucket. The app allows 30 an hour and deletes rows older than two hours.
+create table if not exists verse_pow_issued (
+  id text primary key,
+  ip text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists verse_pow_issued_ip_idx
+  on verse_pow_issued (ip, created_at);
+
+-- Atomic confirm reservations. used increases only while it is still under the cap.
+-- bucket is day:YYYY-MM-DD, month:YYYY-MM, or net:<network>:YYYY-MM-DD.
+create table if not exists verse_confirm_budget (
+  bucket text primary key,
+  used integer not null default 0,
+  updated_at timestamptz not null default now(),
+  constraint verse_confirm_budget_used_check check (used >= 0)
 );
 
 alter table verse_subscribers enable row level security;
@@ -111,6 +135,8 @@ alter table verse_send_log enable row level security;
 alter table verse_indexnow_log enable row level security;
 alter table verse_subscribe_hits enable row level security;
 alter table verse_pow_used enable row level security;
+alter table verse_pow_issued enable row level security;
+alter table verse_confirm_budget enable row level security;
 
 revoke all on table verse_subscribers from public;
 revoke all on table verse_mail_runs from public;
@@ -119,6 +145,72 @@ revoke all on table verse_send_log from public;
 revoke all on table verse_indexnow_log from public;
 revoke all on table verse_subscribe_hits from public;
 revoke all on table verse_pow_used from public;
+revoke all on table verse_pow_issued from public;
+revoke all on table verse_confirm_budget from public;
+
+-- One statement, so a day, a month, and a network are reserved together or not at all.
+-- security invoker (the default): the caller still needs table privileges.
+-- Execute is revoked from the Data API roles below.
+create or replace function verse_reserve_confirm(
+  day_bucket text,
+  day_cap integer,
+  month_bucket text,
+  month_cap integer,
+  net_bucket text,
+  net_cap integer,
+  other_today integer,
+  other_month integer,
+  daily_hard integer,
+  monthly_hard integer
+) returns text
+language plpgsql
+set search_path = pg_catalog, public
+as $verse$
+declare
+  rec record;
+  day_used integer := 0;
+  month_used integer := 0;
+  net_used integer := 0;
+begin
+  insert into public.verse_confirm_budget (bucket, used)
+  values (day_bucket, 0), (month_bucket, 0), (net_bucket, 0)
+  on conflict (bucket) do nothing;
+
+  for rec in
+    select bucket, used
+    from public.verse_confirm_budget
+    where bucket in (day_bucket, month_bucket, net_bucket)
+    order by bucket
+    for update
+  loop
+    if rec.bucket = day_bucket then
+      day_used := rec.used;
+    elsif rec.bucket = month_bucket then
+      month_used := rec.used;
+    elsif rec.bucket = net_bucket then
+      net_used := rec.used;
+    end if;
+  end loop;
+
+  if day_used >= day_cap
+     or month_used >= month_cap
+     or day_used + other_today >= daily_hard
+     or month_used + other_month >= monthly_hard then
+    return 'global';
+  end if;
+  if net_used >= net_cap then
+    return 'net';
+  end if;
+
+  update public.verse_confirm_budget
+  set used = used + 1, updated_at = now()
+  where bucket in (day_bucket, month_bucket, net_bucket);
+  return 'ok';
+end
+$verse$;
+
+revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from public;
+grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) to current_user;
 
 do $$
 declare
@@ -134,10 +226,16 @@ begin
         'verse_send_log',
         'verse_indexnow_log',
         'verse_subscribe_hits',
-        'verse_pow_used'
+        'verse_pow_used',
+        'verse_pow_issued',
+        'verse_confirm_budget'
       ] loop
         execute format('revoke all on table %I from %I', table_name, role_name);
       end loop;
+      execute format(
+        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer) from %I',
+        role_name
+      );
     end if;
   end loop;
 end $$;

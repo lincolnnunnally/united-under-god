@@ -9,9 +9,10 @@ export const RESEND_MONTHLY_CAP = 3000;
 
 /**
  * Verse letters stop this far under the cap so desk mail and other apps on the
- * same key still fit. Confirmation notes have their own small slice and are
- * not subtracted from this verse budget. The free plan rejects mail at the
- * cap rather than billing an overage.
+ * same key still fit. Confirmation notes have their own slice. A verse run
+ * counts confirmations already reserved that day and month, so a full confirm
+ * day still leaves a morning send inside the free plan. The free plan rejects
+ * mail at the cap rather than billing an overage.
  */
 export const RESEND_DAILY_HEADROOM = 15;
 export const RESEND_MONTHLY_HEADROOM = 300;
@@ -19,16 +20,37 @@ export const RESEND_MONTHLY_HEADROOM = 300;
 /** Never more than this many verse letters in one day, even if headroom remains. */
 export const VERSE_DAILY_SEND_CEILING = 80;
 
-/** Confirmations, across every address, stop here so they cannot eat the verse budget. */
-export const CONFIRM_DAILY_CAP = 10;
-export const CONFIRM_MONTHLY_CAP = 300;
+/**
+ * Confirmations, across every address.
+ * 40 a day leaves the other half of the 80-letter verse ceiling for the morning
+ * send. 1,200 a month is that same daily cap across 30 days. The free plan is
+ * still 100 a day and 3,000 a month; reserved confirmations are subtracted from
+ * the verse allowance so the two together stay inside it.
+ */
+export const CONFIRM_DAILY_CAP = 40;
+export const CONFIRM_MONTHLY_CAP = 1_200;
 
 /** One address may receive this many confirmation notes per UTC day. */
 export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
 
+/**
+ * Confirmation notes from one network, per UTC day.
+ * IPv4 is a /24. IPv6 is a /48. A missing address uses the shared bucket.
+ */
+export const CONFIRM_PER_NETWORK_PER_DAY = 3;
+
 /** Sign-up attempts from one IP, whether or not a note goes out. */
 export const SUBSCRIBE_IP_PER_HOUR = 5;
 export const SUBSCRIBE_IP_PER_DAY = 20;
+
+/** Challenges issued to one IP bucket. A bucket is one IPv4, one IPv6 /64, or `shared`. */
+export const POW_ISSUE_PER_HOUR = 30;
+
+/**
+ * HMAC label used to derive the proof-of-work key from VERSE_LINK_SECRET.
+ * Link tokens keep using the secret itself, so a challenge signature is not a link token.
+ */
+export const VERSE_POW_HMAC_PREFIX = "verse-pow-v1";
 
 /** Missing or unreadable addresses share this one bucket. */
 export const SHARED_IP_BUCKET = "shared";
@@ -87,6 +109,12 @@ export function verseLinkSecret(env: { VERSE_LINK_SECRET?: string } = process.en
   return env.VERSE_LINK_SECRET?.trim() ?? "";
 }
 
+/** Proof-of-work key. Derived from the link secret; not a new environment variable. */
+export function versePowKey(linkSecret: string) {
+  if (!linkSecret) return "";
+  return createHmac("sha256", linkSecret).update(VERSE_POW_HMAC_PREFIX).digest("base64url");
+}
+
 const STREET_WORD =
   "street|st|avenue|ave|road|rd|drive|dr|lane|ln|boulevard|blvd|court|ct|way|place|pl|circle|cir|highway|hwy|trail|trl|parkway|pkwy|terrace|ter|pike|route|rte|square|sq|alley|plaza|loop|path|row|cove|crossing";
 
@@ -132,13 +160,23 @@ export function ministryToday(now = new Date()) {
 export function verseSendAllowance(input: {
   sentToday: number;
   sentThisMonth: number;
+  confirmsToday?: number;
+  confirmsThisMonth?: number;
   dailyCap?: number;
   monthlyCap?: number;
 }) {
   const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
   const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
-  const dailyLeft = dailyCap - RESEND_DAILY_HEADROOM - Math.max(0, input.sentToday);
-  const monthlyLeft = monthlyCap - RESEND_MONTHLY_HEADROOM - Math.max(0, input.sentThisMonth);
+  const dailyLeft =
+    dailyCap -
+    RESEND_DAILY_HEADROOM -
+    Math.max(0, input.sentToday) -
+    Math.max(0, input.confirmsToday ?? 0);
+  const monthlyLeft =
+    monthlyCap -
+    RESEND_MONTHLY_HEADROOM -
+    Math.max(0, input.sentThisMonth) -
+    Math.max(0, input.confirmsThisMonth ?? 0);
   const allowance = Math.max(0, Math.min(dailyLeft, monthlyLeft, VERSE_DAILY_SEND_CEILING));
   let reason = "";
   if (allowance <= 0) {
@@ -151,10 +189,25 @@ export function verseSendAllowance(input: {
   return { allowance, reason };
 }
 
+/** Caps passed into the atomic reservation. Hard ceilings still stop short of the plan limit. */
+export function confirmHardCeilings(input: { dailyCap?: number; monthlyCap?: number } = {}) {
+  const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
+  const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
+  const dailyReserve = Math.max(0, RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
+  const monthlyReserve = Math.max(0, RESEND_MONTHLY_HEADROOM - CONFIRM_MONTHLY_CAP);
+  return {
+    dayCap: CONFIRM_DAILY_CAP,
+    monthCap: CONFIRM_MONTHLY_CAP,
+    netCap: CONFIRM_PER_NETWORK_PER_DAY,
+    dailyHard: dailyCap - dailyReserve,
+    monthlyHard: monthlyCap - monthlyReserve,
+  };
+}
+
 /**
  * Confirmations draw from their own slice. `otherToday` / `otherThisMonth`
- * are verse letters and desk mail, not confirmations, so a confirmation
- * never shrinks the verse budget. The slice still stops short of the hard cap.
+ * are verse letters and desk mail, not confirmations. The slice still stops
+ * short of the hard cap.
  */
 export function confirmSendAllowed(input: {
   confirmsToday: number;
@@ -164,14 +217,11 @@ export function confirmSendAllowed(input: {
   dailyCap?: number;
   monthlyCap?: number;
 }) {
-  if (input.confirmsToday >= CONFIRM_DAILY_CAP) return false;
-  if (input.confirmsThisMonth >= CONFIRM_MONTHLY_CAP) return false;
-  const dailyCap = input.dailyCap ?? RESEND_DAILY_CAP;
-  const monthlyCap = input.monthlyCap ?? RESEND_MONTHLY_CAP;
-  const dailyReserve = Math.max(0, RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
-  const monthlyReserve = Math.max(0, RESEND_MONTHLY_HEADROOM - CONFIRM_MONTHLY_CAP);
-  if (input.otherToday + input.confirmsToday >= dailyCap - dailyReserve) return false;
-  if (input.otherThisMonth + input.confirmsThisMonth >= monthlyCap - monthlyReserve) return false;
+  const caps = confirmHardCeilings(input);
+  if (input.confirmsToday >= caps.dayCap) return false;
+  if (input.confirmsThisMonth >= caps.monthCap) return false;
+  if (input.otherToday + input.confirmsToday >= caps.dailyHard) return false;
+  if (input.otherThisMonth + input.confirmsThisMonth >= caps.monthlyHard) return false;
   return true;
 }
 
@@ -179,13 +229,59 @@ export function ipSubscribeLimited(hourCount: number, dayCount: number) {
   return hourCount >= SUBSCRIBE_IP_PER_HOUR || dayCount >= SUBSCRIBE_IP_PER_DAY;
 }
 
-/** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */
-export function subscribeIpBucket(ip: string | undefined) {
-  let value = (ip ?? "").trim().toLowerCase();
+/** `day:2026-10-23` — the global daily confirm reservation. */
+export function confirmDayBucket(now = new Date()) {
+  return `day:${utcDayStart(now).slice(0, 10)}`;
+}
+
+/** `month:2026-10` — the global monthly confirm reservation. */
+export function confirmMonthBucket(now = new Date()) {
+  return `month:${utcMonthStart(now).slice(0, 7)}`;
+}
+
+/** One network's confirm reservation for this UTC day. */
+export function confirmNetBucket(ip: string | undefined, now = new Date()) {
+  return `net:${confirmNetwork(ip)}:${utcDayStart(now).slice(0, 10)}`;
+}
+
+/**
+ * Network a confirmation counts against.
+ * IPv4 is the /24. IPv6 is the /48. An empty or unreadable address uses the shared bucket.
+ */
+export function confirmNetwork(ip: string | undefined) {
+  let value = unwrapIp(ip);
   if (!value) return SHARED_IP_BUCKET;
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(value);
+  if (mapped?.[1]) value = mapped[1];
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) {
+    const parts = value.split(".");
+    if (parts.length === 4 && parts.every((part) => Number(part) <= 255)) {
+      return `${parts[0]}.${parts[1]}.${parts[2]}.0/24`;
+    }
+    return SHARED_IP_BUCKET;
+  }
+  if (!value.includes(":")) return SHARED_IP_BUCKET;
+  const groups = expandIpv6(value);
+  if (!groups) return SHARED_IP_BUCKET;
+  return `${groups
+    .slice(0, 3)
+    .map((group) => group.padStart(4, "0"))
+    .join(":")}::/48`;
+}
+
+/** IPv4 stays whole. IPv6 is the /64 prefix. An empty value shares one bucket. */
+function unwrapIp(ip: string | undefined) {
+  let value = (ip ?? "").trim().toLowerCase();
+  if (!value) return "";
   if (value.startsWith("[") && value.includes("]")) value = value.slice(1, value.indexOf("]"));
   const zone = value.indexOf("%");
   if (zone >= 0) value = value.slice(0, zone);
+  return value;
+}
+
+export function subscribeIpBucket(ip: string | undefined) {
+  const value = unwrapIp(ip);
+  if (!value) return SHARED_IP_BUCKET;
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(value)) return value.slice(0, 64);
   if (!value.includes(":")) return value.slice(0, 64);
   const groups = expandIpv6(value);
@@ -213,12 +309,17 @@ function expandIpv6(value: string) {
   return [...left, ...Array.from({ length: missing }, () => "0"), ...right];
 }
 
-export function issueVersePow(secret: string, nowSec: number, bits = VERSE_POW_BITS) {
+export function issueVersePow(secret: string, nowSec: number, bits = VERSE_POW_BITS, bucket = SHARED_IP_BUCKET) {
   const width = Math.min(24, Math.max(8, Math.floor(bits)));
   const payload = Buffer.from(
-    JSON.stringify({ i: randomBytes(9).toString("base64url"), x: nowSec + VERSE_POW_TTL_SEC, b: width }),
+    JSON.stringify({
+      i: randomBytes(9).toString("base64url"),
+      x: nowSec + VERSE_POW_TTL_SEC,
+      b: width,
+      n: bucket,
+    }),
   ).toString("base64url");
-  return { challenge: `${payload}.${signBody(payload, secret)}`, bits: width };
+  return { challenge: `${payload}.${signPowBody(payload, secret)}`, bits: width };
 }
 
 export function solveVersePow(challenge: string, bits: number) {
@@ -229,13 +330,20 @@ export function solveVersePow(challenge: string, bits: number) {
   return "";
 }
 
-export function verifyVersePow(challenge: string, nonce: string, secret: string, nowSec: number) {
+export function verifyVersePow(
+  challenge: string,
+  nonce: string,
+  secret: string,
+  nowSec: number,
+  bucket: string,
+) {
   if (!secret || !challenge || challenge.length > 512 || !nonce || nonce.length > 16 || !/^\d+$/.test(nonce)) return false;
+  if (!bucket) return false;
   const dot = challenge.indexOf(".");
   if (dot <= 0) return false;
   const payload = challenge.slice(0, dot);
   const sig = challenge.slice(dot + 1);
-  const expected = signBody(payload, secret);
+  const expected = signPowBody(payload, secret);
   const a = Buffer.from(sig);
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return false;
@@ -243,9 +351,11 @@ export function verifyVersePow(challenge: string, nonce: string, secret: string,
     const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as {
       x?: unknown;
       b?: unknown;
+      n?: unknown;
     };
     if (typeof parsed.x !== "number" || parsed.x < nowSec) return false;
     if (typeof parsed.b !== "number" || parsed.b < 8 || parsed.b > 24) return false;
+    if (parsed.n !== bucket) return false;
     return powDigestBits(challenge, nonce) >= parsed.b;
   } catch {
     return false;
@@ -270,6 +380,12 @@ function powDigestBits(challenge: string, nonce: string) {
 }
 
 type TokenPayload = { email: string; purpose: "confirm" | "unsubscribe"; exp: number };
+
+function signPowBody(body: string, linkSecret: string) {
+  const key = versePowKey(linkSecret);
+  if (!key) return "";
+  return createHmac("sha256", key).update(body).digest("base64url");
+}
 
 function signBody(body: string, secret: string) {
   return createHmac("sha256", secret).update(body).digest("base64url");

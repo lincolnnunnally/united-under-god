@@ -26,13 +26,9 @@ const tokenInput = z.object({
 });
 
 export const verseSignupChallenge = createServerFn({ method: "POST" }).handler(async () => {
-  const { issueVersePow, verseLinkSecret, VERSE_NOT_OPEN, fullPostalAddress } = await import("@/lib/verse-mail");
-  const secret = verseLinkSecret();
-  if (!secret || !fullPostalAddress(process.env.VERSE_POSTAL_ADDRESS)) {
-    return { ok: false as const, error: VERSE_NOT_OPEN };
-  }
-  const issued = issueVersePow(secret, Math.floor(Date.now() / 1000));
-  return { ok: true as const, challenge: issued.challenge, bits: issued.bits };
+  const { getSql } = await import("@/lib/db");
+  const { issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
+  return issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
 });
 
 export const subscribeToDailyVerse = createServerFn({ method: "POST" })

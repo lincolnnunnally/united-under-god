@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
@@ -6,29 +7,41 @@ import type { Sql } from "./db.ts";
 import {
   buildConfirmMail,
   buildDailyVerseMail,
+  confirmDayBucket,
+  confirmMonthBucket,
+  confirmNetBucket,
+  confirmNetwork,
   confirmSendAllowed,
   CONFIRM_CAP_MESSAGE,
+  CONFIRM_MONTHLY_CAP,
+  CONFIRM_PER_NETWORK_PER_DAY,
   fullPostalAddress,
   indexNowKeyFile,
   ipSubscribeLimited,
   issueVersePow,
   ministryToday,
+  POW_ISSUE_PER_HOUR,
   recipientAllowed,
+  RESEND_DAILY_CAP,
+  RESEND_DAILY_HEADROOM,
+  RESEND_MONTHLY_CAP,
   SHARED_IP_BUCKET,
   signVerseToken,
   solveVersePow,
   subscribeIpBucket,
+  verifyVersePow,
   verifyVerseToken,
-  verseLinkSecret,
-  verseSendAllowance,
   VERSE_DAILY_SEND_CEILING,
-  RESEND_DAILY_CAP,
-  RESEND_MONTHLY_CAP,
+  VERSE_POW_HMAC_PREFIX,
+  verseLinkSecret,
+  versePowKey,
+  verseSendAllowance,
   CONFIRM_DAILY_CAP,
 } from "./verse-mail.ts";
 import {
   confirmVerseToken,
   deliverDailyVerse,
+  issueVerseSignupChallenge,
   requestVerseSubscription,
   unsubscribeVerseToken,
 } from "./verse-mail.server.ts";
@@ -38,8 +51,8 @@ const SECRET = "test-link-secret";
 const QA = "delivered@resend.dev";
 const POSTAL = "PO Box 10, Vidalia, GA 30474";
 
-function gate(now: Date) {
-  const issued = issueVersePow(SECRET, Math.floor(now.getTime() / 1000), 8);
+function gate(now: Date, ip?: string) {
+  const issued = issueVersePow(SECRET, Math.floor(now.getTime() / 1000), 8, subscribeIpBucket(ip));
   return {
     powChallenge: issued.challenge,
     powNonce: solveVersePow(issued.challenge, issued.bits),
@@ -49,7 +62,7 @@ function gate(now: Date) {
 
 function ask(sql: Sql, input: Parameters<typeof requestVerseSubscription>[1]) {
   const now = input.now ?? new Date();
-  return requestVerseSubscription(sql, { ...gate(now), ...input });
+  return requestVerseSubscription(sql, { ...gate(now, input.ip), ...input });
 }
 
 function toSql(pg: PGlite): Sql {
@@ -139,12 +152,51 @@ describe("verse mail tokens and caps", () => {
   });
 
   it("keeps confirmations in their own slice", () => {
+    assert.equal(CONFIRM_DAILY_CAP, 40);
+    assert.equal(CONFIRM_MONTHLY_CAP, CONFIRM_DAILY_CAP * 30);
+    assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 3);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), true);
     assert.equal(confirmSendAllowed({ confirmsToday: CONFIRM_DAILY_CAP, confirmsThisMonth: 0, otherToday: 0, otherThisMonth: 0 }), false);
+    assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: CONFIRM_MONTHLY_CAP, otherToday: 0, otherThisMonth: 0 }), false);
     assert.equal(confirmSendAllowed({ confirmsToday: 0, confirmsThisMonth: 0, otherToday: 80, otherThisMonth: 0 }), true);
+    const withConfirms = verseSendAllowance({
+      sentToday: 0,
+      sentThisMonth: 0,
+      confirmsToday: CONFIRM_DAILY_CAP,
+      confirmsThisMonth: 0,
+    });
+    assert.equal(withConfirms.allowance, RESEND_DAILY_CAP - RESEND_DAILY_HEADROOM - CONFIRM_DAILY_CAP);
+    assert.ok(withConfirms.allowance > 0);
     assert.equal(ipSubscribeLimited(5, 0), true);
     assert.equal(ipSubscribeLimited(4, 20), true);
     assert.equal(ipSubscribeLimited(4, 19), false);
+    assert.equal(confirmNetwork("203.0.113.9"), "203.0.113.0/24");
+    assert.equal(confirmNetwork("203.0.113.200"), confirmNetwork("203.0.113.1"));
+    assert.notEqual(confirmNetwork("203.0.113.9"), confirmNetwork("203.0.114.9"));
+    assert.equal(confirmNetwork("::ffff:203.0.113.9"), "203.0.113.0/24");
+    assert.equal(confirmNetwork("2001:db8:85a3:1::1"), confirmNetwork("2001:db8:85a3:ffff::2"));
+    assert.notEqual(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
+    assert.equal(confirmNetwork(""), SHARED_IP_BUCKET);
+    assert.equal(confirmNetwork("999.1.1.1"), SHARED_IP_BUCKET);
+  });
+
+  it("signs proof of work with a key derived from the link secret", () => {
+    const now = 1_700_000_000;
+    const bucket = subscribeIpBucket("203.0.113.9");
+    const key = versePowKey(SECRET);
+    assert.equal(key.length > 0, true);
+    assert.notEqual(key, SECRET);
+    assert.equal(key, createHmac("sha256", SECRET).update(VERSE_POW_HMAC_PREFIX).digest("base64url"));
+    const issued = issueVersePow(SECRET, now, 8, bucket);
+    const nonce = solveVersePow(issued.challenge, issued.bits);
+    assert.equal(verifyVersePow(issued.challenge, nonce, SECRET, now, bucket), true);
+    assert.equal(verifyVersePow(issued.challenge, nonce, SECRET, now, subscribeIpBucket("198.51.100.9")), false);
+    const payload = issued.challenge.slice(0, issued.challenge.indexOf("."));
+    const rawSig = createHmac("sha256", SECRET).update(payload).digest("base64url");
+    assert.equal(verifyVersePow(`${payload}.${rawSig}`, nonce, SECRET, now, bucket), false);
+    const token = signVerseToken({ email: QA, purpose: "confirm", exp: now + 100 }, SECRET);
+    assert.equal(verifyVerseToken(token, SECRET, now).ok, true);
+    assert.equal(verifyVerseToken(token, key, now).ok, false);
   });
 
   it("mails QA addresses unless live sending is explicitly allowed", () => {
@@ -380,9 +432,9 @@ describe("verse subscription store", () => {
       fetchImpl,
     });
     await sql`
-      insert into verse_send_log (id, kind, status, created_at)
-      select 'cap-' || g, 'confirm', 'sent', ${now.toISOString()}::timestamptz
-      from generate_series(1, 10) as g
+      update verse_confirm_budget
+      set used = ${CONFIRM_DAILY_CAP}
+      where bucket = ${confirmDayBucket(now)}
     `;
     const capped = await ask(sql, {
       email: "bounced@resend.dev",
@@ -425,6 +477,7 @@ describe("verse subscription store", () => {
         email: QA,
         sourcePath: "/verse",
         now,
+        ip: `203.0.${120 + n}.1`,
         apiKey: "re_test",
         secret: SECRET,
         allowLive: false,
@@ -495,10 +548,12 @@ describe("verse subscription store", () => {
     assert.equal(calls, 0);
     const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
     assert.equal(hits[0]?.n, 0);
+    const used = await sql<{ n: number }>`select count(*)::int as n from verse_pow_used`;
+    assert.equal(used[0]?.n, 0);
     await pg.close();
   });
 
-  it("does not count a honeypot fill against the IP limit", async () => {
+  it("checks the honeypot before the proof of work and does not spend an IP hit", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T17:10:00Z");
     let calls = 0;
@@ -508,6 +563,8 @@ describe("verse subscription store", () => {
       now,
       ip: "203.0.113.51",
       hp: "https://example.invalid",
+      powChallenge: "not-a-challenge",
+      powNonce: "1",
       apiKey: "re_test",
       secret: SECRET,
       allowLive: false,
@@ -520,6 +577,8 @@ describe("verse subscription store", () => {
     assert.equal(calls, 0);
     const hits = await sql<{ n: number }>`select count(*)::int as n from verse_subscribe_hits`;
     assert.equal(hits[0]?.n, 0);
+    const used = await sql<{ n: number }>`select count(*)::int as n from verse_pow_used`;
+    assert.equal(used[0]?.n, 0);
     await pg.close();
   });
 
@@ -756,6 +815,274 @@ describe("verse subscription store", () => {
     });
     assert.equal(result.sent, 1);
     assert.equal(key, "verse-daily/2026-10-23/stored");
+    await pg.close();
+  });
+});
+
+describe("verse confirm defenses", () => {
+  it("stops a fourth confirmation from the same IPv4 /24 and the same IPv6 /48", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T21:00:00Z");
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const base = {
+      sourcePath: "/verse",
+      now,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: true,
+      fetchImpl,
+    };
+    for (let n = 0; n < 3; n += 1) {
+      const result = await ask(sql, { ...base, email: `v4-${n}@example.com`, ip: `203.0.113.${n + 1}` });
+      assert.equal(result.ok, true);
+    }
+    const blockedV4 = await ask(sql, { ...base, email: "v4-more@example.com", ip: "203.0.113.200" });
+    assert.equal(blockedV4.ok && blockedV4.message.includes("Check your inbox"), true);
+    assert.equal(calls, 3);
+    const otherV4 = await ask(sql, { ...base, email: "v4-other@example.com", ip: "203.0.114.8" });
+    assert.equal(otherV4.ok, true);
+    assert.equal(calls, 4);
+
+    for (let n = 0; n < 3; n += 1) {
+      const result = await ask(sql, { ...base, email: `v6-${n}@example.com`, ip: `2001:db8:85a3:${n}::1` });
+      assert.equal(result.ok, true);
+    }
+    const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::9" });
+    assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
+    assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
+    const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
+    assert.equal(otherV6.ok, true);
+    assert.equal(calls, 8);
+    const nets = await sql<{ bucket: string; used: number }>`
+      select bucket, used from verse_confirm_budget where bucket like 'net:%' order by bucket
+    `;
+    assert.deepEqual(
+      nets.map((row) => `${row.bucket}=${Number(row.used)}`).sort(),
+      [
+        `${confirmNetBucket("203.0.113.1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
+        `${confirmNetBucket("203.0.114.8", now)}=1`,
+        `${confirmNetBucket("2001:db8:85a3::1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
+        `${confirmNetBucket("2001:db8:85a4::1", now)}=1`,
+      ].sort(),
+    );
+    await pg.close();
+  });
+
+  it("reserves the last global confirm before sending, and a failed send gives the slot back", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T22:00:00Z");
+    await sql`
+      insert into verse_confirm_budget (bucket, used)
+      values (${confirmDayBucket(now)}, ${CONFIRM_DAILY_CAP - 1})
+    `;
+    const bodies: string[] = [];
+    const fetchImpl = (async (_url: string | URL | Request, init?: RequestInit) => {
+      bodies.push(String(init?.body ?? ""));
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const [first, second] = await Promise.all([
+      ask(sql, {
+        email: QA,
+        sourcePath: "/verse",
+        now,
+        ip: "203.0.113.10",
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      }),
+      ask(sql, {
+        email: "bounced@resend.dev",
+        sourcePath: "/verse",
+        now,
+        ip: "198.51.100.10",
+        apiKey: "re_test",
+        secret: SECRET,
+        allowLive: false,
+        fetchImpl,
+      }),
+    ]);
+    const outcomes = [first, second];
+    assert.equal(outcomes.filter((result) => result.ok).length, 1);
+    assert.equal(outcomes.filter((result) => !result.ok && result.error === CONFIRM_CAP_MESSAGE).length, 1);
+    const subscriberSends = bodies.filter((body) => body.includes(QA) || body.includes("bounced@resend.dev"));
+    assert.equal(subscriberSends.length, 1);
+    const day = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
+    `;
+    assert.equal(Number(day[0]?.used), CONFIRM_DAILY_CAP);
+
+    const monthFull = await ask(sql, {
+      email: "complained@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "192.0.2.10",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(monthFull.ok, false);
+    await sql`
+      update verse_confirm_budget set used = ${CONFIRM_MONTHLY_CAP} where bucket = ${confirmMonthBucket(now)}
+    `;
+    await sql`
+      update verse_confirm_budget set used = 0 where bucket = ${confirmDayBucket(now)}
+    `;
+    const monthBlocked = await ask(sql, {
+      email: "complained@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "192.0.2.11",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl,
+    });
+    assert.equal(monthBlocked.ok === false && monthBlocked.error, CONFIRM_CAP_MESSAGE);
+
+    let fail = true;
+    let releasedCalls = 0;
+    const releaseFetch = (async () => {
+      if (fail) return new Response("no", { status: 500 });
+      releasedCalls += 1;
+      return new Response("{}", { status: 200 });
+    }) as typeof fetch;
+    const later = new Date("2026-11-02T15:00:00Z");
+    const failed = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now: later,
+      ip: "203.0.115.4",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: releaseFetch,
+    });
+    assert.equal(failed.ok === false && failed.error.includes("try again"), true);
+    const released = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(later)}
+    `;
+    assert.equal(Number(released[0]?.used), 0);
+    fail = false;
+    const retried = await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now: later,
+      ip: "203.0.115.4",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: releaseFetch,
+    });
+    assert.equal(retried.ok, true);
+    assert.equal(releasedCalls, 1);
+    const kept = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmDayBucket(later)}
+    `;
+    assert.equal(Number(kept[0]?.used), 1);
+    await pg.close();
+  });
+
+  it("drops proof-of-work rows older than 10 minutes and refuses a challenge from another bucket", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T23:00:00Z");
+    const old = new Date(now.getTime() - 10 * 60 * 1000 - 1000).toISOString();
+    const recent = new Date(now.getTime() - 9 * 60 * 1000).toISOString();
+    await sql`
+      insert into verse_pow_used (challenge, used_at)
+      values ('old-challenge', ${old}::timestamptz), ('recent-challenge', ${recent}::timestamptz)
+    `;
+    await ask(sql, {
+      email: QA,
+      sourcePath: "/verse",
+      now,
+      ip: "203.0.113.40",
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => new Response("{}", { status: 200 })) as typeof fetch,
+    });
+    const left = await sql<{ challenge: string }>`select challenge from verse_pow_used order by challenge`;
+    const challenges = left.map((row) => row.challenge);
+    assert.equal(challenges.includes("old-challenge"), false);
+    assert.equal(challenges.includes("recent-challenge"), true);
+    assert.equal(challenges.length, 2);
+
+    const issued = issueVersePow(SECRET, Math.floor(now.getTime() / 1000), 8, subscribeIpBucket("203.0.113.40"));
+    const stolen = await requestVerseSubscription(sql, {
+      email: "bounced@resend.dev",
+      sourcePath: "/verse",
+      now,
+      ip: "198.51.100.40",
+      powChallenge: issued.challenge,
+      powNonce: solveVersePow(issued.challenge, issued.bits),
+      postalAddress: POSTAL,
+      apiKey: "re_test",
+      secret: SECRET,
+      allowLive: false,
+      fetchImpl: (async () => new Response("{}", { status: 200 })) as typeof fetch,
+    });
+    assert.equal(stolen.ok, false);
+    const hits = await sql<{ ip: string }>`select ip from verse_subscribe_hits`;
+    assert.deepEqual(hits.map((row) => row.ip), [subscribeIpBucket("203.0.113.40")]);
+    await pg.close();
+  });
+
+  it("limits challenge issuance to 30 an hour for one IP bucket and logs the block", async () => {
+    const { pg, sql } = await db();
+    const now = new Date("2026-10-23T12:00:00Z");
+    const logs: string[] = [];
+    const original = console.error;
+    console.error = (...args: unknown[]) => {
+      logs.push(args.map(String).join(" "));
+    };
+    try {
+      const stale = new Date(now.getTime() - 61 * 60 * 1000).toISOString();
+      for (let n = 0; n < POW_ISSUE_PER_HOUR; n += 1) {
+        await sql`
+          insert into verse_pow_issued (id, ip, created_at)
+          values (${`stale-${n}`}, ${subscribeIpBucket("203.0.113.70")}, ${stale}::timestamptz)
+        `;
+      }
+      let first = { challenge: "", bits: 16 };
+      for (let n = 0; n < POW_ISSUE_PER_HOUR; n += 1) {
+        const issued = await issueVerseSignupChallenge(sql, {
+          ip: "203.0.113.70",
+          secret: SECRET,
+          postalAddress: POSTAL,
+          now,
+        });
+        assert.equal(issued.ok, true);
+        if (issued.ok && n === 0) first = { challenge: issued.challenge, bits: issued.bits };
+      }
+      const blocked = await issueVerseSignupChallenge(sql, {
+        ip: "203.0.113.70",
+        secret: SECRET,
+        postalAddress: POSTAL,
+        now,
+      });
+      assert.equal(blocked.ok, false);
+      assert.match(logs.join("\n"), /\[verse-mail\] pow challenge limit reached bucket=203\.0\.113\.70/);
+      const other = await issueVerseSignupChallenge(sql, {
+        ip: "198.51.100.70",
+        secret: SECRET,
+        postalAddress: POSTAL,
+        now,
+      });
+      assert.equal(other.ok, true);
+      const bucket = subscribeIpBucket("203.0.113.70");
+      const nonce = solveVersePow(first.challenge, first.bits);
+      const nowSec = Math.floor(now.getTime() / 1000);
+      assert.equal(verifyVersePow(first.challenge, nonce, SECRET, nowSec, bucket), true);
+      assert.equal(verifyVersePow(first.challenge, nonce, SECRET, nowSec, subscribeIpBucket("198.51.100.70")), false);
+    } finally {
+      console.error = original;
+    }
     await pg.close();
   });
 });
