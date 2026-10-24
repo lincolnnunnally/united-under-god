@@ -11,6 +11,7 @@ import {
 } from "@/lib/involvement";
 import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitInquiry } from "@/lib/desk-actions";
+import { inquiryProof } from "@/lib/inquiry-client";
 import { cn } from "@/lib/utils";
 
 const ORG_TYPES = [
@@ -68,6 +69,11 @@ export function InvolvementForm({
       setError("A name and email let us actually follow up.");
       return;
     }
+    const proof = await inquiryProof();
+    if (!proof.ok) {
+      setError(proof.error);
+      return;
+    }
     const result = await submitInquiry({
       data: {
         intent,
@@ -93,6 +99,8 @@ export function InvolvementForm({
         vehicle: "",
         helpers: "",
         hp: String(data.get("website") ?? ""),
+        powChallenge: proof.powChallenge,
+        powNonce: proof.powNonce,
       },
     });
     if (!result.ok) {

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { submitInquiry } from "@/lib/desk-actions";
+import { inquiryProof } from "@/lib/inquiry-client";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
@@ -59,6 +60,11 @@ export function GiveGoodsForm({ className }: { className?: string }) {
       return;
     }
     const days = PICKUP_DAYS.filter((day) => data.get(`day-${day}`)).join(", ");
+    const proof = await inquiryProof();
+    if (!proof.ok) {
+      setError(proof.error);
+      return;
+    }
     const result = await submitInquiry({
       data: {
         intent: "goods",
@@ -78,6 +84,8 @@ export function GiveGoodsForm({ className }: { className?: string }) {
         vehicle,
         helpers,
         hp: String(data.get("website") ?? ""),
+        powChallenge: proof.powChallenge,
+        powNonce: proof.powNonce,
       },
     });
     if (!result.ok) {

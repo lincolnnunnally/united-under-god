@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { INQUIRY_FOLLOWUP, INQUIRY_UNREACHABLE, OWNER_EMAIL } from "./desk.ts";
-import { sendHardcodedOwnerEmail } from "./desk-mail.ts";
+import { resetUnsavedSends, sendHardcodedOwnerEmail } from "./desk-mail.ts";
 import { notifySavedInquiry, settleInquirySubmit } from "./desk-submit.ts";
 import type { InquiryNoticeRow } from "./desk.ts";
 
@@ -161,8 +161,9 @@ describe("notify_routes failure falls back to the owner", () => {
   });
 });
 
-describe("hardcoded owner Resend send", () => {
+describe("hardcoded owner Resend send", { concurrency: false }, () => {
   it("posts only to lincoln through Resend", async () => {
+    resetUnsavedSends();
     const calls: { url: string; body: string }[] = [];
     const result = await sendHardcodedOwnerEmail({
       subject: "NOT SAVED — United Under God — Food / grocery from Ada Pastor",
@@ -170,6 +171,7 @@ describe("hardcoded owner Resend send", () => {
       apiKey: "re_test_key",
       logKind: "food",
       logLabel: "unsaved",
+      now: new Date("2026-06-01T12:00:00.000Z"),
       fetchImpl: (async (url: string, init?: RequestInit) => {
         calls.push({ url: String(url), body: String(init?.body ?? "") });
         return new Response("{}", { status: 200 });
@@ -190,6 +192,7 @@ describe("hardcoded owner Resend send", () => {
   });
 
   it("does not call the network when the Resend key is missing", async () => {
+    resetUnsavedSends();
     const log = silence();
     let called = false;
     try {
@@ -199,6 +202,7 @@ describe("hardcoded owner Resend send", () => {
         apiKey: "  ",
         logKind: "goods-furniture",
         logLabel: "unsaved",
+        now: new Date("2026-06-02T12:00:00.000Z"),
         fetchImpl: (async () => {
           called = true;
           return new Response("{}", { status: 200 });

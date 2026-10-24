@@ -6,6 +6,7 @@ import {
   verseEyebrow,
   VerseNextSteps,
 } from "@/components/verse-of-the-day";
+import { VerseSignup } from "@/components/verse-signup";
 import { bibleLibrary } from "@/lib/bible";
 import { absoluteUrl, OG_IMAGE, ORG_ID, pageHead } from "@/lib/seo";
 import {
@@ -92,6 +93,10 @@ function VersePage() {
 
         <div className="mt-8">
           <VerseBody verse={entry} />
+        </div>
+
+        <div className="mt-12">
+          <VerseSignup sourcePath={`/verse/${entry.slug}`} />
         </div>
 
         {inContext.length > 0 ? (

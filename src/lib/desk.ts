@@ -41,6 +41,19 @@ export const SUPER_EMAILS = [
 /** Owner inbox. A literal address, never an environment variable. */
 export const OWNER_EMAIL = "lincoln@unitedundergod.org";
 
+/**
+ * Held mail belongs to the owner. A staff role of "owner" passes, and so does
+ * the literal owner address. Another super admin does not.
+ */
+export function isDeskOwner(me: {
+  email?: string | null;
+  staff?: { role?: string | null; email?: string | null } | null;
+}) {
+  if (me.staff?.role === "owner") return true;
+  const candidates = [me.email, me.staff?.email];
+  return candidates.some((value) => (value ?? "").trim().toLowerCase() === OWNER_EMAIL);
+}
+
 export const INQUIRY_FOLLOWUP = "We received it and will follow up.";
 
 export const INQUIRY_UNREACHABLE =
@@ -66,6 +79,8 @@ export type InquiryInput = {
   vehicle: string;
   helpers: string;
   hp: string;
+  powChallenge?: string;
+  powNonce?: string;
 };
 
 const PICKUP_KINDS = new Set([
@@ -163,7 +178,7 @@ export function inquiryBody(row: {
   message: string;
   details: string;
   scheduled_for?: string;
-  assigned_name?: string;
+  assigned_name?: string | null;
 }) {
   let details: Record<string, string> = {};
   try {
@@ -207,7 +222,7 @@ export type InquiryNoticeRow = {
   message: string;
   details: string;
   scheduled_for?: string;
-  assigned_name?: string;
+  assigned_name?: string | null;
   created_at?: string;
 };
 

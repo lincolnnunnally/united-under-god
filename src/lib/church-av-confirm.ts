@@ -1,4 +1,5 @@
-import { sendResendText } from "./desk-mail.ts";
+import type { Sql } from "./db.ts";
+import { claimDeskSend, recordDeskSkip, releaseDeskSend, sendResendText } from "./desk-mail.ts";
 
 /**
  * The instant reply to a church that just sent the sound and video request
@@ -137,10 +138,25 @@ export async function sendAvConfirmation(args: {
   inquiry: { id: string; name: string; email: string; phone?: string; message?: string };
   apiKey?: string;
   fetchImpl?: typeof fetch;
+  sql?: Sql;
+  now?: Date;
 }): Promise<{ sent: boolean }> {
   const to = args.inquiry.email.trim();
   const at = to.indexOf("@");
   if (at < 1 || to.lastIndexOf(".") < at + 2 || /\s/.test(to)) return { sent: false };
+  if (!args.sql) return { sent: false };
+  const now = args.now ?? new Date();
+  const sql = args.sql;
+  let claimed: Awaited<ReturnType<typeof claimDeskSend>>;
+  try {
+    claimed = await claimDeskSend(sql, now, "av", "av");
+  } catch {
+    return { sent: false };
+  }
+  if (!claimed.reserved) {
+    console.error(`[desk-mail] av confirmation held inquiry=${args.inquiry.id}`);
+    return { sent: false };
+  }
   try {
     const mail = buildAvConfirmation(args.inquiry);
     const result = await sendResendText({
@@ -151,6 +167,16 @@ export async function sendAvConfirmation(args: {
       fetchImpl: args.fetchImpl,
     });
     if (!result.ok) {
+      if (result.limited) {
+        await recordDeskSkip(sql, { lane: "av", kind: "av", reason: "provider cap" });
+      }
+      if (result.rejected || result.error === "") {
+        try {
+          await releaseDeskSend(sql, now, "av");
+        } catch {
+          /* a release error must not change the outcome */
+        }
+      }
       console.error(`[desk-mail] av confirmation failed inquiry=${args.inquiry.id}`);
       return { sent: false };
     }

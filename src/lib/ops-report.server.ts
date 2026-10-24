@@ -19,6 +19,7 @@ export type OpsActivity = {
   buyingWaiting: number;
   otherWaiting: number;
   inquiries30d: number;
+  verseSubscribers: number;
 };
 
 export type OpsStats = {
@@ -51,7 +52,7 @@ async function count(query: () => Promise<Array<{ n?: unknown }>>) {
   }
 }
 
-function bucketKind(kind: string): keyof Omit<OpsActivity, "inquiries30d"> {
+function bucketKind(kind: string): keyof Omit<OpsActivity, "inquiries30d" | "verseSubscribers"> {
   if (kind === "seal") return "sealsWaiting";
   if (kind === "food") return "foodWaiting";
   if (kind.startsWith("goods") || kind === "org") return "goodsWaiting";
@@ -87,6 +88,7 @@ export async function readOpsStats(): Promise<OpsStats> {
     newUsersPrev7d,
     inquiries30d,
     waitingByKind,
+    verseSubscribers,
   ] = await Promise.all([
     count(() => sql<{ n: number }>`select count(*)::int as n from "user"`),
     count(
@@ -137,6 +139,13 @@ export async function readOpsStats(): Promise<OpsStats> {
         return [] as Array<{ kind: string; n: number }>;
       }
     })(),
+    count(
+      () =>
+        sql<{ n: number }>`
+          select count(*)::int as n from verse_subscribers
+          where status = 'confirmed'
+        `,
+    ),
   ]);
 
   const activity: OpsActivity = {
@@ -147,6 +156,7 @@ export async function readOpsStats(): Promise<OpsStats> {
     buyingWaiting: 0,
     otherWaiting: 0,
     inquiries30d,
+    verseSubscribers,
   };
   for (const row of waitingByKind) {
     activity[bucketKind(String(row.kind))] += Number(row.n) || 0;

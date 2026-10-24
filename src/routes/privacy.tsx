@@ -19,7 +19,7 @@ function PrivacyPage() {
       <article className="mx-auto max-w-3xl px-5 py-16 md:px-8 md:py-20">
         <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">Legal</p>
         <h1 className="mt-3 text-4xl">Privacy Policy</h1>
-        <p className="mt-3 text-sm text-subtle">Last updated: September 2026</p>
+        <p className="mt-3 text-sm text-subtle">Last updated: October 2026</p>
         <div className="mt-8 space-y-5 text-muted">
           <p>
             {LEGAL.name} is a {LEGAL.status}, EIN {LEGAL.ein}. We treat your
@@ -36,6 +36,16 @@ function PrivacyPage() {
             Bible question, we keep the name, email, organization, and message
             you typed so we can follow up. On this preview those notes live in
             your browser until we connect the live desk.
+          </p>
+          <h2 className="pt-4 text-2xl text-ink">Daily verse by email</h2>
+          <p>
+            If you ask for the verse of the day, we keep the email address you
+            typed and whether you have confirmed it. We mail you a confirmation
+            first. The link in that note opens a page, and the verse starts only
+            after you press the button. After you confirm, we send one verse
+            each day, with a link to that day’s page. Every note has a way to
+            stop. Stopping opens a page where you press a button, and that takes
+            you off the list. We do not sell the address or share it with advertisers.
           </p>
           <h2 className="pt-4 text-2xl text-ink">Gifts</h2>
           <p>

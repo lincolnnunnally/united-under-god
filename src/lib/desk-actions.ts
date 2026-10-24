@@ -1,9 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { getSql } from "@/lib/db";
+import { getSql, isDbFailure } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSessionUser } from "@/lib/auth/verify.server";
-import { sendHardcodedOwnerEmail } from "@/lib/desk-mail";
+import { listDeskMailSkips, sendHardcodedOwnerEmail, type DeskMailSkip } from "@/lib/desk-mail";
 import { sendAvConfirmation } from "@/lib/church-av-confirm";
 import { sendDeskEmails } from "@/lib/desk-mail.server";
 import { notifySavedInquiry, settleInquirySubmit } from "@/lib/desk-submit";
@@ -16,9 +17,12 @@ import {
   type OpsStats,
 } from "@/lib/ops-report.server";
 import {
+  INQUIRY_UNREACHABLE,
   SUPER_EMAILS,
   coversKind,
+  isDeskOwner,
   kindsFromSubmission,
+  unsavedOwnerNotice,
   type InquiryInput,
 } from "@/lib/desk";
 
@@ -85,7 +89,22 @@ const inquiryInput = z.object({
   vehicle: z.string().optional().default(""),
   helpers: z.string().optional().default(""),
   hp: z.string().optional().default(""),
+  powChallenge: z.string().optional().default(""),
+  powNonce: z.string().optional().default(""),
 });
+
+function callerIp() {
+  try {
+    const request = getRequest();
+    const forwarded = request.headers.get("x-forwarded-for") ?? "";
+    const ip = forwarded.split(",")[0]?.trim() || request.headers.get("x-real-ip")?.trim() || "";
+    return ip.slice(0, 64);
+  } catch {
+    return "";
+  }
+}
+
+const INQUIRY_LATER = "We could not take that just now. Please try again in a little while.";
 
 function asBool(value: unknown) {
   return value === true || value === "t" || value === "true";
@@ -160,17 +179,35 @@ async function requireDeskStaff(userId: string): Promise<DeskMe> {
   };
 }
 
-function mailOwner(
+async function mailOwner(
   inquiry: InquiryRow,
   notice: { subject: string; text: string },
   logLabel: "unsaved" | "routes",
 ) {
+  // The unsaved path is the database-is-down fallback. It must not open a
+  // connection or claim a slot.
+  if (logLabel === "unsaved") {
+    return sendHardcodedOwnerEmail({
+      subject: notice.subject,
+      text: notice.text,
+      apiKey: process.env.RESEND_API_KEY,
+      logKind: inquiry.kind,
+      logLabel,
+    });
+  }
+  let sql: Awaited<ReturnType<typeof getSql>> | undefined;
+  try {
+    sql = await getSql();
+  } catch {
+    sql = undefined;
+  }
   return sendHardcodedOwnerEmail({
     subject: notice.subject,
     text: notice.text,
     apiKey: process.env.RESEND_API_KEY,
     logKind: inquiry.kind,
     logLabel,
+    sql,
   });
 }
 
@@ -196,11 +233,37 @@ async function notifyInquiry(inquiry: InquiryRow, extra?: string[]) {
   });
 }
 
+export const inquiryChallenge = createServerFn({ method: "POST" }).handler(async () => {
+  const { issueOfflineVerseChallenge, issueVerseSignupChallenge } = await import("@/lib/verse-mail.server");
+  try {
+    return await issueVerseSignupChallenge(await getSql(), { ip: callerIp() });
+  } catch (error) {
+    if (!isDbFailure(error)) {
+      return { ok: false as const, error: INQUIRY_LATER };
+    }
+    return issueOfflineVerseChallenge({ ip: callerIp() });
+  }
+});
+
 export const submitInquiry = createServerFn({ method: "POST" })
   .validator(inquiryInput)
   .handler(async ({ data, context }) => {
     if (data.hp) {
       return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
+    }
+    const { planInquirySubmit } = await import("@/lib/verse-mail.server");
+    const plan = await planInquirySubmit({
+      open: () => getSql(),
+      hp: data.hp,
+      powChallenge: data.powChallenge,
+      powNonce: data.powNonce,
+      ip: callerIp(),
+    });
+    if (plan.action === "ignore") {
+      return { ok: true as const, id: "ignored" as const, saved: true, emailed: false };
+    }
+    if (plan.action === "error") {
+      return { ok: false as const, error: plan.error, saved: false as const, emailed: false as const };
     }
     const name = data.name.trim();
     const email = data.email.trim();
@@ -240,6 +303,18 @@ export const submitInquiry = createServerFn({ method: "POST" })
       assigned_name: null,
       assigned_email: null,
     };
+    if (plan.action === "unsaved") {
+      const mailed = await mailOwner(inquiry, unsavedOwnerNotice(inquiry), "unsaved");
+      if (mailed.sent > 0) {
+        return { ok: true as const, id, saved: false as const, emailed: true };
+      }
+      return {
+        ok: false as const,
+        error: INQUIRY_UNREACHABLE,
+        saved: false as const,
+        emailed: false as const,
+      };
+    }
     const settled = await settleInquirySubmit({
       inquiry,
       write: async () => {
@@ -269,11 +344,12 @@ export const submitInquiry = createServerFn({ method: "POST" })
       await forwardInquiryToDashboard(inquiry).catch(() => undefined);
     }
     if (settled.ok && kind === "av") {
-      // Instant reply to the church that asked. Never blocks the submit:
-      // sendAvConfirmation catches and logs its own failures.
-      await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY }).catch(
-        () => undefined,
-      );
+      try {
+        const avSql = await getSql();
+        await sendAvConfirmation({ inquiry, apiKey: process.env.RESEND_API_KEY, sql: avSql });
+      } catch {
+        /* no reserved slot, no church note */
+      }
     }
     if (!settled.ok) {
       return {
@@ -298,15 +374,31 @@ export const getDeskMe = createServerFn({ method: "GET" })
 export const readDeskGlance = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    await requireDeskStaff(context.userId);
-    const stats = await readOpsStats();
+    const me = await requireDeskStaff(context.userId);
+    const ownerDesk = isDeskOwner(me);
+    const [stats, skips] = await Promise.all([
+      readOpsStats(),
+      ownerDesk
+        ? (async (): Promise<DeskMailSkip[]> => {
+            try {
+              return await listDeskMailSkips(await getSql());
+            } catch {
+              return [];
+            }
+          })()
+        : Promise.resolve([] as DeskMailSkip[]),
+    ]);
     return {
       stats,
+      skips,
+      ownerDesk,
       reportingArmed: reportingArmed(),
       dashboardUrl: DASHBOARD_ORIGIN,
       publicUrl: PUBLIC_URL,
     } satisfies {
       stats: OpsStats;
+      skips: DeskMailSkip[];
+      ownerDesk: boolean;
       reportingArmed: boolean;
       dashboardUrl: string;
       publicUrl: string;
