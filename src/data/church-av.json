@@ -81,22 +81,22 @@
       ],
       "tech": [
         "Audio system",
-        "Video / IMAG / LED",
-        "Production lighting",
-        "Broadcast / streaming",
-        "Infrastructure / racks",
-        "Commissioning & training"
+        "Video and LED walls",
+        "Stage lighting",
+        "Livestream",
+        "Equipment racks and wiring",
+        "Testing and training"
       ]
     },
     "word-of-faith": {
       "name": "Word of Faith",
       "city": "Austell, GA",
-      "summary": "A 10-year relationship. The 4,500-seat worship center received a complete HD broadcast suite (5 cameras), a 40' × 9' 1.9mm LED wall (ground-stacked and flown), new stage and choir monitoring, and new projection and Q-SYS control for the Chapel and Fellowship Hall.",
+      "summary": "A 10-year relationship. The 4,500-seat worship center received a complete HD livestream setup with 5 cameras, a 40' × 9' LED wall, new speakers so the stage and choir can hear themselves, and new projectors and simple controls for the Chapel and Fellowship Hall.",
       "highlights": [
-        "Complete HD broadcast suite (5 cameras)",
+        "Complete HD livestream setup with 5 cameras",
         "40' × 9' 1.9mm LED wall (ground-stacked and flown)",
-        "L-Acoustics stage monitoring; new choir and fill monitors",
-        "LED choir confidence monitor",
+        "New speakers so the stage and choir can hear themselves",
+        "A screen facing the choir so they can read the words",
         "Meyer Sound systems for the Chapel and Fellowship Hall",
         "Panasonic projection with Q-SYS control (Chapel and Fellowship Hall)"
       ],
@@ -106,29 +106,29 @@
         "Meyer Sound",
         "L-Acoustics monitoring",
         "1.9mm LED wall",
-        "Multi-camera HD broadcast"
+        "HD livestream with several cameras"
       ]
     },
     "legacy-church": {
       "name": "Legacy Church",
       "city": "Albuquerque, NM",
-      "summary": "The church’s main audio, video, and lighting provider since 2007, through growth from 3 campuses to 9 campuses and 2 schools, including acoustic treatment and system design for a 2,200-seat concrete monolithic dome.",
+      "summary": "The church’s main audio, video, and lighting provider since 2007, through growth from 3 campuses to 9 campuses and 2 schools, including sound panels and system design for a 2,200-seat concrete dome.",
       "highlights": [
         "Relationship since 2007",
         "Scaled from 3 to 9 campuses plus 2 schools",
         "Acoustic treatment and system design for a 2,200-seat monolithic dome",
-        "Central campus broadcast/IMAG with LED",
-        "Standardized production and house lighting across venues",
-        "Campus-wide distributed audio and digital signage",
+        "Central campus livestream and big-screen video on LED walls",
+        "The same stage and room lighting at every campus",
+        "Sound and screens carried across the campus",
         "School gyms, including a four-court complex with a high-output system"
       ],
       "tech": [
         "LED walls",
-        "Broadcast / IMAG / streaming",
-        "Production & house lighting",
+        "Livestream and big-screen video",
+        "Stage and room lighting",
         "Digital signage",
         "Distributed audio",
-        "Acoustic treatment"
+        "Sound panels"
       ]
     },
     "madison-methodist": {
@@ -138,10 +138,10 @@
       "highlights": [
         "Coordinated room, stage, and display presentation for worship services",
         "Visual support for liturgy, teaching, and congregational participation",
-        "Integrated audio, video, and lighting workflow for weekly operation",
+        "Sound, video, and lighting set up to run together every week",
         "A clean, modern worship environment carried from concept to installed space"
       ],
-      "tech": ["Audio system", "Video / display", "Stage lighting", "Presentation workflow"]
+      "tech": ["Audio system", "Video / display", "Stage lighting", "Slides and lyrics"]
     },
     "rock-springs": {
       "name": "Rock Springs",
@@ -149,26 +149,26 @@
       "summary": "An 1,100-seat worship center upgrade centered on a 57' × 17' curved 1.9mm LED wall.",
       "highlights": [
         "57' × 17' curved LED wall (1.9mm pitch)",
-        "Curvature and sightline planning for 1,100 seats",
+        "Curved and placed so all 1,100 seats can see it",
         "Rigging and ground-support plan with service access",
-        "Processor setup, mapping, and color and brightness calibration"
+        "Color and brightness adjusted so the picture looks right"
       ],
       "tech": [
         "1.9mm LED",
         "Curved LED wall",
         "LED processing / scaling",
-        "Content mapping & calibration"
+        "Picture setup and color adjustment"
       ]
     },
     "church-unlimited": {
       "name": "Church Unlimited",
       "city": "Corpus Christi, TX",
-      "summary": "Upgrades across 6 campuses centered on a Sony broadcast suite and grandMA lighting control, with unified audio, video, lighting, broadcast, and LED workflows.",
+      "summary": "Upgrades across 6 campuses built around Sony cameras and one lighting control system, so sound, video, lighting, livestream, and LED walls work the same way at every campus.",
       "highlights": [
-        "Sony broadcast suite: cameras, CCU/shading, and switch/capture chain",
-        "grandMA lighting control with standardized showfiles and presets",
-        "LED wall IMAG and content mapping across venues",
-        "Hybrid SDI/NDI routing for campus and broadcast needs",
+        "Sony cameras with color matching, switching, and recording",
+        "One lighting control system with the same saved looks at every campus",
+        "Big-screen video on LED walls at every campus",
+        "Video sent between rooms and to the livestream",
         "Centralized comms and tally for multi-site weekends",
         "Redundant record/stream architecture for reliability"
       ],
@@ -178,24 +178,24 @@
         "LED walls",
         "SDI / NDI",
         "Intercom / tally",
-        "Distributed AV"
+        "Sound and video in other rooms"
       ]
     },
     "level-grove": {
       "name": "Level Grove",
       "city": "Cornelia, GA",
-      "summary": "It began with a single blown-speaker repair and grew through years of repairs, replacements, and upgrades. For the new 900-seat worship center: audio, video, production and house lighting, broadcast/IMAG, LED and digital signage, streaming, distributed audio, and acoustics.",
+      "summary": "It began with a single blown-speaker repair and grew through years of repairs, replacements, and upgrades. For the new 900-seat worship center: sound, video, stage and room lighting, big-screen video, LED walls and signs, livestreaming, sound in other rooms, and acoustics.",
       "highlights": [
         "Began with a speaker repair; grew into full audio, video, and lighting work",
-        "Design and integration for a new 900-seat worship center",
-        "Audio, video, production and house lighting end to end",
-        "Broadcast/IMAG, LED and digital signage, streaming workflows",
-        "Distributed audio and room acoustics tuning across spaces"
+        "Planned and put in for a new 900-seat worship center",
+        "Sound, video, and stage and room lighting, start to finish",
+        "Big-screen video, LED walls and signs, and livestreaming",
+        "Sound carried to other rooms, each one tuned"
       ],
       "tech": [
-        "Broadcast / IMAG",
+        "Cameras and big screen",
         "LED walls",
-        "Production & house lighting",
+        "Stage and room lighting",
         "Digital signage",
         "Distributed audio",
         "Acoustics",
@@ -205,19 +205,19 @@
     "unity-baptist": {
       "name": "Unity Baptist",
       "city": "Newnan, GA",
-      "summary": "Rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul, built to be volunteer-friendly on Sundays and ready for visiting artists.",
+      "summary": "Rebuilt after a tornado with all-new sound, video, lighting, and livestream, made easy for volunteers on Sundays and ready for visiting artists.",
       "highlights": [
-        "Volunteer-first workflows: presets, labels, and simplified operation",
-        "Rider-ready stage I/O, power, and patching for visiting bands",
-        "Broadcast chain for live stream and on-demand capture",
-        "Room tuning and gain structure for clarity and headroom"
+        "Easy for volunteers: saved settings, labels, and simple controls",
+        "Stage connections and power ready for visiting bands",
+        "Livestream, plus recording for watching later",
+        "Room tuning so the sound is clear and never strained"
       ],
       "tech": [
         "Audio system",
         "Video system",
-        "Production lighting",
-        "Broadcast / streaming",
-        "Rider-ready I/O & patching",
+        "Stage lighting",
+        "Livestream",
+        "Ready for visiting bands",
         "Volunteer presets"
       ]
     },
@@ -226,14 +226,14 @@
       "city": "Plano, TX",
       "summary": "Multi-phase upgrades: multiple LED walls, a worship center audio refresh, a full chapel modernization with new audio, LED, and lighting, and a back-lit cross in the baptistery.",
       "highlights": [
-        "Multiple LED walls integrated across venues",
+        "LED walls in several rooms",
         "Worship center audio update and tuning",
         "Chapel modernization: audio, LED, and lighting",
         "Back-lit baptistery cross"
       ],
       "tech": [
         "LED walls",
-        "Production & house lighting",
+        "Stage and room lighting",
         "Audio system upgrade",
         "Architectural backlighting"
       ]
@@ -250,18 +250,12 @@
         "Sound panels placed where measurements showed they were needed",
         "Volunteer training and written instructions"
       ],
-      "tech": [
-        "Audio system",
-        "Broadcast video",
-        "LED walls",
-        "Production lighting",
-        "Acoustic treatment"
-      ]
+      "tech": ["Audio system", "Livestream cameras", "LED walls", "Stage lighting", "Sound panels"]
     },
     "immaculate-heart-of-mary": {
       "name": "Immaculate Heart of Mary",
       "city": "Atlanta, GA",
-      "summary": "Discreet upgrades for a traditional space: consistent microphones, natural lighting, and broadcast that respects the room.",
+      "summary": "Discreet upgrades for a traditional space: consistent microphones, natural lighting, and a livestream that respects the room.",
       "highlights": [
         "Choir microphone voicing",
         "Architectural light balance",
@@ -272,44 +266,44 @@
     "mountain-view-baptist": {
       "name": "Mountain View Baptist",
       "city": "Thomaston, GA",
-      "summary": "Main sanctuary modernization with two new LED walls, production lighting upgraded to LED, and targeted acoustic treatment to improve clarity and gain before feedback.",
+      "summary": "Main sanctuary update with two new LED walls, stage lights upgraded to LED, and sound panels so it is clearer and the microphones can get louder before they squeal.",
       "highlights": [
         "Two new LED walls in the main sanctuary",
         "Production lighting upgraded to LED with refreshed looks",
-        "Acoustic treatment for speech and music intelligibility"
+        "Sound panels so speech and music are clear"
       ],
-      "tech": ["LED walls", "Production lighting (LED)", "Acoustic treatment"]
+      "tech": ["LED walls", "Production lighting (LED)", "Sound panels"]
     },
     "cedar-point-church": {
       "name": "Cedar Point Church",
       "city": "Claremore, OK",
-      "summary": "End-to-end design and integration across audio, video, production and house lighting, projection, and acoustics, including distributed audio across the campus.",
+      "summary": "Everything planned and put in together: sound, video, stage and room lighting, projectors, and acoustics, including sound carried across the campus.",
       "highlights": [
-        "Full audio system design and commissioning",
-        "Production and house lighting with unified looks",
-        "Projection system design, alignment, and tuning",
-        "Targeted acoustic treatment for clarity",
-        "Distributed audio coverage across campus"
+        "Sound system designed, put in, and tested",
+        "Stage and room lighting with matching looks",
+        "Projectors designed, set up, and adjusted",
+        "Sound panels for clearer sound",
+        "Sound carried across the campus"
       ],
       "tech": [
         "Audio system",
         "Video system",
         "Projection",
-        "Production & house lighting",
-        "Acoustic treatment",
+        "Stage and room lighting",
+        "Sound panels",
         "Distributed audio"
       ]
     },
     "harvest-christian-center": {
       "name": "Harvest Christian Center",
       "city": "El Paso, TX",
-      "summary": "Digital signage, LED walls, distributed video, and full audio, video, and projection systems, plus distributed audio and acoustics across the campus.",
+      "summary": "Screens and signs, LED walls, and full sound, video, and projector systems, with sound and video carried across the campus and the rooms tuned.",
       "highlights": [
         "Multiple LED walls for worship and overflow",
-        "Campus-wide digital signage",
+        "Screens and signs across the campus",
         "Distributed video to lobbies and classrooms",
-        "Audio and projection system design and commissioning",
-        "Acoustic treatment for clarity and coverage"
+        "Sound and projectors designed, put in, and tested",
+        "Sound panels for clearer sound"
       ],
       "tech": [
         "LED walls",
@@ -318,13 +312,13 @@
         "Audio system",
         "Projection",
         "Distributed audio",
-        "Acoustic treatment"
+        "Sound panels"
       ]
     },
     "turning-point-at-calvary": {
       "name": "Turning Point at Calvary",
       "city": "St. Augustine, FL",
-      "summary": "IMAG that feels cinematic and clear: multi-camera choreography, operator coaching, and pacing built into the service.",
+      "summary": "Big-screen video that feels clear and natural: several cameras, coached camera volunteers, and shots timed to the service.",
       "highlights": [
         "Shot grid and camera moves",
         "Camera shading for skin tones",
@@ -344,26 +338,35 @@
         "The service carried to the lobbies and classrooms",
         "Volunteer training and written instructions"
       ],
-      "tech": ["Audio system", "Video projection", "Production lighting", "Distributed AV"]
+      "tech": [
+        "Audio system",
+        "Video projection",
+        "Stage lighting",
+        "Sound and video in other rooms"
+      ]
     },
     "st-jude-the-apostle": {
       "name": "St. Jude the Apostle",
       "city": "Sandy Springs, GA",
-      "summary": "Broadcast clarity for a reverberant space: consistent lav and lectern capture with tasteful noise reduction.",
-      "highlights": ["Lav pairing and gain staging", "Noise management", "Speech-first tuning"],
+      "summary": "A clear livestream from an echoey room: steady sound from the clip-on and lectern microphones, with background noise gently reduced.",
+      "highlights": [
+        "Clip-on microphones paired and set to the right levels",
+        "Noise management",
+        "Speech-first tuning"
+      ],
       "tech": ["Lav", "Noise reduction", "Speech EQ", "Limiter"]
     },
     "mount-vernon": {
       "name": "Mount Vernon",
       "city": "Sandy Springs, GA",
-      "summary": "Sanctuary upgrades with a new PA and projection system, plus a youth room refresh with a new dimmer and production lighting.",
+      "summary": "Sanctuary upgrades with a new sound system and projectors, plus a youth room refresh with new dimmable stage lights.",
       "highlights": [
-        "New sanctuary PA: design, alignment, and tuning for clear coverage",
-        "Sanctuary projection: specification, rigging, and calibration",
-        "Youth room dimmer install with updated production lighting looks",
-        "DMX patching, presets, and operator documentation"
+        "New sanctuary sound system, designed and tuned so every seat hears clearly",
+        "Sanctuary projectors chosen, hung, and adjusted",
+        "New dimmer and updated stage lighting in the youth room",
+        "Lighting controls set up, with saved looks and written instructions"
       ],
-      "tech": ["PA system", "Projection", "Dimmer system", "Production lighting", "DMX / presets"]
+      "tech": ["PA system", "Projection", "Dimmer system", "Stage lighting", "DMX / presets"]
     },
     "central-church": {
       "name": "Central Church",
@@ -377,11 +380,11 @@
         "New LED room lights with separate areas and dimming"
       ],
       "tech": [
-        "Digital audio console",
-        "DMX lighting console",
-        "LED house lighting",
-        "System relocation",
-        "Commissioning & training"
+        "Mixing board",
+        "Lighting control board",
+        "LED room lights",
+        "Moved existing equipment",
+        "Testing and training"
       ]
     }
   },
@@ -446,7 +449,7 @@
       "id": "church-sound-system-installation",
       "title": "Church sound system installation",
       "short": "Sound",
-      "body": "A system designed for clear speech and consistent music, aligned and tuned to your room, so the back row hears the sermon as well as the front.",
+      "body": "A system designed for clear speech and steady music, tuned to your room, so the back row hears the sermon as well as the front.",
       "fits": [
         "Feedback during prayer or the sermon",
         "Members who hear the words but cannot understand them",
@@ -458,7 +461,7 @@
       "id": "church-livestream-setup",
       "title": "Church livestream setup",
       "short": "Livestream",
-      "body": "A broadcast chain for live and on-demand viewing, with steady levels and a routine your volunteers can run every week.",
+      "body": "A livestream and recording for watching live or later, with steady sound and a routine your volunteers can run every week.",
       "fits": [
         "A stream that drops or goes silent at the worst moment",
         "Homebound members and family out of town",
@@ -470,10 +473,10 @@
       "id": "church-stage-lighting",
       "title": "Church stage lighting",
       "short": "Lighting",
-      "body": "Production and house lighting on a console with presets, so the room looks right in person and on camera without a lighting expert.",
+      "body": "Stage and room lighting with a control board and saved looks, so the room looks right in person and on camera without a lighting expert.",
       "fits": [
         "Faces in shadow on the livestream",
-        "Old halogen fixtures and a hot stage",
+        "Old, hot stage lights",
         "A youth room or second venue that needs its own look"
       ],
       "examples": ["central-church", "mountain-view-baptist", "mount-vernon"]
@@ -482,7 +485,7 @@
       "id": "church-led-wall",
       "title": "Church LED wall",
       "short": "LED wall",
-      "body": "LED walls specified, rigged, mapped, and calibrated for your sightlines, for lyrics, teaching, and IMAG that the whole room can read.",
+      "body": "LED walls chosen, hung, and adjusted so every seat can read the lyrics and teaching and see the speaker’s face.",
       "fits": [
         "Projection that washes out in a bright room",
         "A wide room where the back rows cannot see the stage",
@@ -494,7 +497,7 @@
       "id": "church-projection",
       "title": "Church projection",
       "short": "Projection",
-      "body": "Projection systems specified, rigged, and calibrated for the room, from the sanctuary to the chapel and fellowship hall.",
+      "body": "Projectors chosen, hung, and adjusted for the room, from the sanctuary to the chapel and fellowship hall.",
       "fits": [
         "Lyrics that are hard to read",
         "A fellowship hall or chapel that needs screens",
@@ -504,9 +507,9 @@
     },
     {
       "id": "church-broadcast-imag",
-      "title": "Church broadcast and IMAG",
-      "short": "Broadcast / IMAG",
-      "body": "Cameras, switching, and recording that put the speaker on the big screen and the stream, with shot plans and operator coaching.",
+      "title": "Church cameras, big screen, and livestream",
+      "short": "Cameras & big screen",
+      "body": "Cameras and recording that put the speaker on the big screen and the livestream, with a plan for each shot and coaching for camera volunteers.",
       "fits": [
         "A large room where faces are too small to see",
         "Cameras that look flat or off-color",
@@ -516,9 +519,9 @@
     },
     {
       "id": "church-acoustic-treatment",
-      "title": "Church acoustic treatment",
+      "title": "Church acoustics and sound panels",
       "short": "Acoustics",
-      "body": "Targeted acoustic treatment laid out from measurements, so speech is clear and the band does not turn into mush before anyone touches a fader.",
+      "body": "Sound panels placed where measurements show they are needed, so speech is clear and the band does not turn into mush.",
       "fits": [
         "A sanctuary that echoes",
         "Gyms, domes, and other hard rooms",
@@ -836,7 +839,7 @@
       "name": "Florida",
       "abbr": "FL",
       "title": "Church Sound, Video & Lighting in Florida | United Under God",
-      "description": "Church sound, livestream, lighting, and IMAG for Florida churches, from Jacksonville and Tallahassee to Orlando, Tampa Bay, and Port Charlotte. Send a request.",
+      "description": "Church sound, livestream, lighting, and big screens for Florida churches, from Jacksonville and Tallahassee to Orlando, Tampa Bay, and Port Charlotte.",
       "h1": "Church sound, video & lighting for Florida churches",
       "lead": "The installation team’s Florida work runs from Jacksonville, St. Augustine, and Tallahassee in the north, through The Villages, Winter Park, and Odessa in central Florida, down to Port Charlotte. Many Florida churches also sit within reach of its South Georgia projects.",
       "groups": ["North Florida", "Central Florida", "Southwest Florida"],
@@ -854,7 +857,7 @@
         },
         {
           "q": "Our building is being rebuilt after storm damage. When should we talk about AV?",
-          "a": "Before the walls and ceilings are finished, so rigging, power, and cable paths are in the plans. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul."
+          "a": "Before the walls and ceilings are finished, so what hangs from the ceiling, the power, and the wiring are all in the plans. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with all-new sound, video, lighting, and livestream."
         }
       ]
     },
@@ -894,12 +897,12 @@
       "lat": 32.0809,
       "lng": -81.0912,
       "title": "Church Sound, Video & Lighting in Savannah, GA | United Under God",
-      "description": "Church sound, livestream, and lighting for Savannah, GA, from a team that has served a Savannah church. Speech-first tuning for historic and new rooms alike.",
+      "description": "Church sound, livestream, and lighting for Savannah, GA, from a team that has served a Savannah church. Clear speech in historic and new rooms alike.",
       "intro": "Georgia’s oldest city keeps historic sanctuaries a few blocks from congregations meeting in new buildings and converted spaces. Those rooms fail in different ways: the old ones echo, the new ones are often built for music and not for speech. Compassion Church Savannah is on the installation team’s project list, so Savannah is familiar ground.",
       "situations": [
         {
           "service": "church-acoustic-treatment",
-          "text": "A tall, hard sanctuary where the sermon blurs into its own echo. Start with speech-first tuning and targeted treatment before adding volume."
+          "text": "A tall, hard sanctuary where the sermon blurs into its own echo. Start with tuning for speech and sound panels before adding volume."
         },
         {
           "service": "church-livestream-setup",
@@ -907,7 +910,7 @@
         },
         {
           "service": "church-sound-system-installation",
-          "text": "A newer or converted building where the band sounds fine and the spoken word does not. The system is aligned and tuned for both."
+          "text": "A newer or converted building where the band sounds fine and the spoken word does not. The system is tuned for both."
         }
       ],
       "caseStudies": ["st-jude-the-apostle", "immaculate-heart-of-mary"],
@@ -916,7 +919,7 @@
       "faq": [
         {
           "q": "We meet in a historic building. Can it be upgraded without changing how the room feels?",
-          "a": "That is a common request. Past work by the installation team includes discreet upgrades for a traditional space at Immaculate Heart of Mary in Atlanta: consistent microphones, natural lighting, and broadcast that respects the room. Tell us what must stay untouched and it becomes part of the plan."
+          "a": "That is a common request. Past work by the installation team includes discreet upgrades for a traditional space at Immaculate Heart of Mary in Atlanta: consistent microphones, natural lighting, and a livestream that respects the room. Tell us what must stay untouched and it becomes part of the plan."
         }
       ]
     },
@@ -936,11 +939,11 @@
         },
         {
           "service": "church-sound-system-installation",
-          "text": "Older members who say they can hear but cannot understand the sermon. Coverage and tuning for every pew, not just the center aisle."
+          "text": "Older members who say they can hear but cannot understand the sermon. Speakers placed and tuned for every pew, not just the center aisle."
         },
         {
           "service": "church-projection",
-          "text": "Lyrics and sermon notes the back rows cannot read. Projection specified and calibrated for the room’s light."
+          "text": "Lyrics and sermon notes the back rows cannot read. Projectors chosen for how bright the room is."
         }
       ],
       "caseStudies": ["mount-vernon", "unity-baptist"],
@@ -949,7 +952,7 @@
       "faq": [
         {
           "q": "Can the sound and screens be simple enough for whoever shows up to run them?",
-          "a": "That is the goal. Volunteer-first workflows with presets, labels, and simplified operation were central to Unity Baptist’s rebuild in Newnan, and training happens after commissioning and again on site the first Sunday."
+          "a": "That is the goal. Saved settings, clear labels, and simple controls were central to Unity Baptist’s rebuild in Newnan, and training happens once everything is tested and again on site the first Sunday."
         }
       ]
     },
@@ -965,7 +968,7 @@
       "situations": [
         {
           "service": "church-stage-lighting",
-          "text": "A young congregation that expects the room to look as good as the stream. Lighting on presets that a first-year volunteer can recall."
+          "text": "A young congregation that expects the room to look as good as the livestream. Lighting with saved looks a first-year volunteer can bring up."
         },
         {
           "service": "church-livestream-setup",
@@ -982,7 +985,7 @@
       "faq": [
         {
           "q": "Our volunteers are mostly students who change every year. How do we keep things running?",
-          "a": "Plan for turnover from the start: presets, labels, and simplified operation (as at Unity Baptist in Newnan), training after commissioning, and on-site training the first Sunday."
+          "a": "Plan for turnover from the start: saved settings, clear labels, and simple controls (as at Unity Baptist in Newnan), training once everything is tested, and on-site help the first Sunday."
         }
       ]
     },
@@ -998,7 +1001,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "An older system that has been patched for years. A new PA designed, aligned, and tuned for clear coverage."
+          "text": "An older system that has been patched for years. A new sound system designed and tuned so every seat hears clearly."
         },
         {
           "service": "church-livestream-setup",
@@ -1006,7 +1009,7 @@
         },
         {
           "service": "church-projection",
-          "text": "Hymn and sermon slides that are hard to read from the back. Projection specified, rigged, and calibrated for the sanctuary."
+          "text": "Hymn and sermon slides that are hard to read from the back. Projectors chosen, hung, and adjusted for the sanctuary."
         }
       ],
       "caseStudies": ["mount-vernon", "madison-methodist"],
@@ -1015,7 +1018,7 @@
       "faq": [
         {
           "q": "Can the work be done in phases?",
-          "a": "Yes. Installation is phased (rough-in, equipment setup, commissioning, final verification) and scheduled around services, because Sunday is always coming. The Dream phase includes initial budgets, so you can see what fits now and what can wait."
+          "a": "Yes. Installation is done in stages (wiring, equipment, testing, final check) and scheduled around services, because Sunday is always coming. The Dream phase includes initial budgets, so you can see what fits now and what can wait."
         }
       ]
     },
@@ -1031,7 +1034,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "Tech volunteers who rotate out with every move. A system with labeled presets and documentation, so the next person is not starting over."
+          "text": "Tech volunteers who rotate out with every move. A system with labeled saved settings and written instructions, so the next person is not starting over."
         },
         {
           "service": "church-livestream-setup",
@@ -1039,7 +1042,7 @@
         },
         {
           "service": "church-led-wall",
-          "text": "A larger room where projection washes out. An LED wall planned around sightlines."
+          "text": "A larger room where projection washes out. An LED wall placed so every seat can see it."
         }
       ],
       "caseStudies": ["lake-point-community-church", "rock-springs"],
@@ -1048,7 +1051,7 @@
       "faq": [
         {
           "q": "How do we keep the system usable when our tech people move away?",
-          "a": "Write it down and make it simple. Operator training and a documentation handoff were part of Lake Point Community Church’s new sanctuary in Eatonton, and every install includes training after commissioning and on site the first Sunday."
+          "a": "Write it down and make it simple. Volunteer training and written instructions were part of Lake Point Community Church’s new sanctuary in Eatonton, and every installation includes training once everything is tested and on site the first Sunday."
         }
       ]
     },
@@ -1072,7 +1075,7 @@
         },
         {
           "service": "church-acoustic-treatment",
-          "text": "A sanctuary that fights intelligibility and feeds back before it gets loud enough. Targeted treatment first."
+          "text": "A sanctuary where words get lost and the microphones squeal before it gets loud enough. Sound panels first."
         }
       ],
       "caseStudies": ["lake-point-community-church", "mountain-view-baptist"],
@@ -1081,7 +1084,7 @@
       "faq": [
         {
           "q": "We are planning a new building. When should we call?",
-          "a": "Early. The Design phase covers rigging and electrical drawings, thermal calculations for HVAC, and coordination with the other trades, which is far easier while the building is still on paper than after the walls and ceilings are finished. Lake Point in Eatonton and Lakeside in Greensboro were both new sanctuary builds."
+          "a": "Early. The Design phase covers drawings of what hangs from the ceiling and the power it needs, how much heat the equipment adds for the air conditioning, and working alongside your architect and builder, which is far easier while the building is still on paper than after the walls and ceilings are finished. Lake Point in Eatonton and Lakeside in Greensboro were both new sanctuary builds."
         }
       ]
     },
@@ -1097,7 +1100,7 @@
       "situations": [
         {
           "service": "church-stage-lighting",
-          "text": "A student or youth room that needs its own look. A dimmer and production lighting with presets, separate from the sanctuary."
+          "text": "A student or youth room that needs its own look. Dimmable stage lighting with saved looks, separate from the sanctuary."
         },
         {
           "service": "church-livestream-setup",
@@ -1105,7 +1108,7 @@
         },
         {
           "service": "church-sound-system-installation",
-          "text": "A sanctuary PA that was never tuned to the room."
+          "text": "A sanctuary sound system that was never tuned to the room."
         }
       ],
       "caseStudies": ["mount-vernon", "central-church"],
@@ -1114,7 +1117,7 @@
       "faq": [
         {
           "q": "Can a youth room or second space be done separately from the sanctuary?",
-          "a": "Yes. Mount Vernon in Sandy Springs had sanctuary PA and projection work plus a separate youth room refresh with a new dimmer and production lighting."
+          "a": "Yes. Mount Vernon in Sandy Springs had new sanctuary sound and projectors, plus a separate youth room refresh with new dimmable stage lights."
         }
       ]
     },
@@ -1138,7 +1141,7 @@
         },
         {
           "service": "church-stage-lighting",
-          "text": "House lights that are only on or off. LED house lighting with zones and presets."
+          "text": "Room lights that are only on or off. LED room lights with separate areas and saved settings."
         }
       ],
       "caseStudies": ["level-grove", "central-church"],
@@ -1147,7 +1150,7 @@
       "faq": [
         {
           "q": "We already own some equipment. Do we have to replace it all?",
-          "a": "Not necessarily. Central Church in Covington relocated and recommissioned its existing audio and lighting into a new sanctuary, adding a new digital audio console, a DMX lighting console, and LED house lighting."
+          "a": "Not necessarily. Central Church in Covington moved its own sound and lighting equipment into a new sanctuary and added a new mixing board, a lighting control board, and LED room lights."
         }
       ]
     },
@@ -1180,7 +1183,7 @@
       "faq": [
         {
           "q": "Only one person knows how our sound board works. What do we do?",
-          "a": "Make the system simple enough that more people can run it: labeled presets, documented settings, and hands-on training after commissioning and again on the first Sunday."
+          "a": "Make the system simple enough that more people can run it: saved settings with clear labels, written instructions, and hands-on training once everything is tested and again on the first Sunday."
         }
       ]
     },
@@ -1196,7 +1199,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "A choir that disappears in the room and on the stream. Choir microphone voicing and gain staging."
+          "text": "A choir that disappears in the room and on the stream. Choir microphones placed and set for the choir."
         },
         {
           "service": "church-livestream-setup",
@@ -1257,12 +1260,12 @@
       "lat": 33.4735,
       "lng": -82.0105,
       "title": "Church Sound, Video & Lighting in Augusta, GA | United Under God",
-      "description": "Church sound, broadcast, IMAG, and LED for Augusta, GA, from a team that has served Warren in Augusta and New Covenant Presbyterian across the river in Aiken.",
-      "intro": "Warren in Augusta is on the installation team’s project list, and so is New Covenant Presbyterian Church just across the Savannah River in Aiken. Augusta has some of the larger congregations in east Georgia, where the question is often broadcast, IMAG, and a second campus rather than a single speaker.",
+      "description": "Church sound, livestream, and big screens for Augusta, GA, from a team that has served Warren in Augusta and New Covenant Presbyterian across the river in Aiken.",
+      "intro": "Warren in Augusta is on the installation team’s project list, and so is New Covenant Presbyterian Church just across the Savannah River in Aiken. Augusta has some of the larger congregations in east Georgia, where the question is often livestreaming, big screens, and a second campus rather than a single speaker.",
       "situations": [
         {
           "service": "church-broadcast-imag",
-          "text": "A large room where faces on stage are too small to see. Cameras and IMAG on the big screen."
+          "text": "A large room where faces on stage are too small to see. Cameras that put the speaker on the big screen."
         },
         {
           "service": "church-led-wall",
@@ -1270,7 +1273,7 @@
         },
         {
           "service": "church-livestream-setup",
-          "text": "A second campus or online audience that needs the same service. A broadcast chain for capture, switching, recording, and streaming."
+          "text": "A second campus or online audience that needs the same service. Cameras, recording, and livestreaming."
         }
       ],
       "caseStudies": ["word-of-faith", "freedom-church"],
@@ -1279,7 +1282,7 @@
       "faq": [
         {
           "q": "We are adding a second campus. Can the systems match?",
-          "a": "That is how multi-site work is usually done: standardized lighting showfiles and presets, matching broadcast chains, and centralized comms, as in Church Unlimited’s six-campus upgrades in Corpus Christi, Texas."
+          "a": "That is how churches with several campuses usually do it: the same saved lighting looks, the same livestream setup, and headsets so the teams can talk to each other, as in Church Unlimited’s six-campus upgrades in Corpus Christi, Texas."
         }
       ]
     },
@@ -1290,20 +1293,20 @@
       "lat": 30.3322,
       "lng": -81.6557,
       "title": "Church Sound, Video & Lighting in Jacksonville, FL | United Under God",
-      "description": "Church sound, IMAG, LED walls, and livestream for Jacksonville, FL, from a team that has served Impact Church in Jacksonville. Tell us about your room.",
+      "description": "Church sound, big screens, LED walls, and livestream for Jacksonville, FL, from a team that has served Impact Church in Jacksonville. Tell us about your room.",
       "intro": "Impact Church in Jacksonville is on the installation team’s project list, and Turning Point at Calvary is down the coast in St. Augustine. Jacksonville is spread out, and its churches run from neighborhood congregations to large multi-service campuses where the back row is a long way from the stage.",
       "situations": [
         {
           "service": "church-broadcast-imag",
-          "text": "A wide room where the back rows cannot see faces. Cameras and IMAG with a shot plan."
+          "text": "A wide room where the back rows cannot see faces. Cameras that put faces on the big screen, with a plan for each shot."
         },
         {
           "service": "church-led-wall",
-          "text": "Projection that washes out in a bright room. An LED wall planned for curvature and sightlines."
+          "text": "Projection that washes out in a bright room. An LED wall curved and placed so every seat can see it."
         },
         {
           "service": "church-sound-system-installation",
-          "text": "Several services a weekend with different volunteers. Showfiles and presets so each service sounds the same."
+          "text": "Several services a weekend with different volunteers. Saved settings so each service sounds the same."
         }
       ],
       "caseStudies": ["turning-point-at-calvary", "rock-springs"],
@@ -1312,7 +1315,7 @@
       "faq": [
         {
           "q": "Our room is wide and the back rows can barely see the stage. What helps?",
-          "a": "IMAG and LED walls planned around sightlines. Rock Springs in Milner, Georgia, an 1,100-seat room, got a 57' × 17' curved LED wall with curvature and sightline planning."
+          "a": "Big screens and LED walls placed so every seat can see them. Rock Springs in Milner, Georgia, an 1,100-seat room, got a 57' × 17' curved LED wall placed so every seat can see it."
         }
       ]
     },
@@ -1323,8 +1326,8 @@
       "lat": 29.9012,
       "lng": -81.3124,
       "title": "Church Sound, Video & Lighting in St. Augustine, FL | United Under God",
-      "description": "Church IMAG, camera, livestream, and sound for St. Augustine, FL, from the team behind the IMAG work at Turning Point at Calvary in St. Augustine.",
-      "intro": "Turning Point at Calvary in St. Augustine is one of the installation team’s written-up case studies: IMAG built to feel cinematic and clear, with operator coaching built in. In a city this old, other congregations worship in traditional rooms where the job is the opposite: upgrades you barely notice.",
+      "description": "Church cameras, big screens, livestream, and sound for St. Augustine, FL, from the team behind the big-screen video at Turning Point at Calvary in St. Augustine.",
+      "intro": "Turning Point at Calvary in St. Augustine is one of the installation team’s written-up case studies: big-screen video that feels clear and natural, with camera volunteers coached. In a city this old, other congregations worship in traditional rooms where the job is the opposite: upgrades you barely notice.",
       "situations": [
         {
           "service": "church-broadcast-imag",
@@ -1361,7 +1364,7 @@
       "situations": [
         {
           "service": "church-stage-lighting",
-          "text": "House lights that are just on or off. LED house lighting on zones, then production lighting on a console."
+          "text": "Room lights that are just on or off. LED room lights with separate areas, then stage lighting with a control board."
         },
         {
           "service": "church-led-wall",
@@ -1378,7 +1381,7 @@
       "faq": [
         {
           "q": "Our lighting is just the room lights. Where do we start?",
-          "a": "Many churches start with LED house lighting on zones and presets, then add production lighting. Central Church in Covington, Georgia got LED house lighting with zones, dimming, and presets, plus a DMX lighting console."
+          "a": "Many churches start with LED room lights with separate areas and saved settings, then add stage lighting. Central Church in Covington, Georgia got LED room lights with separate areas, dimming, and saved settings, plus a lighting control board."
         }
       ]
     },
@@ -1394,7 +1397,7 @@
       "situations": [
         {
           "service": "church-acoustic-treatment",
-          "text": "A good band that the room turns into mush. Measurement-based acoustic treatment before new speakers."
+          "text": "A good band that the room turns into mush. Sound panels placed from measurements, before buying new speakers."
         },
         {
           "service": "church-sound-system-installation",
@@ -1411,7 +1414,7 @@
       "faq": [
         {
           "q": "Our band is good, but the room turns it into mush. Is that the speakers?",
-          "a": "Often it is the room. Lakeside Church in Greensboro, Georgia had acoustic paneling laid out with measurement-based tuning in its new sanctuary, and Mountain View Baptist in Thomaston got targeted treatment to improve clarity and gain before feedback."
+          "a": "Often it is the room. Lakeside Church in Greensboro, Georgia had sound panels placed from measurements in its new sanctuary, and Mountain View Baptist in Thomaston got sound panels so it is clearer and the microphones can get louder before they squeal."
         }
       ]
     },
@@ -1422,7 +1425,7 @@
       "lat": 28.5384,
       "lng": -81.3789,
       "title": "Church Sound, Video & Lighting in Orlando, FL | United Under God",
-      "description": "Church broadcast, livestream, LED, and lighting for Orlando, FL, with a past project at Calvary Orlando in nearby Winter Park. Built for multi-site churches.",
+      "description": "Church livestream, cameras, LED walls, and lighting for Orlando, FL, with a past project at Calvary Orlando in nearby Winter Park. Built for multi-campus churches.",
       "intro": "Calvary Orlando, on the installation team’s project list, meets in Winter Park, a few miles from downtown Orlando. Metro Orlando has many multi-service and multi-campus churches, where the stream is not an extra: it is a campus of its own.",
       "situations": [
         {
@@ -1431,11 +1434,11 @@
         },
         {
           "service": "church-broadcast-imag",
-          "text": "Several campuses that need the same feed and the same look. Matching broadcast chains and centralized comms."
+          "text": "Several campuses that need the same service and the same look. The same livestream setup everywhere, and headsets so the teams can talk."
         },
         {
           "service": "church-stage-lighting",
-          "text": "Lighting that looks different every weekend. Standardized showfiles and presets."
+          "text": "Lighting that looks different every weekend. The same saved looks every weekend."
         }
       ],
       "caseStudies": ["church-unlimited", "word-of-faith"],
@@ -1444,7 +1447,7 @@
       "faq": [
         {
           "q": "Our stream has failed at the worst moment. How do you make it reliable?",
-          "a": "Build redundancy into the record and stream path. Church Unlimited’s six-campus work in Corpus Christi, Texas included a redundant record/stream architecture and hybrid SDI/NDI routing."
+          "a": "Build in a backup for the recording and livestream. Church Unlimited’s six-campus work in Corpus Christi, Texas included a backup path so one failure does not take the service off the air."
         }
       ]
     },
@@ -1460,7 +1463,7 @@
       "situations": [
         {
           "service": "church-led-wall",
-          "text": "Projectors that cannot keep up with the room’s light. An LED wall sized and calibrated for the room."
+          "text": "Projectors that cannot keep up with the room’s light. An LED wall sized and adjusted for the room."
         },
         {
           "service": "church-projection",
@@ -1493,7 +1496,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "Members who hear the sermon but cannot make out the words. Speech-first tuning and coverage for every seat."
+          "text": "Members who hear the sermon but cannot make out the words. Speakers placed and tuned for clear speech in every seat."
         },
         {
           "service": "church-livestream-setup",
@@ -1501,7 +1504,7 @@
         },
         {
           "service": "church-projection",
-          "text": "Hymn words that are too small to read. Projection calibrated for the room."
+          "text": "Hymn words that are too small to read. Projectors set up for the room."
         }
       ],
       "caseStudies": ["st-jude-the-apostle", "mount-vernon"],
@@ -1510,7 +1513,7 @@
       "faq": [
         {
           "q": "Many members are part-time residents. Can they worship with us from up north?",
-          "a": "Yes, with a stream built for it: a broadcast chain for live and on-demand viewing (as at Unity Baptist in Newnan, Georgia) and loudness that stays even from hymn to sermon (as at Immaculate Heart of Mary in Atlanta)."
+          "a": "Yes, with a stream built for it: a livestream and recording for watching live or later (as at Unity Baptist in Newnan, Georgia) and loudness that stays even from hymn to sermon (as at Immaculate Heart of Mary in Atlanta)."
         }
       ]
     },
@@ -1530,7 +1533,7 @@
         },
         {
           "service": "church-stage-lighting",
-          "text": "Existing equipment that survived and can be reused. Relocation and recommissioning where it makes sense."
+          "text": "Existing equipment that survived and can be reused. Moved and set up again where it makes sense."
         },
         {
           "service": "church-livestream-setup",
@@ -1543,7 +1546,7 @@
       "faq": [
         {
           "q": "Our building was damaged in a storm and is being rebuilt. When should AV be planned?",
-          "a": "Before the walls and ceilings are finished. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with a full audio, video, lighting, and broadcast overhaul. Its tech director describes that process in his own words on this page."
+          "a": "Before the walls and ceilings are finished. Unity Baptist in Newnan, Georgia was rebuilt after a tornado with all-new sound, video, lighting, and livestream. Its tech director describes that process in his own words on this page."
         }
       ]
     },
@@ -1554,12 +1557,12 @@
       "lat": 29.2108,
       "lng": -81.0228,
       "title": "Church Sound, Video & Lighting in Daytona Beach, FL | United Under God",
-      "description": "Church sound, LED lighting, IMAG, and livestream for Daytona Beach and Volusia County, with past projects nearby in St. Augustine and Winter Park.",
+      "description": "Church sound, LED lighting, big screens, and livestream for Daytona Beach and Volusia County, with past projects nearby in St. Augustine and Winter Park.",
       "intro": "Daytona Beach sits between two cities on the installation team’s project list: St. Augustine to the north and Winter Park, beside Orlando, to the southwest. No Daytona Beach church is on the list yet.",
       "situations": [
         {
           "service": "church-stage-lighting",
-          "text": "Old halogen fixtures and a hot stage. Production lighting upgraded to LED, with HVAC load planned in the design."
+          "text": "Old, hot stage lights. Stage lights upgraded to LED, with the extra heat planned for the air conditioning."
         },
         {
           "service": "church-broadcast-imag",
@@ -1573,7 +1576,7 @@
       "faq": [
         {
           "q": "Our stage lighting is old halogen. Is moving to LED worth it?",
-          "a": "Mountain View Baptist in Thomaston, Georgia upgraded its production lighting to LED with refreshed looks. The Design phase also includes thermal calculations for HVAC, so equipment heat is planned for rather than discovered."
+          "a": "Mountain View Baptist in Thomaston, Georgia upgraded its stage lights to LED with refreshed looks. The Design phase also works out how much heat the equipment adds, so the air conditioning is planned for it rather than surprised by it."
         }
       ]
     },
@@ -1589,15 +1592,15 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "A lobby, nursery, and classrooms that cannot hear the service. Distributed audio and video with clear routing."
+          "text": "A lobby, nursery, and classrooms that cannot hear the service. Sound and video carried to those rooms."
         },
         {
           "service": "church-projection",
-          "text": "A new sanctuary that needs projection specified and rigged before the ceiling goes up."
+          "text": "A new sanctuary that needs projectors chosen and hung before the ceiling goes up."
         },
         {
           "service": "church-stage-lighting",
-          "text": "Lighting with presets and cues, so the same volunteers can run it every week."
+          "text": "Lighting with saved looks, so the same volunteers can run it every week."
         }
       ],
       "caseStudies": ["lake-point-community-church", "mount-vernon"],
@@ -1606,7 +1609,7 @@
       "faq": [
         {
           "q": "Can the service be heard in the lobby, nursery, and classrooms?",
-          "a": "Yes. Distributed AV to lobbies and classrooms with clear routing was part of Lake Point Community Church’s new sanctuary in Eatonton, Georgia."
+          "a": "Yes. Carrying the service to the lobbies and classrooms was part of Lake Point Community Church’s new sanctuary in Eatonton, Georgia."
         }
       ]
     },
@@ -1617,12 +1620,12 @@
       "lat": 34.8526,
       "lng": -82.394,
       "title": "Church Sound, Video & Lighting in Greenville, SC | United Under God",
-      "description": "Church sound, broadcast, LED, and lighting for Greenville, SC, from a team that has served Calvary Chapel Baptist Greenville and churches in Mauldin and Greer.",
+      "description": "Church sound, livestream, and lighting for Greenville, SC, from a team that has served Calvary Chapel Baptist Greenville and churches in Mauldin and Greer.",
       "intro": "The Upstate has the densest cluster of the installation team’s South Carolina work: Calvary Chapel Baptist Greenville, Abundant Life Church of God in Mauldin, and Praise Cathedral Church of God in Greer. Many Greenville churches are growing and deciding whether to upgrade the room they have or wait for the next building.",
       "situations": [
         {
           "service": "church-broadcast-imag",
-          "text": "A growing congregation where the back of the room needs IMAG and the stream needs to look like the room."
+          "text": "A growing congregation where the back of the room needs the speaker on a big screen and the livestream needs to look like the room."
         },
         {
           "service": "church-led-wall",
@@ -1630,7 +1633,7 @@
         },
         {
           "service": "church-sound-system-installation",
-          "text": "A new building where audio, video, LED, lighting, and broadcast are designed as one system."
+          "text": "A new building where sound, video, LED walls, lighting, and livestream are planned together."
         }
       ],
       "caseStudies": ["freedom-church", "word-of-faith"],
@@ -1650,7 +1653,7 @@
       "lat": 34.9387,
       "lng": -82.2271,
       "title": "Church Sound, Video & Lighting in Greer, SC | United Under God",
-      "description": "Church sound, monitors, lighting, and LED for Greer, SC, from a team that has served Praise Cathedral Church of God in Greer. Tell us about your sanctuary.",
+      "description": "Church sound, lighting, and LED walls for Greer, SC, from a team that has served Praise Cathedral Church of God in Greer. Tell us about your sanctuary.",
       "intro": "Praise Cathedral Church of God in Greer is on the installation team’s project list, with Greenville and Mauldin a short drive away. In churches with a full band and choir, the hardest problem is often on the platform: singers and musicians who cannot hear themselves.",
       "situations": [
         {
@@ -1659,11 +1662,11 @@
         },
         {
           "service": "church-stage-lighting",
-          "text": "Lighting that should move with the worship. Production lighting on a console with cues."
+          "text": "Lighting that should move with the worship. Stage lighting with a control board and saved looks."
         },
         {
           "service": "church-led-wall",
-          "text": "Lyrics the whole choir can read. An LED confidence monitor facing the platform."
+          "text": "Lyrics the whole choir can read. A screen facing the platform so the choir can read the words."
         }
       ],
       "caseStudies": ["word-of-faith", "unity-baptist"],
@@ -1672,7 +1675,7 @@
       "faq": [
         {
           "q": "Our singers and choir cannot hear themselves. What fixes that?",
-          "a": "Stage and choir monitoring is its own design problem. Word of Faith in Austell, Georgia got L-Acoustics stage monitoring, new choir and fill monitors, and an LED choir confidence monitor."
+          "a": "Helping the choir and the band hear themselves is its own design problem. Word of Faith in Austell, Georgia got new speakers on the stage and for the choir, plus a screen facing the choir so they can read the words."
         }
       ]
     },
@@ -1696,7 +1699,7 @@
         },
         {
           "service": "church-stage-lighting",
-          "text": "A new or rebuilt sanctuary where existing gear can be moved and recommissioned."
+          "text": "A new or rebuilt sanctuary where existing equipment can be moved and set up again."
         }
       ],
       "caseStudies": ["level-grove", "central-church"],
@@ -1721,7 +1724,7 @@
       "situations": [
         {
           "service": "church-projection",
-          "text": "A projector that washes out during morning services. Projection specified for the room’s light, or an LED wall where projection cannot win."
+          "text": "A projector that washes out during morning services. A projector chosen for how bright the room is, or an LED wall where a projector cannot keep up."
         },
         {
           "service": "church-sound-system-installation",
@@ -1738,7 +1741,7 @@
       "faq": [
         {
           "q": "Our projector washes out during morning services. What can we do?",
-          "a": "Projection has to be specified for the room’s light. Past projection work includes design, alignment, and tuning at Cedar Point Church in Claremore, Oklahoma, and specification, rigging, and calibration at Mount Vernon in Sandy Springs, Georgia. Where projection cannot win, an LED wall may."
+          "a": "Projectors have to be chosen for how bright the room is. Past projector work includes design and setup at Cedar Point Church in Claremore, Oklahoma, and choosing, hanging, and adjusting projectors at Mount Vernon in Sandy Springs, Georgia. Where projection cannot win, an LED wall may."
         }
       ]
     },
@@ -1749,7 +1752,7 @@
       "lat": 34.0007,
       "lng": -81.0348,
       "title": "Church Sound, Video & Lighting in Columbia, SC | United Under God",
-      "description": "Church sound, distributed audio, broadcast, and LED for Columbia, SC churches and schools, with past projects nearby in Batesburg and Aiken. Send a request.",
+      "description": "Church sound, livestream, and LED walls for Columbia, SC churches and schools, with past projects nearby in Batesburg and Aiken. Send a request.",
       "intro": "Samaria Baptist Church in Batesburg, west of Columbia, is the nearest church on the installation team’s project list, with New Covenant Presbyterian Church in Aiken a little further. No Columbia church is on it yet. Many churches in the Midlands run more than a sanctuary: schools, gyms, and second campuses.",
       "situations": [
         {
@@ -1762,7 +1765,7 @@
         },
         {
           "service": "church-broadcast-imag",
-          "text": "A growing church adding campuses. Broadcast and IMAG that can scale."
+          "text": "A growing church adding campuses. Cameras and livestreaming that can grow with you."
         }
       ],
       "caseStudies": ["legacy-church", "lakeside-church"],
@@ -1791,7 +1794,7 @@
         },
         {
           "service": "church-sound-system-installation",
-          "text": "A choir and a reader who both need to be heard. Choir mic voicing and speech-first tuning."
+          "text": "A choir and a reader who both need to be heard. Choir microphones set up for the choir, and tuning that puts the spoken word first."
         },
         {
           "service": "church-livestream-setup",
@@ -1828,7 +1831,7 @@
         },
         {
           "service": "church-led-wall",
-          "text": "LED walls specified, rigged, mapped, and calibrated as part of the build."
+          "text": "LED walls chosen, hung, and adjusted as part of the build."
         }
       ],
       "caseStudies": ["lakeside-church", "freedom-church"],
@@ -1837,7 +1840,7 @@
       "faq": [
         {
           "q": "We are building. What does the installation team produce for our architect?",
-          "a": "The Design phase produces detailed equipment schematics, rigging and electrical drawings, thermal calculations for HVAC, and complete equipment lists, coordinated with the other trades and ending in a full set of plans."
+          "a": "The Design phase produces detailed equipment drawings, drawings of what hangs from the ceiling and the power it needs, how much heat the equipment adds for the air conditioning, and complete equipment lists, worked out with your architect and builder and ending in a full set of plans."
         }
       ]
     },
@@ -1848,12 +1851,12 @@
       "lat": 32.7765,
       "lng": -79.9311,
       "title": "Church Sound, Video & Lighting in Charleston, SC | United Under God",
-      "description": "Church sound, acoustics, and broadcast for Charleston’s historic and new sanctuaries. The nearest past project is in Savannah, and we say so plainly.",
+      "description": "Church sound, acoustics, and livestream for Charleston’s historic and new sanctuaries. The nearest past project is in Savannah, and we say so plainly.",
       "intro": "No Charleston church is on the installation team’s project list. The closest are Compassion Church Savannah down the coast and New Covenant Presbyterian Church in Aiken. We would rather tell you that plainly than pretend. Many of the Holy City’s historic sanctuaries are reverberant rooms that call for upgrades that respect them.",
       "situations": [
         {
           "service": "church-acoustic-treatment",
-          "text": "A reverberant historic room where speech gets lost. Speech-first tuning and careful capture."
+          "text": "An echoey historic room where speech gets lost. Tuning that puts the spoken word first, and careful microphone placement."
         },
         {
           "service": "church-livestream-setup",
@@ -1886,7 +1889,7 @@
       "situations": [
         {
           "service": "church-sound-system-installation",
-          "text": "Tech volunteers who rotate out with each move. Volunteer-first presets and labels."
+          "text": "Tech volunteers who rotate out with each move. Saved settings and labels any volunteer can use."
         },
         {
           "service": "church-livestream-setup",
@@ -1903,7 +1906,7 @@
       "faq": [
         {
           "q": "Our volunteers change often. How do we keep the tech team staffed?",
-          "a": "Make the system simple enough that a new volunteer can run it: labeled presets, documentation, training after commissioning, and on-site training the first Sunday."
+          "a": "Make the system simple enough that a new volunteer can run it: saved settings with clear labels, written instructions, training once everything is tested, and on-site help the first Sunday."
         }
       ]
     }

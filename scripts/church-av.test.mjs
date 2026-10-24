@@ -286,7 +286,7 @@ test("the planner keeps traditional churches screen-free and shows no prices", (
   assert.ok(traditional.length > 0, "traditional branch found");
   assert.match(traditional, /No screen behind the pulpit/);
   assert.ok(!/LED wall/.test(traditional), "traditional never gets an LED wall");
-  assert.match(planner, /PTZ cameras/);
+  assert.match(planner, /Remote-controlled cameras/);
   const ui = read("src/components/church-av-planner.tsx");
   assert.match(
     ui,

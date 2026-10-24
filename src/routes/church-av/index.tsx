@@ -31,7 +31,7 @@ import { pageHead } from "@/lib/seo";
 
 const PATH = "/church-av";
 const DESCRIPTION =
-  "Church sound systems, livestream setup, stage lighting, LED walls, projection, and acoustic treatment for churches in Georgia, Florida, and South Carolina.";
+  "Church sound systems, livestream setup, stage lighting, LED walls, projectors, and sound panels for churches in Georgia, Florida, and South Carolina.";
 
 export const Route = createFileRoute("/church-av/")({
   component: ChurchAvPage,
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/church-av/")({
         avServiceJsonLd({
           name: "Church sound, livestream, and lighting",
           description:
-            "Sound, livestream, lighting, LED, projection, broadcast, and acoustic treatment planned and installed for church sanctuaries, with volunteers trained on-site.",
+            "Sound, livestream, lighting, LED walls, projectors, cameras, and sound panels planned and installed for church sanctuaries, with volunteers trained on-site.",
           path: PATH,
           areaServed: AV_STATES.map(stateAreaServed),
         }),

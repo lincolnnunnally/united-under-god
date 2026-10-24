@@ -204,7 +204,7 @@ export function cityFaq(city: AvCity): Faq[] {
     ...city.faq,
     {
       q: "What comes with an installation?",
-      a: "Every installation includes training after commissioning and verification, on-site training the first Sunday, and a 1-year parts and labor warranty. Extended service plans are available.",
+      a: "Every installation includes training once everything is tested, on-site help the first Sunday, and a 1-year parts and labor warranty. Longer service plans are available.",
     },
     {
       q: "What happens after I send a request?",
@@ -224,7 +224,7 @@ export const HUB_FAQ: Faq[] = [
   },
   {
     q: "What comes with an installation?",
-    a: "Every installation includes training after commissioning and verification, on-site training the first Sunday, and a 1-year parts and labor warranty. Extended service plans are available.",
+    a: "Every installation includes training once everything is tested, on-site help the first Sunday, and a 1-year parts and labor warranty. Longer service plans are available.",
   },
   {
     q: "Is there a price on this page?",

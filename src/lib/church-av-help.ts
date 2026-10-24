@@ -61,7 +61,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Tuning for speech, not just music",
-        body: "Once speakers are in place, the system is aligned and tuned to the room with measurements. A speech-first tuning makes the sermon intelligible without having to make it loud.",
+        body: "Once speakers are in place, the system is tuned to the room with measurements. Tuning for speech first makes the sermon clear without having to make it loud.",
       },
       {
         title: "Microphones that pick up the voice, not the room",
@@ -69,7 +69,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Acoustic treatment where the room needs it",
-        body: "In hard rooms, a few well-placed acoustic panels reduce the reflections that blur speech, so every seat gets a cleaner signal before anyone touches a fader.",
+        body: "In hard rooms, a few well-placed sound panels cut the echo that blurs speech, so every seat hears more clearly.",
       },
     ],
     mission: [
@@ -91,7 +91,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         q: "Do we have to replace everything?",
-        a: "Not always. Sometimes adding fill speakers, re-aiming what is there, or tuning the system is the right first step. The Dream phase looks at the room and what you already own before recommending anything.",
+        a: "Not always. Sometimes adding a few speakers, re-aiming what is there, or tuning the system is the right first step. The Dream phase looks at the room and what you already own before recommending anything.",
       },
       {
         q: "Will new speakers change how our sanctuary looks?",
@@ -106,7 +106,7 @@ export const HELP_PAGES: HelpPage[] = [
     description:
       "Why members with hearing aids hear squeal and echo in the sanctuary, and how hearing loops, Auracast, and receivers send the sermon straight to the ear.",
     h1: "When members with hearing aids hear squeal and echo",
-    eyebrow: "For pastors and committees · Hearing and assistive listening",
+    eyebrow: "For pastors and committees · Hearing and hearing help",
     lead: "A faithful member tells you the service is a blur of echo, or that their hearing aids whistle when the music starts. Some have stopped wearing them in church. Others have stopped coming. This is one of the most fixable problems a sanctuary has.",
     whyTitle: "What is actually happening",
     why: [
@@ -122,19 +122,19 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Auracast for newer hearing aids and phones",
-        body: "Auracast is Bluetooth LE Audio broadcast. The sound board’s feed is broadcast in the room, and newer hearing aids, earbuds, and phones that support it can tune in directly. It is newer, so it works for some members today and more each year.",
+        body: "Auracast is a newer kind of Bluetooth (Bluetooth LE Audio). The sound from the sound board is sent through the room, and newer hearing aids, earbuds, and phones that support it can tune in directly. It is newer, so it works for some members today and more each year.",
       },
       {
         title: "RF or IR receivers with earbuds",
         body: "For members without compatible hearing aids, a small radio-frequency (RF) or infrared (IR) receiver with earbuds or headphones delivers the same clean feed. Receivers are kept at the welcome desk and handed out each service.",
       },
       {
-        title: "Better speaker coverage and acoustic treatment",
-        body: "Speakers aimed at the seats instead of the walls, and acoustic treatment where the room is hardest, reduce echo for everyone — including members with hearing aids who do not use a receiver.",
+        title: "Better-aimed speakers and sound panels",
+        body: "Speakers aimed at the seats instead of the walls, and sound panels where the room echoes most, reduce echo for everyone — including members with hearing aids who do not use a receiver.",
       },
     ],
     steps: {
-      title: "Choosing an assistive listening option",
+      title: "Choosing a hearing help",
       intro:
         "There is no single right answer for every church. These are the questions that decide it, and we’ll help you choose the right option.",
       items: [
@@ -162,7 +162,7 @@ export const HELP_PAGES: HelpPage[] = [
     },
     mission: [
       "The members most affected are often the ones who have been in those pews the longest. Helping them hear again is not a technical upgrade; it is honoring the people who built the church.",
-      "Churches are generally not required to provide assistive listening — religious organizations are largely exempt from the ADA’s public-accommodation rules. Churches do it because they love their members and want every one of them in the room and hearing the word.",
+      "Churches are generally not required to provide hearing help — religious organizations are largely exempt from the ADA’s public-accommodation rules. Churches do it because they love their members and want every one of them in the room and hearing the word.",
     ],
     services: ["church-sound-system-installation", "church-acoustic-treatment"],
     caseStudies: ["st-jude-the-apostle", "mountain-view-baptist", "legacy-church"],
@@ -178,12 +178,12 @@ export const HELP_PAGES: HelpPage[] = [
         a: "It depends on your members and your room. Loops work with the telecoils already in many hearing aids; Auracast works with newer hearing aids and phones and is spreading quickly. Many churches combine one of them with a few receivers for everyone else. We’ll help you choose the right option.",
       },
       {
-        q: "Are churches legally required to have assistive listening?",
+        q: "Are churches legally required to have hearing help?",
         a: "Generally not; religious organizations are largely exempt from the ADA’s public-accommodation rules. If you are planning a new building, ask your architect what your local building code says. Most churches add it because they want every member to hear.",
       },
       {
         q: "Will a new sound system fix the squeal by itself?",
-        a: "Better speaker coverage and tuning reduce echo and harshness for everyone, which helps. But the most direct fix for hearing-aid users is assistive listening that sends the sound straight to the ear.",
+        a: "Better-placed, better-tuned speakers reduce echo and harshness for everyone, which helps. But the most direct fix for hearing-aid users is a hearing help that sends the sound straight to the ear.",
       },
     ],
   },
@@ -192,7 +192,7 @@ export const HELP_PAGES: HelpPage[] = [
     label: "The livestream keeps dropping",
     title: "Church Livestream Keeps Dropping or Going Silent? | United Under God",
     description:
-      "Why a church livestream freezes, drops, or goes silent at the worst moment, and the internet, encoder, and audio fixes that keep it steady every Sunday.",
+      "Why a church livestream freezes, drops, or goes silent at the worst moment, and the internet, equipment, and sound fixes that keep it steady every Sunday.",
     h1: "When the livestream drops at the worst moment",
     eyebrow: "For pastors and committees · Livestream",
     lead: "The stream freezes during the sermon, goes silent during the invitation, or the people at home hear the band but not the preacher. Someone at home texts the church office. Here is why it keeps happening and what makes it dependable.",
@@ -209,7 +209,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Dedicated streaming equipment",
-        body: "A hardware encoder or a computer that does nothing but stream, so it is not competing with lyrics or recordings for capacity.",
+        body: "A dedicated streaming box or a computer that does nothing but stream, so it is not competing with lyrics or recordings for capacity.",
       },
       {
         title: "A separate mix for the people at home",
@@ -217,7 +217,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "A routine volunteers can repeat",
-        body: "The same start-up steps every week, labeled and written down, with presets that bring the system back to a known good state.",
+        body: "The same start-up steps every week, labeled and written down, with saved settings that bring the system back to a setup that works.",
       },
     ],
     steps: {
@@ -261,7 +261,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         q: "Can cameras be added without changing how our sanctuary looks?",
-        a: "Yes. Small PTZ (pan-tilt-zoom) cameras can be mounted discreetly and controlled from the booth by one volunteer.",
+        a: "Yes. Small remote-controlled cameras can be mounted discreetly and controlled from the booth by one volunteer.",
       },
     ],
   },
@@ -270,10 +270,10 @@ export const HELP_PAGES: HelpPage[] = [
     label: "Feedback during the sermon",
     title: "Feedback Squealing During the Sermon? Why It Happens | United Under God",
     description:
-      "Why church microphones squeal and howl during the sermon or prayer, and the microphone, speaker, and tuning changes that stop feedback at its source.",
+      "Why church microphones squeal and howl during the sermon or prayer, and the microphone, speaker, and tuning changes that stop the squeal at its source.",
     h1: "When the microphones squeal during the sermon",
     eyebrow: "For pastors and committees · Sound",
-    lead: "The pastor steps away from the pulpit and the room howls. Someone pulls a fader down in a panic. The prayer is interrupted, again. Feedback is not bad luck; it has causes, and they can be fixed.",
+    lead: "The pastor steps away from the pulpit and the room howls. Someone yanks the volume down in a panic. The prayer is interrupted, again. Feedback is not bad luck; it has causes, and they can be fixed.",
     whyTitle: "Why feedback happens",
     why: [
       "Feedback is a loop. A microphone hears the speaker, the speaker plays the microphone, and the sound goes around and around, getting louder each time until it rings. It happens at the frequencies where the room and the system reinforce each other most.",
@@ -283,18 +283,18 @@ export const HELP_PAGES: HelpPage[] = [
     fixes: [
       {
         title: "The right microphone for each person",
-        body: "A headset or well-placed lapel mic for a pastor who walks; a directional pulpit mic for one who stays; choir mics voiced for the choir. A microphone close to the mouth needs far less gain.",
+        body: "A headset or well-placed lapel mic for a pastor who walks; a directional pulpit mic for one who stays; choir mics set up for the choir. A microphone close to the mouth needs far less volume.",
       },
       {
         title: "Speakers placed so they do not feed the microphones",
-        body: "Main speakers are positioned and aimed so the platform sits outside their coverage, and monitors are chosen so they do not point straight into a live microphone.",
+        body: "Main speakers are aimed away from the platform, and the speakers the singers listen to are placed so they do not point straight into a live microphone.",
       },
       {
-        title: "Gain structure and tuning",
-        body: "The system is set up so each microphone has headroom, then tuned with measurements so the frequencies most likely to ring are tamed before the service, not during it.",
+        title: "Microphone levels and tuning",
+        body: "Each microphone is set so it has room to spare, then the system is tuned with measurements so the tones most likely to ring are calmed before the service, not during it.",
       },
       {
-        title: "Acoustic treatment",
+        title: "Sound panels",
         body: "Treating the surfaces that reflect most strongly back toward the platform increases how loud the system can go before it rings.",
       },
     ],
@@ -335,8 +335,8 @@ export const HELP_PAGES: HelpPage[] = [
     ],
     faq: [
       {
-        q: "Will a feedback suppressor fix it?",
-        a: "It can catch a few problem frequencies, but it cannot fix a microphone that is too far away or a speaker aimed at the platform. It works best as the last step after placement and tuning.",
+        q: "Will an anti-squeal gadget fix it?",
+        a: "It can catch a few problem tones, but it cannot fix a microphone that is too far away or a speaker aimed at the platform. It works best as the last step after placement and tuning.",
       },
       {
         q: "Is this the same squeal hearing aid users hear?",
@@ -356,13 +356,13 @@ export const HELP_PAGES: HelpPage[] = [
     whyTitle: "Why the board feels impossible",
     why: [
       "Most church systems grew one piece at a time. Each new microphone, cable, and setting was added by whoever was there, and the knowledge of how it all fits lives in one person’s head.",
-      "Older consoles start from scratch every week: every knob has to be set by hand, and nothing on the board says what it is for.",
+      "Older mixing boards start from scratch every week: every knob has to be set by hand, and nothing on the board says what it is for.",
       "Without training, new volunteers learn by being thrown in on a Sunday morning. One bad week is usually enough to scare them off.",
     ],
     fixes: [
       {
-        title: "A digital console with saved presets",
-        body: "A modern console recalls a known good setup with one button: the Sunday morning service, the Wednesday night study, the funeral. Volunteers start from right, not from zero.",
+        title: "A digital mixing board with saved settings",
+        body: "A modern mixing board brings back a setup that works with one button: the Sunday morning service, the Wednesday night study, the funeral. Volunteers start from right, not from zero.",
       },
       {
         title: "Labels and a simplified layout",
@@ -370,7 +370,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Training on-site, on your system",
-        body: "Training happens after the system is commissioned and again on-site the first Sunday, with your volunteers, on your equipment, during a real service.",
+        body: "Training happens once the system is tested and again on-site the first Sunday, with your volunteers, on your equipment, during a real service.",
       },
       {
         title: "Someone to call",
@@ -405,7 +405,7 @@ export const HELP_PAGES: HelpPage[] = [
     label: "We’re traditional and don’t want a big screen",
     title: "Better Church Sound Without a Big Screen Behind the Pulpit | United Under God",
     description:
-      "For traditional sanctuaries: better microphones, speakers, discreet cameras, and assistive listening, with no screen behind the pulpit and the room left as it is.",
+      "For traditional sanctuaries: better microphones, speakers, discreet cameras, and hearing help, with no screen behind the pulpit and the room left as it is.",
     h1: "Better sound for a traditional sanctuary, without a big screen",
     eyebrow: "For traditional churches · Sound · Hearing · Livestream",
     lead: "Your sanctuary is beautiful and your people love it. The cross, the pulpit, the choir, the windows — nobody wants a screen hung in front of any of it. You do not need one. Most of what a traditional church needs is invisible.",
@@ -418,11 +418,11 @@ export const HELP_PAGES: HelpPage[] = [
     fixes: [
       {
         title: "Better microphones",
-        body: "Pulpit, lectern, and choir microphones chosen to disappear into the room and to capture voices clearly, including choir microphones voiced for the choir.",
+        body: "Pulpit, lectern, and choir microphones chosen to disappear into the room and to capture voices clearly, including choir microphones set up for the choir.",
       },
       {
         title: "Speakers that suit the architecture",
-        body: "Speakers selected and placed to respect the sightlines and finishes of the room while putting clear speech in every pew.",
+        body: "Speakers chosen and placed to respect how the room looks while putting clear speech in every pew.",
       },
       // OWNER: confirm with installer before claiming install
       {
@@ -430,7 +430,7 @@ export const HELP_PAGES: HelpPage[] = [
         body: "A hearing loop, Auracast, or receivers with earbuds that send the sermon straight to the ears of members with hearing loss. We’ll help you choose the right option.",
       },
       {
-        title: "Discreet PTZ cameras for homebound members",
+        title: "Small, discreet cameras for homebound members",
         body: "Small pan-tilt-zoom cameras mounted out of the way and run by one volunteer, so members who cannot come can still worship with you.",
       },
       {
@@ -453,7 +453,7 @@ export const HELP_PAGES: HelpPage[] = [
     faq: [
       {
         q: "Do we have to put a screen up to get better sound?",
-        a: "No. Sound, assistive listening, and cameras are separate from screens. Many traditional churches upgrade all three and never add a screen.",
+        a: "No. Sound, hearing help, and cameras are separate from screens. Many traditional churches upgrade all three and never add a screen.",
       },
       {
         q: "Will the equipment be visible?",
@@ -466,7 +466,7 @@ export const HELP_PAGES: HelpPage[] = [
     label: "Older members are staying home",
     title: "Older Church Members Staying Home? Livestream & Hearing Help | United Under God",
     description:
-      "When older members stop coming because they cannot hear or cannot travel, clearer sound, assistive listening, and a dependable livestream bring them back.",
+      "When older members stop coming because they cannot hear or cannot travel, clearer sound, hearing help, and a dependable livestream bring them back.",
     h1: "When older members start staying home",
     eyebrow: "For pastors and committees · Hearing · Livestream",
     lead: "Some of your most faithful members have quietly stopped coming. A few say it is the drive or their health. Many will not say it is because they cannot hear anymore. Both have answers.",
@@ -523,24 +523,24 @@ export const HELP_PAGES: HelpPage[] = [
     label: "We’re planning a new building",
     title: "Planning a New Church Building? When to Plan Sound & Video | United Under God",
     description:
-      "Plan sound, video, lighting, and assistive listening with the architect, before walls go up, so the room serves your people and nothing is retrofitted.",
+      "Plan sound, video, lighting, and hearing help with the architect, before walls go up, so the room serves your people and nothing has to be added later.",
     h1: "Planning a new church building? Bring sound and video in early",
     eyebrow: "For building committees · New construction",
     lead: "The building committee has met for months. The architect has drawings. Somewhere on the list is “sound system,” usually near the end. That order is the most common and most expensive mistake in church construction.",
     whyTitle: "Why audio and video belong at the start",
     why: [
       "A sanctuary’s shape, ceiling, and finishes decide how it will sound before a single speaker is chosen. Once the walls are up, fixing an echo means adding treatment to a room that could have been designed right.",
-      "Speakers, cameras, screens, and lights need power, conduit, structural rigging points, and cooling. If those are not in the drawings, they are cut in later — or the system is compromised to fit what was built.",
+      "Speakers, cameras, screens, and lights need power, wiring, something strong to hang from, and cooling. If those are not in the plans, walls get cut open later, or the system has to settle for whatever space is left.",
       "Committees are often told to choose AV last because it is the last thing installed. It is installed last, but it has to be designed first.",
     ],
     fixes: [
       {
         title: "Design with the architect",
-        body: "Detailed schematics, rigging and electrical drawings, and heating and cooling calculations go to the architect and the other trades while the drawings can still change.",
+        body: "Equipment drawings, what hangs from the ceiling, the power it needs, and the heat it adds go to the architect and builder while the plans can still change.",
       },
       {
         title: "Room acoustics from the start",
-        body: "Ceiling shape, wall surfaces, and treatment planned so speech is clear and music is full, without retrofitting panels after the fact.",
+        body: "Ceiling shape, wall surfaces, and treatment planned so speech is clear and music is full, without adding panels after the fact.",
       },
       // OWNER: confirm with installer before claiming install
       {
@@ -549,7 +549,7 @@ export const HELP_PAGES: HelpPage[] = [
       },
       {
         title: "Reuse what still serves",
-        body: "Equipment from the old building that still has life in it can be relocated and recommissioned in the new one.",
+        body: "Equipment from the old building that still has life in it can be moved and set up again in the new one.",
       },
       {
         title: "A program report the committee can read",
@@ -566,7 +566,7 @@ export const HELP_PAGES: HelpPage[] = [
         },
         {
           name: "Before design development is finished",
-          text: "Get AV schematics, rigging points, power, conduit, and cooling loads into the architect’s drawings.",
+          text: "Get the sound, video, and lighting plans, including power, wiring, and what hangs from the ceiling, into the architect’s drawings.",
         },
         {
           name: "Before construction documents are final",
@@ -574,7 +574,7 @@ export const HELP_PAGES: HelpPage[] = [
         },
         {
           name: "During construction",
-          text: "Rough-in happens with the other trades, then equipment setup, commissioning, and final verification once the room is finished.",
+          text: "Wiring goes in alongside the other trades; the equipment is set up and tested once the room is finished.",
         },
         {
           name: "Before the first Sunday",
@@ -606,11 +606,11 @@ export const HELP_PAGES: HelpPage[] = [
     faq: [
       {
         q: "Our architect says the AV contractor can come in later. Is that true?",
-        a: "Installation comes later; design does not. Rigging, power, conduit, cooling, and acoustics are all decided by the drawings. The earlier AV design joins the project, the fewer changes later.",
+        a: "The equipment goes in later, but the planning cannot wait. Where things hang, power, wiring, cooling, and how the room sounds are all decided in the drawings. The earlier sound, video, and lighting join the planning, the fewer changes later.",
       },
       {
         q: "Can we use our existing equipment in the new building?",
-        a: "Often some of it, yes. Central Church in Covington, GA relocated and recommissioned its existing audio and lighting into a new sanctuary, alongside a new digital audio console and lighting console.",
+        a: "Often some of it, yes. Central Church in Covington, GA moved its own sound and lighting equipment into a new sanctuary and added a new mixing board and lighting control board.",
       },
       {
         q: "How do we get this past the building committee?",
