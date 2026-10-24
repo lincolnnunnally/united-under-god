@@ -35,7 +35,7 @@ export type FeeKind = "rebate" | "referral";
 
 /**
  * The fee on an item with this buying model. Licensed referral-only parts
- * (insurance, benefits, banking and loans, legal, payroll and tax, audit) are
+ * (insurance, benefits, banking and loans, payroll and tax, audit) are
  * not covered by these terms and return null.
  */
 export function feeFor(
@@ -70,7 +70,7 @@ export function vendorTerms(config: FeeConfig = FEES): TermsSection[] {
       heading: "Who these terms are for",
       body: [
         "These terms apply to a business that signs up to serve churches through the United Under God buying program. By ticking “I agree to the Vendor Terms” when you sign up, you accept them.",
-        "They do not cover insurance, health or retirement benefits, banking and loans, legal services, payroll and payroll tax, or audit and tax preparation. Those are handled separately, through licensed or qualified providers, under their own arrangements.",
+        "They do not cover insurance, health or retirement benefits, banking and loans, payroll and payroll tax, or audit and tax preparation. Those are handled separately, through licensed or qualified providers, under their own arrangements.",
       ],
     },
     {

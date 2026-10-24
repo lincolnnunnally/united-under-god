@@ -80,7 +80,7 @@ const STATE_CODES = new Set(US_STATES.map((state) => state.code));
 
 /** The note shown where vendors pick categories. */
 export const LICENSED_VENDOR_NOTE =
-  "Insurance, health and retirement benefits, banking and loans, legal, payroll and payroll tax, and audit and tax preparation are not part of vendor sign-up. They are handled separately through licensed or qualified providers.";
+  "Insurance, health and retirement benefits, banking and loans, payroll and payroll tax, and audit and tax preparation are not part of vendor sign-up. They are handled separately through licensed or qualified providers.";
 
 export type VendorCategoryOption = {
   category: SpendCategory;
