@@ -16,6 +16,7 @@ import { isMissingRelation, loadVerseDays } from "./verse-feed.ts";
 import {
   CONFIRM_CAP_MESSAGE,
   CONFIRM_PER_ADDRESS_PER_DAY,
+  CONFIRM_PER_IPV6_32_PER_DAY,
   CONFIRM_PER_NETWORK_PER_DAY,
   CONFIRM_TTL_SEC,
   LANE_DAILY_RESERVE,
@@ -35,6 +36,7 @@ import {
   confirmHardCeilings,
   confirmMonthBucket,
   confirmNetBucket,
+  confirmWideNetBucket,
   confirmSendAllowed,
   fullPostalAddress,
   indexNowPayload,
@@ -234,6 +236,8 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
       ${caps.monthCap},
       ${confirmNetBucket(ip, now)},
       ${caps.netCap},
+      ${confirmWideNetBucket(ip, now)},
+      ${confirmWideNetBucket(ip, now) ? CONFIRM_PER_IPV6_32_PER_DAY : 0},
       ${otherToday},
       ${otherThisMonth},
       ${caps.dailyHard},
@@ -251,7 +255,13 @@ async function reserveConfirm(sql: Sql, now: Date, ip: string | undefined) {
 async function releaseConfirm(sql: Sql, now: Date, ip: string | undefined) {
   // Same order as verse_reserve_confirm (order by bucket), one row at a time,
   // so a release cannot deadlock with a reservation that holds the other rows.
-  const buckets = [confirmDayBucket(now), confirmMonthBucket(now), confirmNetBucket(ip, now)].sort();
+  const wide = confirmWideNetBucket(ip, now);
+  const buckets = [
+    confirmDayBucket(now),
+    confirmMonthBucket(now),
+    confirmNetBucket(ip, now),
+    ...(wide ? [wide] : []),
+  ].sort();
   for (const bucket of buckets) {
     await sql`
       update verse_confirm_budget
@@ -651,6 +661,11 @@ export async function requestVerseSubscription(
       values (${crypto.randomUUID()}, ${bucket}, ${now.toISOString()}::timestamptz)
     `;
     if ((await budgetUsed(sql, confirmNetBucket(input.ip, now))) >= CONFIRM_PER_NETWORK_PER_DAY) {
+      console.error("[verse-mail] confirm network cap reached");
+      return SAME_REPLY;
+    }
+    const wideBucket = confirmWideNetBucket(input.ip, now);
+    if (wideBucket && (await budgetUsed(sql, wideBucket)) >= CONFIRM_PER_IPV6_32_PER_DAY) {
       console.error("[verse-mail] confirm network cap reached");
       return SAME_REPLY;
     }

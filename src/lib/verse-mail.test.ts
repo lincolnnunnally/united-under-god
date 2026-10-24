@@ -38,9 +38,12 @@ import {
   confirmNetBucket,
   confirmDayCeiling,
   confirmNetwork,
+  confirmWideNetBucket,
+  confirmWideNetwork,
   confirmSendAllowed,
   CONFIRM_CAP_MESSAGE,
   CONFIRM_MONTHLY_CAP,
+  CONFIRM_PER_IPV6_32_PER_DAY,
   CONFIRM_PER_NETWORK_PER_DAY,
   DESK_DAILY_RESERVE,
   DESK_MONTHLY_RESERVE,
@@ -221,6 +224,7 @@ describe("verse mail tokens and caps", () => {
         RESEND_MONTHLY_CAP,
     );
     assert.equal(CONFIRM_PER_NETWORK_PER_DAY, 1);
+    assert.equal(CONFIRM_PER_IPV6_32_PER_DAY, 3);
     assert.equal(LANE_DAILY_RESERVE, DESK_DAILY_CAP + OWNER_DAILY_CAP + AV_DAILY_CAP);
     assert.equal(SHARED_DAILY_CAP - VERSE_DAILY_SEND_CEILING - LANE_DAILY_RESERVE, CONFIRM_DAILY_CAP);
     assert.equal(confirmDayCeiling(false, 0), CONFIRM_DAILY_CAP);
@@ -285,8 +289,15 @@ describe("verse mail tokens and caps", () => {
     assert.equal(confirmNetwork("203.0.113.200"), confirmNetwork("203.0.113.1"));
     assert.notEqual(confirmNetwork("203.0.113.9"), confirmNetwork("203.0.114.9"));
     assert.equal(confirmNetwork("::ffff:203.0.113.9"), "203.0.113.0/24");
+    assert.equal(confirmNetwork("2001:db8:85a3:1::1"), "2001:0db8:85a3::/48");
     assert.equal(confirmNetwork("2001:db8:85a3:1::1"), confirmNetwork("2001:db8:85a3:ffff::2"));
-    assert.equal(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
+    assert.notEqual(confirmNetwork("2001:db8:85a3::1"), confirmNetwork("2001:db8:85a4::1"));
+    assert.equal(confirmWideNetwork("2001:db8:85a3::1"), "2001:0db8::/32");
+    assert.equal(confirmWideNetwork("2001:db8:85a3::1"), confirmWideNetwork("2001:db8:85a4::1"));
+    assert.notEqual(confirmWideNetwork("2001:db8::1"), confirmWideNetwork("2001:db9::1"));
+    assert.equal(confirmWideNetwork("203.0.113.9"), null);
+    assert.equal(confirmWideNetwork("::ffff:203.0.113.9"), null);
+    assert.equal(confirmWideNetwork(""), null);
     assert.notEqual(confirmNetwork("2001:db8::1"), confirmNetwork("2001:db9::1"));
     assert.equal(
       confirmSendAllowed({
@@ -959,7 +970,7 @@ describe("verse subscription store", () => {
 });
 
 describe("verse confirm defenses", { concurrency: false }, () => {
-  it("stops a second confirmation from the same IPv4 /24 and the same IPv6 /32", async () => {
+  it("stops a second confirmation from the same IPv4 /24 and the same IPv6 /48", async () => {
     const { pg, sql } = await db();
     const now = new Date("2026-10-23T21:00:00Z");
     let calls = 0;
@@ -986,10 +997,10 @@ describe("verse confirm defenses", { concurrency: false }, () => {
 
     const firstV6 = await ask(sql, { ...base, email: "v6-1@example.com", ip: "2001:db8:85a3::1" });
     assert.equal(firstV6.ok, true);
-    const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a4::1" });
+    const blockedV6 = await ask(sql, { ...base, email: "v6-more@example.com", ip: "2001:db8:85a3:ffff::1" });
     assert.equal(blockedV6.ok && blockedV6.message.includes("Check your inbox"), true);
     assert.notEqual(blockedV6.ok === false && blockedV6.error, CONFIRM_CAP_MESSAGE);
-    const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db9::1" });
+    const otherV6 = await ask(sql, { ...base, email: "v6-other@example.com", ip: "2001:db8:85a4::1" });
     assert.equal(otherV6.ok, true);
     assert.equal(calls, 4);
     const nets = await sql<{ bucket: string; used: number }>`
@@ -1001,7 +1012,8 @@ describe("verse confirm defenses", { concurrency: false }, () => {
         `${confirmNetBucket("203.0.113.1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
         `${confirmNetBucket("203.0.114.8", now)}=1`,
         `${confirmNetBucket("2001:db8:85a3::1", now)}=${CONFIRM_PER_NETWORK_PER_DAY}`,
-        `${confirmNetBucket("2001:db9::1", now)}=1`,
+        `${confirmNetBucket("2001:db8:85a4::1", now)}=1`,
+        `${confirmWideNetBucket("2001:db8:85a3::1", now)}=2`,
       ].sort(),
     );
     await pg.close();
@@ -2102,18 +2114,22 @@ describe("verse confirm defenses", { concurrency: false }, () => {
     };
     for (let n = 1; n <= 6; n += 1) {
       const result = await ask(sql, { ...base, email: `wide-${n}@example.com`, ip: `2001:db8:${n}::1` });
-      if (n <= CONFIRM_PER_NETWORK_PER_DAY) assert.equal(result.ok, true);
+      if (n <= CONFIRM_PER_IPV6_32_PER_DAY) assert.equal(result.ok, true);
       else assert.equal(result.ok && result.message.includes("Check your inbox"), true);
     }
-    assert.equal(calls, CONFIRM_PER_NETWORK_PER_DAY);
+    assert.equal(calls, CONFIRM_PER_IPV6_32_PER_DAY);
     const day = await sql<{ used: number }>`
       select used from verse_confirm_budget where bucket = ${confirmDayBucket(now)}
     `;
     assert.ok(Number(day[0]?.used) < CONFIRM_DAILY_CAP);
-    assert.equal(Number(day[0]?.used), CONFIRM_PER_NETWORK_PER_DAY);
+    assert.equal(Number(day[0]?.used), CONFIRM_PER_IPV6_32_PER_DAY);
+    const block = await sql<{ used: number }>`
+      select used from verse_confirm_budget where bucket = ${confirmWideNetBucket("2001:db8::1", now)}
+    `;
+    assert.equal(Number(block[0]?.used), CONFIRM_PER_IPV6_32_PER_DAY);
     const other = await ask(sql, { ...base, email: "wide-other@example.com", ip: "2001:db9::1" });
     assert.equal(other.ok, true);
-    assert.equal(calls, CONFIRM_PER_NETWORK_PER_DAY + 1);
+    assert.equal(calls, CONFIRM_PER_IPV6_32_PER_DAY + 1);
     await pg.close();
   });
 

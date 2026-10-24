@@ -264,12 +264,14 @@ grant execute on function reserve_shared_mail(text, integer, integer) to current
 -- The old forms did not read the verse run or hold the desk lanes. Drop them.
 drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer);
 drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer);
+drop function if exists verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer);
 
 -- security invoker (the default): the caller still needs table privileges.
 -- Execute is revoked from the Data API roles below.
 -- other_today and daily_hard stay in the argument list so a caller can pass them.
 -- The letter-sent flag is read here, under the run-row lock, not from the caller.
 -- lane_reserve is desk + owner + church. Those slots stay out of confirmations all day.
+-- wide_bucket is the IPv6 /32. Empty means there is no wider network cap (IPv4).
 create or replace function verse_reserve_confirm(
   day_bucket text,
   day_cap integer,
@@ -277,6 +279,8 @@ create or replace function verse_reserve_confirm(
   month_cap integer,
   net_bucket text,
   net_cap integer,
+  wide_bucket text,
+  wide_cap integer,
   other_today integer,
   other_month integer,
   daily_hard integer,
@@ -295,6 +299,8 @@ declare
   day_used integer := 0;
   month_used integer := 0;
   net_used integer := 0;
+  wide_used integer := 0;
+  wide_on boolean := false;
   shared_used integer := 0;
   lane_used integer := 0;
   run_status text := '';
@@ -304,14 +310,27 @@ declare
   owner_bucket text := 'owner:' || split_part(shared_bucket, ':', 2);
   av_bucket text := 'av:' || split_part(shared_bucket, ':', 2);
 begin
+  wide_on := btrim(coalesce(wide_bucket, '')) <> ''
+    and wide_bucket <> net_bucket
+    and coalesce(wide_cap, 0) > 0;
+
   insert into public.verse_confirm_budget (bucket, used)
   values (day_bucket, 0), (month_bucket, 0), (net_bucket, 0)
   on conflict (bucket) do nothing;
 
+  if wide_on then
+    insert into public.verse_confirm_budget (bucket, used)
+    values (wide_bucket, 0)
+    on conflict (bucket) do nothing;
+  end if;
+
   for rec in
     select bucket, used
     from public.verse_confirm_budget
-    where bucket in (day_bucket, month_bucket, net_bucket)
+    where bucket = day_bucket
+       or bucket = month_bucket
+       or bucket = net_bucket
+       or (wide_on and bucket = wide_bucket)
     order by bucket
     for update
   loop
@@ -321,6 +340,8 @@ begin
       month_used := rec.used;
     elsif rec.bucket = net_bucket then
       net_used := rec.used;
+    elsif rec.bucket = wide_bucket then
+      wide_used := rec.used;
     end if;
   end loop;
 
@@ -368,13 +389,16 @@ begin
     return 'global';
   end if;
 
-  if net_used >= net_cap then
+  if net_used >= net_cap or (wide_on and wide_used >= wide_cap) then
     return 'net';
   end if;
 
   update public.verse_confirm_budget
   set used = used + 1, updated_at = now()
-  where bucket in (day_bucket, month_bucket, net_bucket);
+  where bucket = day_bucket
+     or bucket = month_bucket
+     or bucket = net_bucket
+     or (wide_on and bucket = wide_bucket);
   update public.desk_send_budget
   set used = used + 1, updated_at = now()
   where bucket = shared_bucket;
@@ -382,8 +406,8 @@ begin
 end
 $verse$;
 
-revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from public;
-grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) to current_user;
+revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from public;
+grant execute on function verse_reserve_confirm(text, integer, text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) to current_user;
 
 -- The old 4-argument form did not touch the shared day.
 drop function if exists desk_reserve_send(text, integer, text, integer);
@@ -482,7 +506,7 @@ begin
         role_name
       );
       execute format(
-        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from %I',
+        'revoke all on function verse_reserve_confirm(text, integer, text, integer, text, integer, text, integer, integer, integer, integer, integer, text, integer, text, integer, integer) from %I',
         role_name
       );
       execute format(

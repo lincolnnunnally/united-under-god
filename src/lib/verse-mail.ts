@@ -50,10 +50,16 @@ export const CONFIRM_PER_ADDRESS_PER_DAY = 3;
 
 /**
  * Confirmation notes from one network, per UTC day.
- * IPv4 is a /24. IPv6 is a /32. A missing address uses the shared bucket.
- * One a day, so five distinct networks are what fills the confirm lane.
+ * IPv4 is a /24. IPv6 is a /48. A missing address uses the shared bucket.
+ * One a day.
  */
 export const CONFIRM_PER_NETWORK_PER_DAY = 1;
+
+/**
+ * A looser cap on one IPv6 /32. That block is often a whole provider,
+ * so three /48s inside it can confirm, and the fourth waits until tomorrow.
+ */
+export const CONFIRM_PER_IPV6_32_PER_DAY = 3;
 
 /**
  * Desk, owner, and church letters stay reserved all day.
@@ -331,15 +337,21 @@ export function confirmMonthBucket(now = new Date()) {
   return `month:${utcMonthStart(now).slice(0, 7)}`;
 }
 
-/** One network's confirm reservation for this UTC day. */
+/** One network's confirm reservation for this UTC day. IPv4 /24 or IPv6 /48. */
 export function confirmNetBucket(ip: string | undefined, now = new Date()) {
   return `net:${confirmNetwork(ip)}:${utcDayStart(now).slice(0, 10)}`;
 }
 
+/** The IPv6 /32 reservation for this UTC day. IPv4 and unreadable addresses have none. */
+export function confirmWideNetBucket(ip: string | undefined, now = new Date()) {
+  const network = confirmWideNetwork(ip);
+  if (!network) return "";
+  return `net:${network}:${utcDayStart(now).slice(0, 10)}`;
+}
+
 /**
  * Network a confirmation counts against.
- * IPv4 is the /24. IPv6 is the /32, so many /48s inside one block share one lane.
- * An empty or unreadable address uses the shared bucket.
+ * IPv4 is the /24. IPv6 is the /48. An empty or unreadable address uses the shared bucket.
  */
 export function confirmNetwork(ip: string | undefined) {
   let value = unwrapIp(ip);
@@ -356,6 +368,18 @@ export function confirmNetwork(ip: string | undefined) {
   if (!value.includes(":")) return SHARED_IP_BUCKET;
   const groups = expandIpv6(value);
   if (!groups) return SHARED_IP_BUCKET;
+  return `${groups
+    .slice(0, 3)
+    .map((group) => group.padStart(4, "0"))
+    .join(":")}::/48`;
+}
+
+/** IPv6 /32. Null for IPv4, IPv4-mapped addresses, and unreadable addresses. */
+export function confirmWideNetwork(ip: string | undefined) {
+  const value = unwrapIp(ip);
+  if (!value || !value.includes(":") || /^::ffff:\d{1,3}(?:\.\d{1,3}){3}$/i.test(value)) return null;
+  const groups = expandIpv6(value);
+  if (!groups) return null;
   return `${groups
     .slice(0, 2)
     .map((group) => group.padStart(4, "0"))
