@@ -70,6 +70,8 @@ export const listReportVendorsFn = createServerFn({ method: "GET" }).handler(
 );
 
 const reportInput = z.object({
+  problemType: z.string().max(40).optional().default(""),
+  referenceCode: z.string().max(40).optional().default(""),
   churchName: z.string().max(400),
   contactName: z.string().max(400),
   email: z.string().max(400),

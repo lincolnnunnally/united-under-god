@@ -15,5 +15,8 @@
   ],
   "rewrites": [
     { "source": "/favicon.ico", "destination": "/favicon.svg" }
+  ],
+  "crons": [
+    { "path": "/api/cron/price-review", "schedule": "17 12 * * *" }
   ]
 }

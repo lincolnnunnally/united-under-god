@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
-import { PROGRAM_MIGRATIONS, freshProgramDb } from "./program-test-db.ts";
+import { ATTESTED, PROGRAM_MIGRATIONS, freshProgramDb } from "./program-test-db.ts";
 import { bidTemplate, getSpendCategory, SPEND_CATEGORIES, isLicensed } from "./church-spend.ts";
 import { addQuote, createBid, readDesk, setItemWinners } from "./source-store.ts";
 import { cleanVendorSignup, createVendor, updateVendor, type VendorSignupInput } from "./vendor-store.ts";
@@ -313,7 +313,7 @@ test("ranking from the database: quotes set the price score, awards set the reco
   const quote = async (vendorId: string, price: string) => {
     const quoteId = await addQuote(
       sql,
-      { bidId, vendorName: vendorId, lines: items.map((item) => ({ itemId: item.id, unitPrice: price })) },
+      { bidId, vendorName: vendorId, ...ATTESTED, lines: items.map((item) => ({ itemId: item.id, unitPrice: price })) },
       "lincoln",
     );
     // Tie the desk quote to the program vendor, as an online quote would be.
@@ -342,7 +342,10 @@ test("ranking from the database: quotes set the price score, awards set the reco
   assert.equal(read.vendors[2]!.score, null);
   assert.equal(read.vendors[2]!.newToProgram, true);
   const json = JSON.stringify(read);
-  assert.ok(!/ineligible|rebate|referral|dana@|email/i.test(json), "no reasons, fees, or emails in the public read");
+  assert.ok(!/ineligible|rebate|referral/i.test(json), "no reasons or fees in the listing");
+  // The vendor's own email is in the full (member) read so churches can order
+  // directly (owner, 2026-10-27); vendor-listing.test.ts proves non-members never get it.
+  assert.ok(read.vendors.every((row) => typeof row.email === "string"));
 
   // A licensed catalog has no vendors and no ranking.
   const licensed = SPEND_CATEGORIES.find((category) => !isRankedCategory(category))!;

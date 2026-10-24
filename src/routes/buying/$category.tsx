@@ -2,8 +2,9 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { CatalogVendors } from "@/components/catalog-vendors";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
-import { BecomeMemberCta, MemberGate, MemberLockedLine } from "@/components/member-gate";
-import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
+import { BecomeMemberCta, MemberLockedLine } from "@/components/member-gate";
+import { PriceLabel, ProgramPrice } from "@/components/program-price";
+import { ReportProblemLink } from "@/components/report-problem";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,7 @@ import {
   type CatalogItemView,
   type SpendCategory,
 } from "@/lib/church-spend";
-import { listCatalogBookForViewer } from "@/lib/membership-actions";
+import { listCatalogBookForViewer, type ViewerBookEntry } from "@/lib/membership-actions";
 import { readCatalogVendorsFn } from "@/lib/public-vendor-actions";
 import { absoluteUrl, pageHead, serviceJsonLd } from "@/lib/seo";
 
@@ -177,20 +178,9 @@ function CategoryPage() {
                 <li key={entry.id} className="px-5 py-4">
                   <div className="flex flex-wrap items-baseline justify-between gap-2">
                     <p className="font-medium">{entry.title}</p>
-                    {entry.locked ? (
-                      <p className="text-sm text-forest">Group price</p>
-                    ) : (
-                      <p className="text-sm font-medium text-forest">
-                        ${entry.unitPrice}
-                        {entry.unit ? ` / ${entry.unit}` : ""}
-                      </p>
-                    )}
+                    <PriceLabel entry={entry as ViewerBookEntry} />
                   </div>
-                  <MemberGate member={member && !entry.locked} compact className="mt-1">
-                    <p className="mt-1 text-sm text-muted">{entry.vendorName}</p>
-                    {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
-                    {entry.notes ? <p className="mt-1 text-sm text-muted">{entry.notes}</p> : null}
-                  </MemberGate>
+                  <ProgramPrice entry={entry as ViewerBookEntry} className="mt-1" />
                 </li>
               ))}
             </ul>
@@ -264,6 +254,8 @@ function RequirementNote({ note }: { note: string }) {
 
 function CatalogRow({ row, member }: { row: CatalogItemView; member: boolean }) {
   const { item, status, prices } = row;
+  const refreshing = prices.length > 0 && prices.every((entry) => entry.priceStatus === "ended");
+  const current = prices.filter((entry) => entry.priceStatus !== "ended");
   return (
     <li className="px-5 py-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -271,31 +263,25 @@ function CatalogRow({ row, member }: { row: CatalogItemView; member: boolean }) 
         <p
           className={status === "priced" ? "text-sm font-medium text-forest" : "text-sm text-muted"}
         >
-          {STATUS_TEXT[status]}
+          {refreshing ? "Being refreshed" : STATUS_TEXT[status]}
         </p>
       </div>
       <p className="mt-1 text-sm text-muted">
         {MODEL_LABELS[item.model]} · unit: {item.unit} · {item.frequency}
       </p>
-      {prices.length && (!member || prices.every((entry) => entry.locked)) ? (
+      {refreshing ? (
+        <p className="mt-2 text-sm text-muted">Price term ended, being refreshed.</p>
+      ) : current.length && (!member || current.every((entry) => entry.locked)) ? (
         <MemberLockedLine
-          what={prices.length > 1 ? "the prices and vendors" : "the price and vendor"}
+          what={current.length > 1 ? "the prices and vendors" : "the price and vendor"}
           className="mt-2"
         />
-      ) : prices.length ? (
-        <ul className="mt-2 grid gap-1 text-sm">
-          {prices.map((entry) => (
+      ) : current.length ? (
+        <ul className="mt-3 grid gap-4">
+          {current.map((entry) => (
             <li key={entry.id}>
-              <span className="font-medium text-forest">
-                ${entry.unitPrice}
-                {entry.unit ? ` / ${entry.unit}` : ""}
-              </span>
-              <span className="text-muted">
-                {" "}
-                · {entry.vendorName}
-                {entry.notes ? ` · ${entry.notes}` : ""}
-              </span>
-              {entry.covenant ? <CovenantBadge className="ml-1" /> : null}
+              <PriceLabel entry={entry as ViewerBookEntry} />
+              <ProgramPrice entry={entry as ViewerBookEntry} className="mt-1" />
             </li>
           ))}
         </ul>

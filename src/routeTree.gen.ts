@@ -62,6 +62,7 @@ import { Route as VerseIndexRouteImport } from './routes/verse/index'
 import { Route as VerseSlugRouteImport } from './routes/verse/$slug'
 import { Route as ApiAdminStatsRouteImport } from './routes/api/admin/stats'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCronPriceReviewRouteImport } from './routes/api/cron/price-review'
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiVendorFilesIndexRouteImport } from './routes/api/vendor-files/index'
 import { Route as ApiVendorFilesIdRouteImport } from './routes/api/vendor-files/$id'
@@ -344,6 +345,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCronPriceReviewRoute = ApiCronPriceReviewRouteImport.update({
+  id: '/api/cron/price-review',
+  path: '/api/cron/price-review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
   id: '/api/stripe/webhook',
   path: '/api/stripe/webhook',
@@ -469,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
@@ -535,6 +542,7 @@ export interface FileRoutesByTo {
   '/verse': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
@@ -605,6 +613,7 @@ export interface FileRoutesById {
   '/verse/': typeof VerseIndexRoute
   '/api/admin/stats': typeof ApiAdminStatsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
@@ -676,6 +685,7 @@ export interface FileRouteTypes {
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
@@ -742,6 +752,7 @@ export interface FileRouteTypes {
     | '/verse'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
@@ -811,6 +822,7 @@ export interface FileRouteTypes {
     | '/verse/'
     | '/api/admin/stats'
     | '/api/auth/$'
+    | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
     | '/buying/bids/$id'
@@ -862,6 +874,7 @@ export interface RootRouteChildren {
   VerseIndexRoute: typeof VerseIndexRoute
   ApiAdminStatsRoute: typeof ApiAdminStatsRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCronPriceReviewRoute: typeof ApiCronPriceReviewRoute
   ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiVendorFilesIdRoute: typeof ApiVendorFilesIdRoute
   ChurchAvStateCityRoute: typeof ChurchAvStateCityRoute
@@ -1246,6 +1259,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/cron/price-review': {
+      id: '/api/cron/price-review'
+      path: '/api/cron/price-review'
+      fullPath: '/api/cron/price-review'
+      preLoaderRoute: typeof ApiCronPriceReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/stripe/webhook': {
       id: '/api/stripe/webhook'
       path: '/api/stripe/webhook'
@@ -1468,6 +1488,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerseIndexRoute: VerseIndexRoute,
   ApiAdminStatsRoute: ApiAdminStatsRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCronPriceReviewRoute: ApiCronPriceReviewRoute,
   ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiVendorFilesIdRoute: ApiVendorFilesIdRoute,
   ChurchAvStateCityRoute: ChurchAvStateCityRoute,

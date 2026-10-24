@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
 import { bidTemplate } from "./church-spend.ts";
+import { ATTESTED } from "./program-test-db.ts";
 import {
   addBusinessDays,
   addCaseEntry,
@@ -76,6 +77,7 @@ const MIGRATIONS = [
   "0006_source_bid_category.sql",
   "0007_source_vendors.sql",
   "0008_source_vendor_cases.sql",
+  "0012_program_price_honor.sql",
 ];
 
 async function fresh() {
@@ -764,6 +766,7 @@ test("the public book shows only 'stands behind the covenant' and hides suspende
   const { quoteId } = await submitOnlineQuote(sql, {
     bidId,
     token,
+    ...ATTESTED,
     lines: [{ itemId: item.id, unitPrice: "61" }],
   });
   await setItemWinners(sql, item.id, [quoteId], "lincoln");

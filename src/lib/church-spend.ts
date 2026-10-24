@@ -437,6 +437,8 @@ export type CatalogBookEntry = {
   catalogItem: string;
   /** The vendor stands behind the Vendor Covenant (see listBook). */
   covenant?: boolean;
+  /** 'ended' once the price term has passed: shown as being refreshed, not as a price. */
+  priceStatus?: "current" | "ended";
   /**
    * Vendor, price, and notes were withheld on the server because the viewer
    * is not a member church (see entriesForViewer in membership.ts).
@@ -478,7 +480,9 @@ export function catalogView(
 ): CatalogView {
   // A locked entry still counts as priced: the price exists, the viewer is not a member.
   const mine = book.filter(
-    (entry) => entry.category === category.id && (entry.unitPrice.trim() || entry.locked),
+    (entry) =>
+      entry.category === category.id &&
+      (entry.unitPrice.trim() || entry.locked || entry.priceStatus === "ended"),
   );
   const open = new Set(
     bidding.filter((row) => row.category === category.id).map((row) => row.catalogItem),

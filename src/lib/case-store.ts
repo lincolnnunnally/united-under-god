@@ -110,7 +110,22 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 // The church's report
 // ---------------------------------------------------------------------------
 
+/** The kinds of problem a church can pick. '' is "something else". */
+export const PROBLEM_TYPES = ["", "price_not_honored"] as const;
+export type ProblemType = (typeof PROBLEM_TYPES)[number];
+
+export const PROBLEM_TYPE_LABELS: Record<ProblemType, string> = {
+  "": "Something else",
+  price_not_honored: "Program price not honored",
+};
+
+const REFERENCE = /^UUG-\d{4}-\d{4,}$/;
+
 export type ReportInput = {
+  /** '' or price_not_honored. */
+  problemType?: string;
+  /** The program reference the church gave the vendor, if any (UUG-2026-0142). */
+  referenceCode?: string;
   churchName: string;
   contactName: string;
   email: string;
@@ -122,7 +137,10 @@ export type ReportInput = {
   wanted: string;
 };
 
-export type CleanReport = ReportInput;
+export type CleanReport = Omit<ReportInput, "problemType" | "referenceCode"> & {
+  problemType: ProblemType;
+  referenceCode: string;
+};
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -146,7 +164,16 @@ export function cleanReport(input: ReportInput): CleanReport {
   const purchasedOn = need(input.purchasedOn, "Tell us about when you bought it.", 80);
   const problem = need(input.problem, "Tell us what went wrong.", 4000);
   const wanted = need(input.wanted, "Tell us what would make it right.", 2000);
+  const problemType = (PROBLEM_TYPES as readonly string[]).includes(input.problemType ?? "")
+    ? ((input.problemType ?? "") as ProblemType)
+    : "";
+  const referenceCode = (input.referenceCode ?? "").trim().toUpperCase().replace(/\s+/g, "");
+  if (referenceCode && !REFERENCE.test(referenceCode)) {
+    throw new Error("A program reference looks like UUG-2026-0142. Leave it blank if you do not have one.");
+  }
   return {
+    problemType,
+    referenceCode,
     churchName,
     contactName,
     email,
@@ -182,17 +209,28 @@ export async function createCase(
   if (!vendor || (vendor.status !== "approved" && vendor.status !== "paused")) {
     throw new Error("Pick the vendor you bought from on the list.");
   }
+  if (report.referenceCode) {
+    const known = await sql`
+      select id from source_buying_book where reference_code = ${report.referenceCode}
+    `;
+    if (!known[0]) {
+      throw new Error(
+        "We could not find that program reference. Check it against the catalog, or leave it blank.",
+      );
+    }
+  }
   const id = crypto.randomUUID();
   const at = (meta.now ?? new Date()).toISOString();
   await sql`
     insert into source_cases (
       id, status, church_name, contact_name, email, phone, vendor_id, vendor_name,
-      purchase, purchased_on, problem, wanted, report_ip, created_at, updated_at
+      purchase, purchased_on, problem, wanted, report_ip, created_at, updated_at,
+      problem_type, reference_code
     ) values (
       ${id}, ${"open"}, ${report.churchName}, ${report.contactName}, ${report.email},
       ${report.phone}, ${report.vendorId}, ${String(vendor.company)}, ${report.purchase},
       ${report.purchasedOn}, ${report.problem}, ${report.wanted}, ${meta.ip.slice(0, 80)},
-      ${at}, ${at}
+      ${at}, ${at}, ${report.problemType}, ${report.referenceCode}
     )
   `;
   await addEvent(
@@ -206,13 +244,20 @@ export async function createCase(
   return { id, vendorName: String(vendor.company) };
 }
 
-function reportBody(report: Pick<CleanReport, "purchase" | "purchasedOn" | "problem" | "wanted">) {
+function reportBody(
+  report: Pick<CleanReport, "purchase" | "purchasedOn" | "problem" | "wanted"> &
+    Partial<Pick<CleanReport, "problemType" | "referenceCode">>,
+) {
   return [
+    report.problemType ? `Problem: ${PROBLEM_TYPE_LABELS[report.problemType]}` : "",
+    report.referenceCode ? `Program reference: ${report.referenceCode}` : "",
     `What was bought: ${report.purchase}`,
     `When: ${report.purchasedOn}`,
     `What went wrong: ${report.problem}`,
     `What would make it right: ${report.wanted}`,
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
 
 /** The owner's notice for a new report. */
@@ -221,7 +266,7 @@ export function reportNotice(
   meta: { id: string; vendorName: string; saved: boolean },
 ) {
   return {
-    subject: `${meta.saved ? "" : "NOT SAVED: "}Problem reported with ${meta.vendorName}: ${report.churchName}`,
+    subject: `${meta.saved ? "" : "NOT SAVED: "}${report.problemType === "price_not_honored" ? "Program price not honored" : "Problem reported"} with ${meta.vendorName}: ${report.churchName}`,
     text: [
       meta.saved
         ? "A church reported a problem with a program vendor. It is a new open case on the desk: https://www.unitedundergod.org/buying/desk"
@@ -267,6 +312,8 @@ export type CommitteePerson = { id: string; name: string; email: string; active:
 export type CaseRow = {
   id: string;
   status: CaseStatus;
+  problemType: ProblemType;
+  referenceCode: string;
   churchName: string;
   contactName: string;
   email: string;
@@ -337,6 +384,8 @@ function mapCase(row: Record<string, unknown>, today: string): CaseRow {
   const base = {
     id: text(row.id),
     status: pick(row.status, CASE_STATUSES) || "open",
+    problemType: pick(row.problem_type, PROBLEM_TYPES.filter(Boolean)) as ProblemType,
+    referenceCode: text(row.reference_code),
     churchName: text(row.church_name),
     contactName: text(row.contact_name),
     email: text(row.email),
@@ -494,7 +543,8 @@ export function vendorNoticeEmail(args: {
   row: Pick<
     CaseRow,
     "churchName" | "contactName" | "purchase" | "purchasedOn" | "problem" | "wanted"
-  >;
+  > &
+    Partial<Pick<CaseRow, "problemType" | "referenceCode">>;
   vendor: Pick<VendorRow, "company" | "contactName">;
   link: string;
   due: string;
@@ -512,6 +562,8 @@ export function vendorNoticeEmail(args: {
       "",
       `Church: ${row.churchName}`,
       `Contact: ${row.contactName}`,
+      ...(row.problemType ? [`Problem: ${PROBLEM_TYPE_LABELS[row.problemType]}`] : []),
+      ...(row.referenceCode ? [`Program reference: ${row.referenceCode}`] : []),
       `What was bought: ${row.purchase}`,
       `When: ${row.purchasedOn}`,
       "",

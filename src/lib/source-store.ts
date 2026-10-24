@@ -1,6 +1,15 @@
 import type { Sql } from "@/lib/db";
 import { checkBidCategory } from "./church-spend.ts";
 import { acceptedCovenant } from "./vendor-terms.ts";
+import { requireAttestedContact, type PriceContact } from "./price-contact.ts";
+import {
+  DEFAULT_TERM_MONTHS,
+  cleanTermMonths,
+  isoDay,
+  nextReference,
+  priceEnded,
+  termDates,
+} from "./price-term.ts";
 
 /** Canonical money text: digits with an optional decimal, up to two places. */
 const PRICE = /^(?:\d+)(?:\.\d{1,2})?$/;
@@ -37,6 +46,10 @@ export type AddQuoteInput = {
   vendorContact?: string;
   notes?: string;
   lines: QuoteLineInput[];
+  /** The senior person at the vendor authorized to bind it to these prices. Required. */
+  priceContact?: Partial<PriceContact>;
+  /** That person attested (the owner ticks it on their word). Required. */
+  attested?: boolean;
 };
 
 export type SourceItem = {
@@ -65,6 +78,12 @@ export type SourceQuote = {
   source: string;
   /** The source_vendors id behind an online quote ('' for desk quotes). */
   vendorId: string;
+  /** The authorized price contact, the words attested, and when. */
+  priceContact: PriceContact;
+  attestation: string;
+  attestedAt: string;
+  /** 'updated': the vendor sent updated prices from the portal, waiting for the owner. */
+  refreshStatus: string;
   createdAt: string;
   updatedAt: string;
   lines: SourceQuoteLine[];
@@ -89,6 +108,13 @@ export type SourceBookEntry = {
   quantity: string;
   notes: string;
   publishedAt: string;
+  /** The program price reference, e.g. UUG-2026-0142 ('' until assigned). */
+  referenceCode: string;
+  effectiveOn: string;
+  /** The last day the price is good. */
+  expiresOn: string;
+  termMonths: number;
+  priceContact: PriceContact;
 };
 
 export type SourceBid = {
@@ -101,6 +127,8 @@ export type SourceBid = {
   /** States the bid is for ('' = anywhere). */
   area: string;
   status: string;
+  /** The price term, in months, for prices awarded from this bid. */
+  priceTermMonths: number;
   createdAt: string;
   items: SourceItem[];
   quotes: SourceQuote[];
@@ -131,6 +159,22 @@ export type PublicBookEntry = {
    * Covenant. The only standing fact a public page shows; never case details.
    */
   covenant: boolean;
+  /**
+   * 'current' while the price term runs; 'ended' once it has passed. An ended
+   * price is not shown as current: its price, reference, and contact are
+   * blanked here, on the server.
+   */
+  priceStatus: "current" | "ended";
+  /** The program reference a church gives the vendor ('' when ended). */
+  referenceCode: string;
+  /** The last day the price is good ('' when ended). */
+  goodThrough: string;
+  /** The authorized price contact at the vendor (blank when ended). */
+  priceContact: PriceContact;
+  /** The program vendor behind the price ('' for a quote typed in at the desk). */
+  vendorId: string;
+  /** The vendor's main email, for ordering directly. */
+  vendorEmail: string;
 };
 
 /** A church-spend item that is on a bid still open for quotes. No prices, no vendors. */
@@ -287,6 +331,11 @@ export async function addQuote(sql: Sql, input: AddQuoteInput, userId: string) {
   const vendorName = requireText(input.vendorName, "Name the vendor.", 160);
   const vendorContact = (input.vendorContact ?? "").trim().slice(0, 240);
   const notes = (input.notes ?? "").trim().slice(0, 2000);
+  // Every price in the program is backed by someone who can bind the vendor to it.
+  const { contact, attestation } = requireAttestedContact(
+    { contact: input.priceContact, attested: input.attested },
+    vendorName,
+  );
   const bids = await sql<{ id: string; status: string }>`
     select id, status from source_bid_requests where id = ${input.bidId}
   `;
@@ -322,7 +371,9 @@ export async function addQuote(sql: Sql, input: AddQuoteInput, userId: string) {
   const quoteId = crypto.randomUUID();
   await sql`
     insert into source_quotes (
-      id, bid_id, vendor_name, vendor_contact, notes, status, created_by
+      id, bid_id, vendor_name, vendor_contact, notes, status, created_by,
+      price_contact_name, price_contact_title, price_contact_email, price_contact_phone,
+      price_attestation, price_attested_at, price_attested_ip
     ) values (
       ${quoteId},
       ${input.bidId},
@@ -330,7 +381,9 @@ export async function addQuote(sql: Sql, input: AddQuoteInput, userId: string) {
       ${vendorContact},
       ${notes},
       ${"received"},
-      ${userId}
+      ${userId},
+      ${contact.name}, ${contact.title}, ${contact.email}, ${contact.phone},
+      ${attestation}, ${new Date().toISOString()}, ${""}
     )
   `;
   for (const line of priced) {
@@ -346,6 +399,17 @@ export async function addQuote(sql: Sql, input: AddQuoteInput, userId: string) {
     `;
   }
   return quoteId;
+}
+
+/** The price term for prices awarded from this bid: 6, 12, or a custom number of months. */
+export async function setBidTerm(sql: Sql, bidId: string, raw: unknown) {
+  const months = cleanTermMonths(raw);
+  const rows = await sql`
+    update source_bid_requests set price_term_months = ${months}, updated_at = now()
+    where id = ${bidId} returning id
+  `;
+  if (!rows[0]) throw new Error("That bid is not on the desk.");
+  return months;
 }
 
 export async function setQuoteStatus(sql: Sql, quoteId: string, status: string) {
@@ -413,7 +477,12 @@ export async function setItemWinners(sql: Sql, itemId: string, quoteIds: string[
   }
 }
 
-export async function publishAward(sql: Sql, awardId: string, userId: string) {
+export async function publishAward(
+  sql: Sql,
+  awardId: string,
+  userId: string,
+  options: { today?: string } = {},
+) {
   const rows = await sql`
     select
       a.id as award_id,
@@ -424,12 +493,15 @@ export async function publishAward(sql: Sql, awardId: string, userId: string) {
       i.unit,
       q.vendor_name,
       q.status as quote_status,
+      q.price_contact_name, q.price_contact_title, q.price_contact_email, q.price_contact_phone,
+      r.price_term_months,
       l.unit_price,
       l.notes
     from source_awards a
     join source_bid_items i on i.id = a.item_id
     join source_quotes q on q.id = a.quote_id
     join source_quote_lines l on l.quote_id = a.quote_id and l.item_id = a.item_id
+    join source_bid_requests r on r.id = i.bid_id
     where a.id = ${awardId}
   `;
   const row = rows[0];
@@ -444,12 +516,22 @@ export async function publishAward(sql: Sql, awardId: string, userId: string) {
     select id from source_buying_book where award_id = ${awardId}
   `;
   if (existing[0]) return existing[0].id;
+  if (!text(row.price_contact_name).trim()) {
+    throw new Error(
+      "This quote has no authorized price contact. Record the quote again with the person who can commit the vendor to these prices.",
+    );
+  }
 
+  const months = Number(row.price_term_months) || DEFAULT_TERM_MONTHS;
+  const term = termDates(options.today ?? isoDay(), months);
+  const referenceCode = await nextReference(sql, Number(term.effectiveOn.slice(0, 4)));
   const id = crypto.randomUUID();
   await sql`
     insert into source_buying_book (
       id, award_id, bid_id, item_id, title, vendor_name,
-      unit_price, unit, quantity, notes, published_by
+      unit_price, unit, quantity, notes, published_by,
+      reference_code, effective_on, expires_on, term_months,
+      price_contact_name, price_contact_title, price_contact_email, price_contact_phone
     ) values (
       ${id},
       ${awardId},
@@ -461,7 +543,10 @@ export async function publishAward(sql: Sql, awardId: string, userId: string) {
       ${text(row.unit)},
       ${text(row.quantity)},
       ${text(row.notes)},
-      ${userId}
+      ${userId},
+      ${referenceCode}, ${term.effectiveOn}, ${term.expiresOn}, ${months},
+      ${text(row.price_contact_name)}, ${text(row.price_contact_title)},
+      ${text(row.price_contact_email)}, ${text(row.price_contact_phone)}
     )
   `;
   return id;
@@ -478,6 +563,15 @@ function mapItem(row: Record<string, unknown>): SourceItem {
   };
 }
 
+function contactOf(row: Record<string, unknown>, prefix = "price_contact_"): PriceContact {
+  return {
+    name: text(row[`${prefix}name`]),
+    title: text(row[`${prefix}title`]),
+    email: text(row[`${prefix}email`]),
+    phone: text(row[`${prefix}phone`]),
+  };
+}
+
 function mapQuote(row: Record<string, unknown>, lines: SourceQuoteLine[]): SourceQuote {
   return {
     id: text(row.id),
@@ -487,6 +581,10 @@ function mapQuote(row: Record<string, unknown>, lines: SourceQuoteLine[]): Sourc
     status: text(row.status),
     source: text(row.source) || "desk",
     vendorId: text(row.vendor_id),
+    priceContact: contactOf(row),
+    attestation: text(row.price_attestation),
+    attestedAt: row.price_attested_at ? iso(row.price_attested_at) : "",
+    refreshStatus: text(row.refresh_status),
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
     lines,
@@ -506,6 +604,11 @@ function mapBook(row: Record<string, unknown>): SourceBookEntry {
     quantity: text(row.quantity),
     notes: text(row.notes),
     publishedAt: iso(row.published_at),
+    referenceCode: text(row.reference_code),
+    effectiveOn: text(row.effective_on),
+    expiresOn: text(row.expires_on),
+    termMonths: Number(row.term_months ?? DEFAULT_TERM_MONTHS) || DEFAULT_TERM_MONTHS,
+    priceContact: contactOf(row),
   };
 }
 
@@ -547,6 +650,7 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
         subcategory: text(bid.subcategory),
         area: text(bid.area),
         status: text(bid.status),
+        priceTermMonths: Number(bid.price_term_months ?? DEFAULT_TERM_MONTHS) || DEFAULT_TERM_MONTHS,
         createdAt: iso(bid.created_at),
         items: items.filter((row) => text(row.bid_id) === bidId).map(mapItem),
         quotes: quotes
@@ -570,13 +674,23 @@ export async function readDesk(sql: Sql): Promise<SourceDesk> {
   };
 }
 
-export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
+export async function listBook(
+  sql: Sql,
+  options: { today?: string } = {},
+): Promise<PublicBookEntry[]> {
+  const today = options.today ?? isoDay();
   // to_jsonb(...) ->> reads the category columns without naming them, so the
   // public page keeps working on a database where 0006 is not applied yet.
   const rows = await sql`
     select
-      b.id, b.title, b.vendor_name, b.unit_price, b.unit, b.quantity, b.notes,
+      b.id, b.item_id, b.title, b.vendor_name, b.unit_price, b.unit, b.quantity, b.notes,
       b.published_at,
+      coalesce(to_jsonb(b) ->> 'reference_code', '') as reference_code,
+      coalesce(to_jsonb(b) ->> 'expires_on', '') as expires_on,
+      coalesce(to_jsonb(b) ->> 'price_contact_name', '') as price_contact_name,
+      coalesce(to_jsonb(b) ->> 'price_contact_title', '') as price_contact_title,
+      coalesce(to_jsonb(b) ->> 'price_contact_email', '') as price_contact_email,
+      coalesce(to_jsonb(b) ->> 'price_contact_phone', '') as price_contact_phone,
       coalesce(to_jsonb(r) ->> 'category', '') as category,
       coalesce(to_jsonb(i) ->> 'catalog_item', '') as catalog_item,
       coalesce(to_jsonb(q) ->> 'vendor_id', '') as vendor_id
@@ -591,21 +705,40 @@ export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
     sql,
     [...new Set(rows.map((row) => text(row.vendor_id)).filter(Boolean))],
   );
+  // An ended price stays on the page as "being refreshed" only until a newer
+  // award for the same item is published; then the current one stands alone.
+  const currentItems = new Set(
+    rows.filter((row) => !priceEnded(text(row.expires_on), today)).map((row) => text(row.item_id)),
+  );
   return rows
     .filter((row) => standing.get(text(row.vendor_id))?.listed ?? true)
-    .map((row) => ({
-      id: text(row.id),
-      title: text(row.title),
-      vendorName: text(row.vendor_name),
-      unitPrice: text(row.unit_price),
-      unit: text(row.unit),
-      quantity: text(row.quantity),
-      notes: text(row.notes),
-      category: text(row.category),
-      catalogItem: text(row.catalog_item),
-      publishedAt: iso(row.published_at),
-      covenant: standing.get(text(row.vendor_id))?.covenant ?? false,
-    }));
+    .filter((row) => !priceEnded(text(row.expires_on), today) || !currentItems.has(text(row.item_id)))
+    .map((row) => {
+      const ended = priceEnded(text(row.expires_on), today);
+      const vendorId = text(row.vendor_id);
+      return {
+        id: text(row.id),
+        title: text(row.title),
+        vendorName: text(row.vendor_name),
+        // An ended price is not shown as current anywhere: it leaves here blank.
+        unitPrice: ended ? "" : text(row.unit_price),
+        unit: text(row.unit),
+        quantity: text(row.quantity),
+        notes: ended ? "" : text(row.notes),
+        category: text(row.category),
+        catalogItem: text(row.catalog_item),
+        publishedAt: iso(row.published_at),
+        covenant: standing.get(vendorId)?.covenant ?? false,
+        priceStatus: ended ? ("ended" as const) : ("current" as const),
+        referenceCode: ended ? "" : text(row.reference_code),
+        goodThrough: ended ? "" : text(row.expires_on),
+        priceContact: ended
+          ? { name: "", title: "", email: "", phone: "" }
+          : contactOf(row),
+        vendorId,
+        vendorEmail: standing.get(vendorId)?.email ?? "",
+      };
+    });
 }
 
 /**
@@ -617,13 +750,13 @@ export async function listBook(sql: Sql): Promise<PublicBookEntry[]> {
 async function vendorListing(
   sql: Sql,
   ids: string[],
-): Promise<Map<string, { listed: boolean; covenant: boolean }>> {
-  const out = new Map<string, { listed: boolean; covenant: boolean }>();
+): Promise<Map<string, { listed: boolean; covenant: boolean; email: string }>> {
+  const out = new Map<string, { listed: boolean; covenant: boolean; email: string }>();
   if (ids.length === 0) return out;
   let rows: Record<string, unknown>[];
   try {
     rows = await sql`
-      select id, status, terms_version, coalesce(to_jsonb(v) ->> 'consequence', '') as consequence
+      select id, status, terms_version, email, coalesce(to_jsonb(v) ->> 'consequence', '') as consequence
       from source_vendors v where id = any(${ids})
     `;
   } catch (err) {
@@ -638,6 +771,7 @@ async function vendorListing(
     out.set(text(row.id), {
       listed: status !== "removed" && !suspended,
       covenant: status === "approved" && acceptedCovenant(text(row.terms_version)),
+      email: text(row.email),
     });
   }
   return out;

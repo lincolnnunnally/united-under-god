@@ -8,6 +8,7 @@ import {
   CASE_STATUS_LABELS,
   FINDINGS,
   FINDING_LABELS,
+  PROBLEM_TYPE_LABELS,
   REMEDY_KINDS,
   REMEDY_LABELS,
   describeRemedy,
@@ -105,6 +106,7 @@ function CaseCard({ row, desk, onRun }: { row: CaseRow; desk: DeskView; onRun: R
         <summary className="flex min-h-11 cursor-pointer flex-wrap items-baseline justify-between gap-2">
           <span className="font-medium">
             {row.churchName} · {row.vendorName}
+            {row.problemType ? ` · ${PROBLEM_TYPE_LABELS[row.problemType]}` : ""}
           </span>
           <span className="text-xs uppercase tracking-[0.14em] text-subtle">
             {CASE_STATUS_LABELS[row.status]}
@@ -118,6 +120,14 @@ function CaseCard({ row, desk, onRun }: { row: CaseRow; desk: DeskView; onRun: R
             <p>
               {row.contactName} · {row.email} · {row.phone}
             </p>
+            {row.problemType ? (
+              <p className="font-medium text-ink">
+                {PROBLEM_TYPE_LABELS[row.problemType]}
+                {row.referenceCode ? ` · reference ${row.referenceCode}` : " · no reference given"}
+              </p>
+            ) : row.referenceCode ? (
+              <p>Program reference: {row.referenceCode}</p>
+            ) : null}
             <p>
               Bought: {row.purchase} ({row.purchasedOn}) · reported {when(row.createdAt)}
             </p>

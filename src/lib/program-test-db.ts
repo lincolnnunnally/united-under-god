@@ -15,6 +15,7 @@ export const PROGRAM_MIGRATIONS = [
   "0007_source_vendors.sql",
   "0008_source_vendor_cases.sql",
   "0010_source_vendor_portal.sql",
+  "0012_program_price_honor.sql",
 ];
 
 export function pgliteSql(pg: PGlite): Sql {
@@ -58,3 +59,9 @@ export function linkIn(text: string, path: string) {
   const url = new URL(match[0]);
   return { url, token: url.searchParams.get("t") ?? "" };
 }
+
+/** An authorized price contact and a ticked attestation, for quotes in tests. */
+export const ATTESTED = {
+  priceContact: { name: "Pat Owner", title: "President", email: "pat@vendor.example", phone: "(404) 555-0199" },
+  attested: true,
+};

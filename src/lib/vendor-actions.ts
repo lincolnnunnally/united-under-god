@@ -48,6 +48,13 @@ const quoteInput = z.object({
       }),
     )
     .max(60),
+  priceContact: z.object({
+    name: z.string().max(400),
+    title: z.string().max(400),
+    email: z.string().max(400),
+    phone: z.string().max(100),
+  }),
+  attested: z.boolean(),
 });
 
 async function publicSql() {
@@ -132,7 +139,8 @@ export const submitVendorQuote = createServerFn({ method: "POST" })
   .validator(quoteInput)
   .handler(async ({ data }) => {
     try {
-      const saved = await submitOnlineQuote(await publicSql(), data);
+      // The IP is stored with the price contact's attestation.
+      const saved = await submitOnlineQuote(await publicSql(), { ...data, ip: await callerIp() });
       return { ok: true as const, revised: saved.revised };
     } catch (err) {
       // Our own checks throw plain Errors; a database error carries a code

@@ -7,6 +7,7 @@ import {
   type SpendSubcategory,
 } from "./church-spend.ts";
 import { cleanPrice } from "./source-store.ts";
+import { requireAttestedContact, type PriceContact } from "./price-contact.ts";
 import {
   AGREE_LABEL,
   CONSEQUENCES,
@@ -609,6 +610,7 @@ export function inviteEmail(args: {
       args.link,
       "",
       "You can revise your quote until the bid closes. Churches buy directly from you and choose freely.",
+      "Each quote names a senior person at your company who is authorized to commit it to the quoted prices for the price term, with their title, email, and phone.",
       `Your open bids, standing, and monthly report are also in your vendor portal: ${args.siteUrl}/buying/portal`,
       "",
       "Quotes are given under the Vendor Covenant: make it right, stand behind your work, and quote honestly.",
@@ -817,11 +819,12 @@ export type InvitedBidView =
   | {
       state: "open";
       bid: { id: string; title: string; summary: string; neededBy: string; items: InvitedItem[] };
-      vendor: { company: string };
+      vendor: { company: string; priceContact: PriceContact };
       quote: {
         notes: string;
         lines: { itemId: string; unitPrice: string; notes: string }[];
         updatedAt: string;
+        priceContact: PriceContact;
       } | null;
     };
 
@@ -906,11 +909,17 @@ export async function readInvitedBid(
         specs: itemSpecs(text(bid.category), text(row.catalog_item)),
       })),
     },
-    vendor: { company: vendor.company },
+    vendor: { company: vendor.company, priceContact: await defaultPriceContact(sql, vendor.id) },
     quote: quote
       ? {
           notes: text(quote.notes),
           updatedAt: iso(quote.updated_at),
+          priceContact: {
+            name: text(quote.price_contact_name),
+            title: text(quote.price_contact_title),
+            email: text(quote.price_contact_email),
+            phone: text(quote.price_contact_phone),
+          },
           lines: lines.map((row) => ({
             itemId: text(row.item_id),
             unitPrice: text(row.unit_price),
@@ -926,7 +935,31 @@ export type OnlineQuoteInput = {
   token: string;
   notes?: string;
   lines: { itemId: string; unitPrice?: string; notes?: string }[];
+  /** The senior person authorized to bind the vendor to these prices. Required. */
+  priceContact?: Partial<PriceContact>;
+  /** The attestation box was ticked. Required. */
+  attested?: boolean;
+  /** The submitter's IP, stored with the attestation. */
+  ip?: string;
 };
+
+/** The vendor's default price contact from its portal profile (blank if none). */
+export async function defaultPriceContact(sql: Sql, vendorId: string): Promise<PriceContact> {
+  const rows = await sql`
+    select coalesce(to_jsonb(v) ->> 'price_contact_name', '') as name,
+      coalesce(to_jsonb(v) ->> 'price_contact_title', '') as title,
+      coalesce(to_jsonb(v) ->> 'price_contact_email', '') as email,
+      coalesce(to_jsonb(v) ->> 'price_contact_phone', '') as phone
+    from source_vendors v where id = ${vendorId}
+  `;
+  const row = rows[0];
+  return {
+    name: text(row?.name),
+    title: text(row?.title),
+    email: text(row?.email),
+    phone: text(row?.phone),
+  };
+}
 
 /**
  * An invited vendor's quote. It lands as a source_quotes row (source
@@ -962,6 +995,13 @@ export async function submitOnlineQuote(
   }
   const notes = (input.notes ?? "").trim().slice(0, 2000);
   const contact = [vendor.contactName, vendor.email, vendor.phone].filter(Boolean).join(" · ");
+  const attested = requireAttestedContact(
+    { contact: input.priceContact, attested: input.attested },
+    vendor.company,
+  );
+  const price = attested.contact;
+  const attestedAt = new Date().toISOString();
+  const ip = (input.ip ?? "").slice(0, 80);
 
   const existing = await sql<{ id: string }>`
     select id from source_quotes where bid_id = ${input.bidId} and vendor_id = ${vendor.id}
@@ -971,17 +1011,25 @@ export async function submitOnlineQuote(
     await sql`
       update source_quotes set
         vendor_name = ${vendor.company}, vendor_contact = ${contact.slice(0, 240)},
-        notes = ${notes}, updated_at = now()
+        notes = ${notes}, updated_at = now(),
+        price_contact_name = ${price.name}, price_contact_title = ${price.title},
+        price_contact_email = ${price.email}, price_contact_phone = ${price.phone},
+        price_attestation = ${attested.attestation}, price_attested_at = ${attestedAt},
+        price_attested_ip = ${ip}
       where id = ${quoteId}
     `;
   } else {
     quoteId = crypto.randomUUID();
     const inserted = await sql<{ id: string }>`
       insert into source_quotes (
-        id, bid_id, vendor_name, vendor_contact, notes, status, created_by, vendor_id, source
+        id, bid_id, vendor_name, vendor_contact, notes, status, created_by, vendor_id, source,
+        price_contact_name, price_contact_title, price_contact_email, price_contact_phone,
+        price_attestation, price_attested_at, price_attested_ip
       ) values (
         ${quoteId}, ${input.bidId}, ${vendor.company}, ${contact.slice(0, 240)}, ${notes},
-        ${"received"}, ${`vendor:${vendor.id}`}, ${vendor.id}, ${"online"}
+        ${"received"}, ${`vendor:${vendor.id}`}, ${vendor.id}, ${"online"},
+        ${price.name}, ${price.title}, ${price.email}, ${price.phone},
+        ${attested.attestation}, ${attestedAt}, ${ip}
       )
       on conflict (bid_id, vendor_id) where vendor_id <> '' do nothing
       returning id
@@ -1000,6 +1048,17 @@ export async function submitOnlineQuote(
       // A line the vendor no longer prices cannot stay an award.
       await sql`delete from source_awards where quote_id = ${quoteId} and item_id = ${itemId}`;
     }
+  }
+  if (existing[0]) {
+    // A revision of a quote whose prices are already published waits on the
+    // desk ("Prices up for review") for the owner to publish the new prices.
+    await sql`
+      update source_quotes set refresh_status = 'updated'
+      where id = ${quoteId} and exists (
+        select 1 from source_awards a join source_buying_book b on b.award_id = a.id
+        where a.quote_id = ${quoteId}
+      )
+    `;
   }
   return { quoteId, revised: Boolean(existing[0]) };
 }
@@ -1028,7 +1087,7 @@ export function covenantEmail(args: {
       "",
       `${vendor.company} is a vendor in the United Under God buying program${vendor.termsVersion ? ` and accepted the Vendor Terms version ${vendor.termsVersion}` : ""}. The Vendor Terms are now version ${VENDOR_TERMS_VERSION}. ${termsChange()}`,
       "",
-      "The terms begin with the Vendor Covenant. In short: make it right when it isn't right for the church, stand behind your work, go above and beyond, care about the church's success, quote honestly, answer problems quickly, and accept United Under God's resolution when a church and a vendor cannot settle a problem.",
+      "The terms begin with the Vendor Covenant. In short: make it right when it isn't right for the church, stand behind your work, go above and beyond, care about the church's success, quote honestly, honor the program price, answer problems quickly, and accept United Under God's resolution when a church and a vendor cannot settle a problem.",
       "",
       `Read it and accept version ${VENDOR_TERMS_VERSION} here (this link is only for you):`,
       args.link,

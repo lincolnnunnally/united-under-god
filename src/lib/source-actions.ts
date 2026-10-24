@@ -13,6 +13,7 @@ import {
   readDesk,
   setBidArea,
   setBidStatus,
+  setBidTerm,
   setItemWinners,
   setQuoteStatus,
   type BuyingCatalogRead,
@@ -20,6 +21,7 @@ import {
   type SourceDesk,
 } from "@/lib/source-store";
 import { sendResendText } from "@/lib/desk-mail";
+import { ensureBookTerms } from "@/lib/price-term";
 import { SITE_URL } from "@/lib/seo";
 import {
   listCovenantLinks,
@@ -88,11 +90,20 @@ const createBidInput = z.object({
     .min(1),
 });
 
+const priceContactInput = z.object({
+  name: z.string().max(400),
+  title: z.string().max(400),
+  email: z.string().max(400),
+  phone: z.string().max(100),
+});
+
 const addQuoteInput = z.object({
   bidId: z.string(),
   vendorName: z.string(),
   vendorContact: z.string().optional().default(""),
   notes: z.string().optional().default(""),
+  priceContact: priceContactInput,
+  attested: z.boolean(),
   lines: z.array(
     z.object({
       itemId: z.string(),
@@ -173,6 +184,13 @@ function missingTable(err: unknown) {
 }
 
 async function deskView(sql: Sql): Promise<DeskView> {
+  try {
+    // Entries published before references existed get their reference and term.
+    await ensureBookTerms(sql);
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+    if (code !== "42P01" && code !== "42703") throw err;
+  }
   const desk = await readDesk(sql);
   const noCases = { cases: [], committee: [], covenantLinks: [], casesReady: false };
   let vendors: VendorRow[];
@@ -274,6 +292,17 @@ export const publishSourceAward = createServerFn({ method: "POST" })
     await assertStaff(context.userId);
     const sql = await deskSql();
     await publishAward(sql, data.awardId, context.userId);
+    return deskView(sql);
+  });
+
+/** The price term for prices awarded from this bid: 6, 12, or a custom number of months. */
+export const setSourceBidTerm = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(z.object({ bidId: z.string().max(80), months: z.string().max(10) }))
+  .handler(async ({ data, context }) => {
+    await assertStaff(context.userId);
+    const sql = await deskSql();
+    await setBidTerm(sql, data.bidId, data.months);
     return deskView(sql);
   });
 

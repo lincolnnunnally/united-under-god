@@ -2,8 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
-import { BecomeMemberCta, MemberLockedLine } from "@/components/member-gate";
-import { CovenantBadge, ReportProblemLink } from "@/components/report-problem";
+import { BecomeMemberCta } from "@/components/member-gate";
+import { PriceLabel, ProgramPrice } from "@/components/program-price";
+import { ReportProblemLink } from "@/components/report-problem";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -258,26 +259,9 @@ function BookList({ entries }: { entries: PublicBookEntry[] }) {
         <li key={entry.id} className="px-5 py-4">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h4 className="font-display text-lg">{entry.title}</h4>
-            {entry.locked ? (
-              <p className="text-sm text-forest">Group price</p>
-            ) : (
-              <p className="text-sm font-medium text-forest">
-                {entry.unitPrice ? `$${entry.unitPrice}` : "Price on request"}
-                {entry.unit ? ` / ${entry.unit}` : ""}
-              </p>
-            )}
+            <PriceLabel entry={entry} />
           </div>
-          {entry.locked ? (
-            <MemberLockedLine className="mt-1" />
-          ) : (
-            <p className="mt-1 text-sm text-muted">
-              {entry.vendorName}
-              {entry.quantity ? ` · ${entry.quantity}` : ""}
-              {entry.unit && entry.quantity ? ` ${entry.unit}` : ""}
-            </p>
-          )}
-          {entry.covenant ? <CovenantBadge className="mt-1 block" /> : null}
-          {entry.notes ? <p className="mt-2 text-sm text-muted">{entry.notes}</p> : null}
+          <ProgramPrice entry={entry} className="mt-1" />
         </li>
       ))}
     </ul>

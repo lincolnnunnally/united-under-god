@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PriceContactFields } from "@/components/price-contact-fields";
+import { attestationText, type PriceContact } from "@/lib/price-contact";
 import { pageHead } from "@/lib/seo";
 import { readVendorBid, submitVendorQuote } from "@/lib/vendor-actions";
 import type { InvitedBidView } from "@/lib/vendor-store";
@@ -121,6 +123,10 @@ function OpenBid({
     Object.fromEntries(bid.items.map((item) => [item.id, prior.get(item.id)?.notes ?? ""])),
   );
   const [notes, setNotes] = useState(quote?.notes ?? "");
+  const [contact, setContact] = useState<PriceContact>(() =>
+    quote?.priceContact.name ? quote.priceContact : vendor.priceContact,
+  );
+  const [attested, setAttested] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<"" | "new" | "revised">(quote ? "revised" : "");
@@ -142,6 +148,8 @@ function OpenBid({
             unitPrice: prices[item.id] ?? "",
             notes: lineNotes[item.id] ?? "",
           })),
+          priceContact: contact,
+          attested,
         },
       });
       if (!result.ok) {
@@ -229,6 +237,15 @@ function OpenBid({
             disabled={busy}
           />
         </div>
+        <PriceContactFields
+          idPrefix="bid"
+          contact={contact}
+          onChange={setContact}
+          disabled={busy}
+          attestation={attestationText(vendor.company)}
+          attested={attested}
+          onAttest={setAttested}
+        />
         {error ? (
           <p className="text-sm text-ink" role="alert">
             {error}

@@ -22,6 +22,7 @@ import {
   setSourceBidStatus,
   setSourceQuoteStatus,
   setSourceBidArea,
+  setSourceBidTerm,
   setSourceWinners,
   type DeskView,
   type SourceBid,
@@ -29,6 +30,10 @@ import {
 import { VendorsSection, InvitePanel } from "@/components/source-vendors";
 import { CasesSection } from "@/components/source-cases";
 import { ProgramSection } from "@/components/source-program";
+import { PriceSection } from "@/components/source-prices";
+import { PriceContactFields } from "@/components/price-contact-fields";
+import { EMPTY_PRICE_CONTACT, attestationText, describePriceContact, type PriceContact } from "@/lib/price-contact";
+import { TERM_CHOICES, longDate } from "@/lib/price-term";
 import { cn } from "@/lib/utils";
 import { pageHead } from "@/lib/seo";
 
@@ -133,6 +138,8 @@ function SourceDesk() {
       {desk ? <CasesSection desk={desk} onRun={run} /> : null}
 
       {desk?.vendorsReady ? <ProgramSection /> : null}
+
+      {desk ? <PriceSection /> : null}
 
       <CreateBidForm
         disabled={loading}
@@ -561,6 +568,21 @@ function BidWorkspace({
                     {quote.vendorContact ? (
                       <p className="mt-1 text-sm text-muted">{quote.vendorContact}</p>
                     ) : null}
+                    {quote.priceContact.name ? (
+                      <p className="mt-1 text-sm text-muted">
+                        Price contact: {describePriceContact(quote.priceContact)}
+                        {quote.attestedAt ? ` · attested ${quote.attestedAt.slice(0, 10)}` : ""}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm text-ink">
+                        No authorized price contact. This quote cannot be published until it is recorded again with one.
+                      </p>
+                    )}
+                    {quote.refreshStatus === "updated" ? (
+                      <p className="mt-1 text-sm font-medium text-forest">
+                        Updated prices from the portal, waiting under Prices up for review.
+                      </p>
+                    ) : null}
                     {quote.notes ? <p className="mt-1 text-sm text-muted">{quote.notes}</p> : null}
                   </div>
                   <Button
@@ -614,6 +636,7 @@ function BidWorkspace({
           Each item can have one winner or several. Check every vendor the body
           may buy that item from.
         </p>
+        <PriceTermPicker bid={bid} disabled={busy} onRun={run} />
         {received.length === 0 ? (
           <p className="mt-3 text-sm text-muted">No live quotes to award.</p>
         ) : (
@@ -695,8 +718,11 @@ function BidWorkspace({
                       {item?.description ?? "Item"} · {quote?.vendorName ?? "Vendor"}
                     </p>
                     <p className="text-sm text-muted">
-                      {line?.unitPrice ? `$${line.unitPrice}` : "No price"}
+                      {published ? `$${published.unitPrice}` : line?.unitPrice ? `$${line.unitPrice}` : "No price"}
                       {published ? " · published" : " · not published"}
+                      {published?.referenceCode
+                        ? ` · ${published.referenceCode} · good through ${longDate(published.expiresOn)}`
+                        : ""}
                     </p>
                   </div>
                   {published ? (
@@ -740,6 +766,8 @@ function QuoteForm({
   const [vendorContact, setVendorContact] = useState("");
   const [notes, setNotes] = useState("");
   const [prices, setPrices] = useState<Record<string, string>>({});
+  const [contact, setContact] = useState<PriceContact>({ ...EMPTY_PRICE_CONTACT });
+  const [attested, setAttested] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(event: FormEvent) {
@@ -757,6 +785,8 @@ function QuoteForm({
               itemId: item.id,
               unitPrice: prices[item.id] ?? "",
             })),
+            priceContact: contact,
+            attested,
           },
         }),
       );
@@ -765,6 +795,8 @@ function QuoteForm({
       setVendorContact("");
       setNotes("");
       setPrices({});
+      setContact({ ...EMPTY_PRICE_CONTACT });
+      setAttested(false);
     } finally {
       setBusy(false);
     }
@@ -818,12 +850,78 @@ function QuoteForm({
           disabled={disabled || busy}
         />
       </div>
+      <PriceContactFields
+        idPrefix={`desk-${bid.id}`}
+        contact={contact}
+        onChange={setContact}
+        disabled={disabled || busy}
+        help="The senior person at the vendor who can commit it to these prices. Tick the box only when that person told you so."
+        attestation={`${contact.name.trim() || "The price contact"} confirmed: “${attestationText(vendorName)}”`}
+        attested={attested}
+        onAttest={setAttested}
+      />
       <div>
         <Button type="submit" disabled={disabled || busy}>
           {busy ? "Saving…" : "Save quote"}
         </Button>
       </div>
     </form>
+  );
+}
+
+/** The price term for this bid's awarded prices: 6, 12, or a custom number of months. */
+function PriceTermPicker({
+  bid,
+  disabled,
+  onRun,
+}: {
+  bid: SourceBid;
+  disabled: boolean;
+  onRun: (work: () => Promise<DeskView>) => Promise<boolean>;
+}) {
+  const preset = (TERM_CHOICES as readonly number[]).includes(bid.priceTermMonths);
+  const [custom, setCustom] = useState(preset ? "" : String(bid.priceTermMonths));
+  const save = (months: string) => void onRun(() => setSourceBidTerm({ data: { bidId: bid.id, months } }));
+  return (
+    <div className="mt-3 flex flex-wrap items-end gap-2" data-price-term="">
+      <p className="w-full text-sm text-muted">
+        Price term: {bid.priceTermMonths} months. Prices published from this bid are good for this
+        long; the owner is reminded 45 days before each ends.
+      </p>
+      {TERM_CHOICES.map((months) => (
+        <Button
+          key={months}
+          type="button"
+          variant={bid.priceTermMonths === months ? "primary" : "secondary"}
+          disabled={disabled}
+          onClick={() => save(String(months))}
+        >
+          {months} months
+        </Button>
+      ))}
+      <form
+        className="flex flex-wrap items-end gap-2"
+        onSubmit={(event) => {
+          event.preventDefault();
+          save(custom);
+        }}
+      >
+        <div className="grid gap-1.5">
+          <Label htmlFor={`term-${bid.id}`}>Custom (months)</Label>
+          <Input
+            id={`term-${bid.id}`}
+            inputMode="numeric"
+            className="w-28"
+            value={custom}
+            onChange={(event) => setCustom(event.target.value)}
+            disabled={disabled}
+          />
+        </div>
+        <Button type="submit" variant="secondary" disabled={disabled || !custom.trim()}>
+          Set term
+        </Button>
+      </form>
+    </div>
   );
 }
 

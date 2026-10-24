@@ -18,6 +18,14 @@ import {
   type PortalView,
 } from "@/lib/vendor-portal-store";
 import { deleteVendorFile, listOwnFiles, type VendorFileRow } from "@/lib/vendor-files";
+import { defaultPriceContact } from "@/lib/vendor-store";
+import { cleanDefaultPriceContact, type PriceContact } from "@/lib/price-contact";
+import {
+  confirmPricesUnchanged,
+  listVendorPrices,
+  submitUpdatedPrices,
+  type VendorPriceRow,
+} from "@/lib/price-program";
 
 /**
  * The vendor portal's server functions. Signing in is public; everything else
@@ -65,11 +73,35 @@ async function requireVendor(): Promise<string> {
 export type PortalRead =
   | { state: "signed_out" }
   | { state: "unavailable" }
-  | { state: "ok"; view: PortalView; files: VendorFileRow[] };
+  | {
+      state: "ok";
+      view: PortalView;
+      files: VendorFileRow[];
+      /** The vendor's awarded program prices and their terms. */
+      prices: VendorPriceRow[];
+      /** The default price contact, prefilled on quotes. */
+      priceContact: PriceContact;
+    };
+
+/** Before 0012 there are no program prices to show: an empty list, not an error. */
+async function pricesFor(sql: Awaited<ReturnType<typeof portalSql>>, vendorId: string) {
+  try {
+    return { prices: await listVendorPrices(sql, vendorId), priceContact: await defaultPriceContact(sql, vendorId) };
+  } catch (err) {
+    const code = err && typeof err === "object" && "code" in err ? String(err.code) : "";
+    if (code !== "42P01" && code !== "42703") throw err;
+    return { prices: [], priceContact: { name: "", title: "", email: "", phone: "" } };
+  }
+}
 
 async function readAll(vendorId: string): Promise<PortalRead> {
   const sql = await portalSql();
-  return { state: "ok", view: await readPortal(sql, vendorId), files: await listOwnFiles(sql, vendorId) };
+  return {
+    state: "ok",
+    view: await readPortal(sql, vendorId),
+    files: await listOwnFiles(sql, vendorId),
+    ...(await pricesFor(sql, vendorId)),
+  };
 }
 
 /** Public. The same answer whether or not the email is on the vendor list. */
@@ -206,4 +238,60 @@ export const deletePortalFileFn = createServerFn({ method: "POST" })
   .validator(z.object({ fileId: z.string().max(80) }))
   .handler(async ({ data }) =>
     portalWrite(async (vendorId) => deleteVendorFile(await portalSql(), vendorId, data.fileId)),
+  );
+
+const priceContactInput = z.object({
+  name: z.string().max(400),
+  title: z.string().max(400),
+  email: z.string().max(400),
+  phone: z.string().max(100),
+});
+
+/** The default price contact on the vendor's profile, prefilled on every quote. */
+export const savePortalPriceContactFn = createServerFn({ method: "POST" })
+  .validator(priceContactInput)
+  .handler(async ({ data }) =>
+    portalWrite(async (vendorId) => {
+      const contact = cleanDefaultPriceContact(data);
+      await (await portalSql())`
+        update source_vendors set
+          price_contact_name = ${contact.name}, price_contact_title = ${contact.title},
+          price_contact_email = ${contact.email}, price_contact_phone = ${contact.phone},
+          updated_at = now()
+        where id = ${vendorId}
+      `;
+    }),
+  );
+
+/** "These prices are unchanged for a new term." Waits for the owner's approval. */
+export const confirmPortalPricesFn = createServerFn({ method: "POST" })
+  .validator(z.object({ bookId: z.string().max(80), priceContact: priceContactInput, attested: z.boolean() }))
+  .handler(async ({ data }) =>
+    portalWrite(async (vendorId) =>
+      confirmPricesUnchanged(await portalSql(), vendorId, { ...data, ip: await callerIp() }),
+    ),
+  );
+
+/** Updated prices for an awarded bid. They become the vendor's quote again, for the owner to publish. */
+export const submitPortalPriceUpdateFn = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      bidId: z.string().max(80),
+      lines: z
+        .array(
+          z.object({
+            itemId: z.string().max(80),
+            unitPrice: z.string().max(40),
+            notes: z.string().max(400).optional().default(""),
+          }),
+        )
+        .max(60),
+      priceContact: priceContactInput,
+      attested: z.boolean(),
+    }),
+  )
+  .handler(async ({ data }) =>
+    portalWrite(async (vendorId) =>
+      submitUpdatedPrices(await portalSql(), vendorId, { ...data, ip: await callerIp() }),
+    ),
   );

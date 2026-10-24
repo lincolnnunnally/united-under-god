@@ -141,7 +141,13 @@ function Header({ profile }: { profile: Profile }) {
       <p className="mt-4 text-sm text-muted">Area: {profile.area}</p>
       <p className="mt-1 text-sm text-muted">
         {profile.phone ? <a href={`tel:${profile.phone.replace(/[^\d+]/g, "")}`}>{profile.phone}</a> : null}
-        {profile.phone && profile.website ? " · " : null}
+        {profile.phone && (profile.email || profile.website) ? " · " : null}
+        {profile.email ? (
+          <a href={`mailto:${profile.email}`} className="text-forest underline-offset-4 hover:underline">
+            {profile.email}
+          </a>
+        ) : null}
+        {profile.email && profile.website ? " · " : null}
         {profile.website ? (
           <a
             href={profile.website}

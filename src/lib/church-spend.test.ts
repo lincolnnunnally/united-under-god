@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
+import { ATTESTED } from "./program-test-db.ts";
 import {
   BUYING_MODELS,
   MAX_BID_ITEMS,
@@ -62,6 +63,7 @@ async function fresh({ categories = true } = {}) {
   await pg.waitReady;
   await pg.exec(migration("0004_source_buying.sql"));
   if (categories) await pg.exec(migration("0006_source_bid_category.sql"));
+  await pg.exec(migration("0012_program_price_honor.sql"));
   return toSql(pg);
 }
 
@@ -309,6 +311,7 @@ async function awardAndPublish(sql: Sql, bidId: string, itemIndexes: number[], p
     {
       bidId,
       vendorName: "Test Vendor",
+      ...ATTESTED,
       lines: bid.items.map((item) => ({ itemId: item.id, unitPrice: price })),
     },
     "operator-1",

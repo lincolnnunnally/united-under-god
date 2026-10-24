@@ -11,7 +11,13 @@ import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { pageHead } from "@/lib/seo";
 import { COVENANT } from "@/lib/vendor-terms";
 
+/** Linked from an awarded price: ?type=price&ref=UUG-2026-0142&vendor=<id> prefills the form. */
 export const Route = createFileRoute("/buying/report")({
+  validateSearch: (search: Record<string, unknown>): { type?: "price"; ref?: string; vendor?: string } => ({
+    type: search.type === "price" ? "price" : undefined,
+    ref: typeof search.ref === "string" ? search.ref.slice(0, 40) : undefined,
+    vendor: typeof search.vendor === "string" ? search.vendor.slice(0, 80) : undefined,
+  }),
   loader: () => listReportVendorsFn(),
   component: ReportPage,
   head: () =>
@@ -28,6 +34,7 @@ const SELECT_CLASS =
 
 function ReportPage() {
   const { vendors, unavailable } = Route.useLoaderData();
+  const search = Route.useSearch();
   const days = COVENANT.responseBusinessDays;
   return (
     <SiteShell>
@@ -73,7 +80,14 @@ function ReportPage() {
             The vendor list could not be loaded just now. Please try again shortly.
           </p>
         ) : null}
-        <ReportForm vendors={vendors} />
+        <ReportForm
+          vendors={vendors}
+          prefill={{
+            problemType: search.type === "price" ? "price_not_honored" : "",
+            referenceCode: search.ref ?? "",
+            vendorId: vendors.some((vendor) => vendor.id === search.vendor) ? (search.vendor ?? "") : "",
+          }}
+        />
       </section>
     </SiteShell>
   );
@@ -96,7 +110,14 @@ function Field({
   );
 }
 
-function ReportForm({ vendors }: { vendors: { id: string; company: string }[] }) {
+function ReportForm({
+  vendors,
+  prefill,
+}: {
+  vendors: { id: string; company: string }[];
+  prefill: { problemType: "" | "price_not_honored"; referenceCode: string; vendorId: string };
+}) {
+  const [problemType, setProblemType] = useState<"" | "price_not_honored">(prefill.problemType);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
@@ -110,6 +131,8 @@ function ReportForm({ vendors }: { vendors: { id: string; company: string }[] })
     try {
       const result = await submitReport({
         data: {
+          problemType,
+          referenceCode: value("reference"),
           churchName: value("church"),
           contactName: value("contactName"),
           email: value("email"),
@@ -174,13 +197,41 @@ function ReportForm({ vendors }: { vendors: { id: string; company: string }[] })
 
       <fieldset className="grid gap-4">
         <legend className="mb-2 font-display text-xl">What happened</legend>
+        <Field label="What kind of problem" htmlFor="report-type">
+          <select
+            id="report-type"
+            name="problemType"
+            className={SELECT_CLASS}
+            value={problemType}
+            onChange={(event) => setProblemType(event.target.value === "price_not_honored" ? "price_not_honored" : "")}
+          >
+            <option value="">The work, the goods, or the service</option>
+            <option value="price_not_honored">Program price not honored</option>
+          </select>
+        </Field>
+        {problemType === "price_not_honored" ? (
+          <p className="text-sm text-muted">
+            Program vendors agree to charge no more than the awarded price for its term when a
+            church gives them the program reference. Tell us the reference you gave and what you
+            were charged.
+          </p>
+        ) : null}
+        <Field label="Program reference (optional, like UUG-2026-0142)" htmlFor="report-reference">
+          <Input
+            id="report-reference"
+            name="reference"
+            defaultValue={prefill.referenceCode}
+            autoCapitalize="characters"
+            maxLength={40}
+          />
+        </Field>
         <Field label="The vendor" htmlFor="report-vendor">
           <select
             id="report-vendor"
             name="vendor"
             className={SELECT_CLASS}
             required
-            defaultValue=""
+            defaultValue={prefill.vendorId}
           >
             <option value="" disabled>
               {vendors.length
