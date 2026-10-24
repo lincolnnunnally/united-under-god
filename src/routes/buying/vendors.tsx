@@ -11,7 +11,7 @@ import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { pageHead } from "@/lib/seo";
 import { submitVendorSignup } from "@/lib/vendor-actions";
 import { LICENSED_VENDOR_NOTE, US_STATES, vendorCategoryOptions } from "@/lib/vendor-store";
-import { VENDOR_TERMS_VERSION } from "@/lib/vendor-terms";
+import { AGREE_LABEL, VENDOR_TERMS_VERSION } from "@/lib/vendor-terms";
 
 export const Route = createFileRoute("/buying/vendors")({
   component: VendorSignupPage,
@@ -44,6 +44,19 @@ function VendorSignupPage() {
             Churches in the buying program pool what they buy. When a bid opens in a category and
             area you serve, we email you a private link to see the line items and quote online.
             Churches buy directly from you and choose freely.
+          </p>
+          <p className="mt-4 max-w-2xl text-muted">
+            Every vendor agrees to the{" "}
+            <Link
+              to="/buying/vendor-terms"
+              hash="covenant"
+              className="text-forest underline-offset-4 hover:underline"
+            >
+              Vendor Covenant
+            </Link>
+            : if it isn’t right for the church, you make it right; you stand behind your work; and
+            when a church and a vendor can’t settle a problem, United Under God hears both sides and
+            decides.
           </p>
           <p className="mt-4 max-w-2xl text-muted">
             Vendors pay a rebate or a referral fee on program sales, as set out in the{" "}
@@ -106,7 +119,7 @@ function VendorSignupForm() {
     const data = new FormData(event.currentTarget);
     const value = (name: string) => String(data.get(name) ?? "").trim();
     if (!data.get("agreed")) {
-      setError("Tick “I agree to the Vendor Terms” to sign up.");
+      setError(`Tick “${AGREE_LABEL}” to sign up.`);
       return;
     }
     setBusy(true);
@@ -321,6 +334,15 @@ function VendorSignupForm() {
         />
         <span>
           I agree to the{" "}
+          <Link
+            to="/buying/vendor-terms"
+            hash="covenant"
+            target="_blank"
+            className="text-forest underline-offset-4 hover:underline"
+          >
+            Vendor Covenant
+          </Link>{" "}
+          and{" "}
           <Link
             to="/buying/vendor-terms"
             target="_blank"

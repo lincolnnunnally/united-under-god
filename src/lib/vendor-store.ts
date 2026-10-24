@@ -7,7 +7,15 @@ import {
   type SpendSubcategory,
 } from "./church-spend.ts";
 import { cleanPrice } from "./source-store.ts";
-import { VENDOR_TERMS_PATH, VENDOR_TERMS_VERSION, feeSummary } from "./vendor-terms.ts";
+import {
+  AGREE_LABEL,
+  CONSEQUENCES,
+  VENDOR_TERMS_PATH,
+  VENDOR_TERMS_VERSION,
+  feeSummary,
+  needsCovenant,
+  type Consequence,
+} from "./vendor-terms.ts";
 
 /**
  * Vendors for the SOURCE buying program: public sign-up, the desk's vendor
@@ -209,7 +217,7 @@ export function cleanWebsite(raw: string): string {
 
 /** Every sign-up rule. Throws a sentence the vendor can act on. */
 export function cleanVendorSignup(input: VendorSignupInput): CleanVendor {
-  if (!input.agreed) throw new Error("Tick “I agree to the Vendor Terms” to sign up.");
+  if (!input.agreed) throw new Error(`Tick “${AGREE_LABEL}” to sign up.`);
   if (input.termsVersion !== VENDOR_TERMS_VERSION) {
     throw new Error(
       "The Vendor Terms were updated. Reload the page, review them, and agree again.",
@@ -270,6 +278,11 @@ export type VendorRow = {
   termsVersion: string;
   termsAcceptedAt: string;
   termsIp: string;
+  /** Accepted an older version: has to accept the new covenant. */
+  needsCovenant: boolean;
+  /** Current standing consequence from a decided case ("none" when clear). */
+  consequence: Consequence;
+  consequenceCaseId: string;
   createdAt: string;
 };
 
@@ -318,8 +331,16 @@ function mapVendor(row: Record<string, unknown>): VendorRow {
     termsVersion: text(row.terms_version),
     termsAcceptedAt: iso(row.terms_accepted_at),
     termsIp: text(row.terms_ip),
+    needsCovenant: needsCovenant(text(row.terms_version)),
+    consequence: cleanConsequence(text(row.consequence)),
+    consequenceCaseId: text(row.consequence_case_id),
     createdAt: iso(row.created_at),
   };
+}
+
+/** '' and unknown values read as "none". */
+export function cleanConsequence(value: string): Consequence {
+  return (CONSEQUENCES as readonly string[]).includes(value) ? (value as Consequence) : "none";
 }
 
 /**
@@ -458,6 +479,16 @@ export async function updateVendor(sql: Sql, id: string, patch: VendorUpdate, us
       updated_at = now()
     where id = ${id}
   `;
+  // Approving a suspended or revoked vendor again lifts that consequence. The
+  // decided case keeps its record.
+  if (
+    status === "approved" &&
+    (current.consequence === "suspension" || current.consequence === "revocation")
+  ) {
+    await sql`
+      update source_vendors set consequence = 'none', consequence_at = now() where id = ${id}
+    `;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -537,7 +568,7 @@ export async function hashInviteToken(token: string): Promise<string> {
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-const TOKEN_SHAPE = /^[A-Za-z0-9_-]{43}$/;
+export const TOKEN_SHAPE = /^[A-Za-z0-9_-]{43}$/;
 
 export function bidLinkPath(bidId: string, token: string) {
   return `/buying/bids/${encodeURIComponent(bidId)}?t=${token}`;
@@ -578,8 +609,9 @@ export function inviteEmail(args: {
       "",
       "You can revise your quote until the bid closes. Churches buy directly from you and choose freely.",
       "",
+      "Quotes are given under the Vendor Covenant: make it right, stand behind your work, and quote honestly.",
       feeSummary(),
-      `Vendor Terms: ${args.siteUrl}${VENDOR_TERMS_PATH}`,
+      `Vendor Covenant and Vendor Terms: ${args.siteUrl}${VENDOR_TERMS_PATH}`,
       "",
       "Questions? Reply to this email.",
       "",
@@ -646,7 +678,12 @@ export async function previewInvites(sql: Sql, bidId: string, siteUrl: string) {
   );
   const sample = vendors[0] ?? { company: "Vendor company", contactName: "Contact name" };
   return {
-    vendors: vendors.map((vendor) => ({ ...vendor, invited: invited.has(vendor.id) })),
+    vendors: vendors.map((vendor) => ({
+      ...vendor,
+      invited: invited.has(vendor.id),
+      // On probation: listed, but only invited when staff tick it.
+      probation: vendor.consequence === "probation",
+    })),
     email: inviteEmail({
       bid,
       vendor: sample,
@@ -956,4 +993,179 @@ export async function submitOnlineQuote(
     }
   }
   return { quoteId, revised: Boolean(existing[0]) };
+}
+
+// ---------------------------------------------------------------------------
+// Accepting a new version of the Vendor Covenant and Vendor Terms
+// ---------------------------------------------------------------------------
+
+export const COVENANT_PAGE_PATH = "/buying/covenant";
+
+export function covenantLinkPath(token: string) {
+  return `${COVENANT_PAGE_PATH}?t=${token}`;
+}
+
+/** The re-acceptance email. The desk shows this exact text before anything is sent. */
+export function covenantEmail(args: {
+  vendor: Pick<VendorRow, "company" | "contactName" | "termsVersion">;
+  link: string;
+  siteUrl: string;
+}) {
+  const { vendor } = args;
+  return {
+    subject: "Please review and accept the Vendor Covenant",
+    text: [
+      vendor.contactName ? `Hello ${vendor.contactName},` : "Hello,",
+      "",
+      `${vendor.company} is a vendor in the United Under God buying program${vendor.termsVersion ? ` and accepted the Vendor Terms version ${vendor.termsVersion}` : ""}. The terms now begin with the Vendor Covenant: the standard every vendor agrees to keep.`,
+      "",
+      "In short: make it right when it isn't right for the church, stand behind your work, go above and beyond, care about the church's success, quote honestly, answer problems quickly, and accept United Under God's resolution when a church and a vendor cannot settle a problem.",
+      "",
+      `Read it and accept version ${VENDOR_TERMS_VERSION} here (this link is only for you):`,
+      args.link,
+      "",
+      `The full text is also public: ${args.siteUrl}${VENDOR_TERMS_PATH}`,
+      "The rates have not changed.",
+      "",
+      "Questions? Reply to this email.",
+      "",
+      "United Under God, Inc.",
+    ].join("\n"),
+  };
+}
+
+/** Vendors still on an older version (pending, approved, or paused; not removed). */
+export function vendorsNeedingCovenant(vendors: VendorRow[]): VendorRow[] {
+  return vendors.filter((vendor) => vendor.status !== "removed" && vendor.needsCovenant);
+}
+
+export async function previewCovenantLink(sql: Sql, vendorId: string, siteUrl: string) {
+  const rows = await sql`select * from source_vendors where id = ${vendorId}`;
+  if (!rows[0]) throw new Error("That vendor is not on the list.");
+  const vendor = mapVendor(rows[0]);
+  return {
+    vendor: { id: vendor.id, company: vendor.company, email: vendor.email },
+    email: covenantEmail({
+      vendor,
+      link: `${siteUrl}${COVENANT_PAGE_PATH}?t=(a private link for this vendor)`,
+      siteUrl,
+    }),
+  };
+}
+
+export type CovenantLinkRow = {
+  id: string;
+  vendorId: string;
+  termsVersion: string;
+  emailStatus: string;
+  emailError: string;
+  sentAt: string;
+  usedAt: string;
+};
+
+export async function listCovenantLinks(sql: Sql): Promise<CovenantLinkRow[]> {
+  const rows = await sql`select * from source_covenant_links order by sent_at desc`;
+  return rows.map((row) => ({
+    id: text(row.id),
+    vendorId: text(row.vendor_id),
+    termsVersion: text(row.terms_version),
+    emailStatus: text(row.email_status),
+    emailError: text(row.email_error),
+    sentAt: iso(row.sent_at),
+    usedAt: row.used_at ? iso(row.used_at) : "",
+  }));
+}
+
+/** Send one vendor a private link to accept the current version. Only the hash is stored. */
+export async function sendCovenantLink(
+  sql: Sql,
+  args: { vendorId: string; userId: string; siteUrl: string; send: SendMail },
+): Promise<{ ok: boolean; error: string }> {
+  const rows = await sql`select * from source_vendors where id = ${args.vendorId}`;
+  if (!rows[0]) throw new Error("That vendor is not on the list.");
+  const vendor = mapVendor(rows[0]);
+  if (vendor.status === "removed") throw new Error("That vendor was removed from the program.");
+  if (!vendor.needsCovenant) throw new Error("This vendor already accepted the current version.");
+  const token = newInviteToken();
+  const email = covenantEmail({
+    vendor,
+    link: `${args.siteUrl}${covenantLinkPath(token)}`,
+    siteUrl: args.siteUrl,
+  });
+  const id = crypto.randomUUID();
+  await sql`
+    insert into source_covenant_links (
+      id, vendor_id, token_hash, terms_version, email, email_status, sent_by
+    ) values (
+      ${id}, ${vendor.id}, ${await hashInviteToken(token)}, ${VENDOR_TERMS_VERSION},
+      ${vendor.email}, ${"sending"}, ${args.userId}
+    )
+  `;
+  let outcome: { ok: boolean; error: string };
+  try {
+    outcome = await args.send({ to: vendor.email, subject: email.subject, text: email.text });
+  } catch {
+    outcome = { ok: false, error: "send failed" };
+  }
+  const error = outcome.ok ? "" : outcome.error || "mail is not set up (no RESEND_API_KEY)";
+  await sql`
+    update source_covenant_links set
+      email_status = ${outcome.ok ? "sent" : "failed"}, email_error = ${error.slice(0, 500)}
+    where id = ${id}
+  `;
+  return { ok: outcome.ok, error };
+}
+
+export type CovenantLinkView =
+  | { state: "denied" }
+  | { state: "inactive" }
+  | { state: "accepted"; company: string; version: string }
+  | { state: "open"; company: string; acceptedVersion: string };
+
+async function findCovenantLink(sql: Sql, token: string) {
+  if (!token || !TOKEN_SHAPE.test(token)) return null;
+  const tokenHash = await hashInviteToken(token);
+  const links = await sql<{ id: string; vendor_id: string }>`
+    select id, vendor_id from source_covenant_links where token_hash = ${tokenHash}
+  `;
+  const link = links[0];
+  if (!link) return null;
+  const rows = await sql`select * from source_vendors where id = ${link.vendor_id}`;
+  return rows[0] ? { link, vendor: mapVendor(rows[0]) } : null;
+}
+
+/** What a link holder sees. A wrong or missing token sees nothing. */
+export async function readCovenantLink(sql: Sql, token: string): Promise<CovenantLinkView> {
+  const found = await findCovenantLink(sql, token);
+  if (!found) return { state: "denied" };
+  const { vendor } = found;
+  if (vendor.status === "removed") return { state: "inactive" };
+  if (!vendor.needsCovenant) {
+    return { state: "accepted", company: vendor.company, version: vendor.termsVersion };
+  }
+  return { state: "open", company: vendor.company, acceptedVersion: vendor.termsVersion };
+}
+
+/** The vendor accepts the current version: version, time, and IP are stored as at sign-up. */
+export async function acceptCovenant(
+  sql: Sql,
+  input: { token: string; agreed: boolean; termsVersion: string; ip: string; now?: Date },
+): Promise<{ company: string; version: string }> {
+  const found = await findCovenantLink(sql, input.token);
+  if (!found) throw new Error("This link is not valid.");
+  const { link, vendor } = found;
+  if (vendor.status === "removed") throw new Error("This vendor is no longer in the program.");
+  if (!input.agreed) throw new Error(`Tick “${AGREE_LABEL}” to accept.`);
+  if (input.termsVersion !== VENDOR_TERMS_VERSION) {
+    throw new Error("The terms were updated again. Reload the page, review them, and accept.");
+  }
+  const at = (input.now ?? new Date()).toISOString();
+  await sql`
+    update source_vendors set
+      terms_version = ${VENDOR_TERMS_VERSION}, terms_accepted_at = ${at},
+      terms_ip = ${input.ip.slice(0, 80)}, updated_at = now()
+    where id = ${vendor.id}
+  `;
+  await sql`update source_covenant_links set used_at = ${at} where id = ${link.id}`;
+  return { company: vendor.company, version: VENDOR_TERMS_VERSION };
 }

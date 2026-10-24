@@ -27,6 +27,7 @@ import {
   type SourceBid,
 } from "@/lib/source-actions";
 import { VendorsSection, InvitePanel } from "@/components/source-vendors";
+import { CasesSection } from "@/components/source-cases";
 import { cn } from "@/lib/utils";
 import { pageHead } from "@/lib/seo";
 
@@ -127,6 +128,8 @@ function SourceDesk() {
       {desk ? <CoverageView desk={desk} /> : null}
 
       {desk ? <VendorsSection desk={desk} onRun={run} /> : null}
+
+      {desk ? <CasesSection desk={desk} onRun={run} /> : null}
 
       <CreateBidForm
         disabled={loading}
