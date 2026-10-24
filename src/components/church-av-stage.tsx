@@ -11,7 +11,7 @@ export function StageIllustration({ style, className }: { style: Style; classNam
       ? "Traditional: pulpit, lectern, and choir. No screen behind the pulpit; speakers kept discreet at the sides."
       : style === "blended"
         ? "Blended: side screens for lyrics, leaving the cross and the center of the platform clear."
-        : "Modern: an LED wall across the back of the stage, with lighting on a truss above the band.";
+        : "Modern: a large video wall across the back of the stage, with lights hung on a frame above the band.";
   return (
     <figure className={className}>
       <svg

@@ -156,7 +156,7 @@ export const LANDING_PAGES: LandingPage[] = [
     stages: ["modern"],
     stageTitle: "A stage built for atmosphere",
     stageBody:
-      "An LED wall across the back of the stage, lighting on a truss above the band, and the cross still at the center.",
+      "A large video wall across the back of the stage, lights hung on a frame above the band, and the cross still at the center.",
     caseStudies: ["word-of-faith", "rock-springs", "church-unlimited", "mountain-view-baptist"],
     testimonial: "tony-yang",
     planner: { style: "modern" },
