@@ -5,10 +5,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PreferredBadge, RankingDisclosure } from "@/components/vendor-ranking";
+import { PriceContactFields } from "@/components/price-contact-fields";
+import { attestationText, type PriceContact } from "@/lib/price-contact";
+import { longDate } from "@/lib/price-term";
 import {
   acceptPortalTermsFn,
+  confirmPortalPricesFn,
   deletePortalFileFn,
   openPortalBidFn,
+  savePortalPriceContactFn,
+  submitPortalPriceUpdateFn,
   savePortalProfileFn,
   setPortalOfferFn,
   signOutPortalFn,
@@ -93,11 +99,218 @@ export function VendorPortal({ initial }: { initial: Ok }) {
       {view.vendor.needsTerms ? <TermsBanner run={run} /> : null}
       <Standing read={read} />
       <Invites read={read} />
+      <Prices read={read} run={run} />
       <Offers read={read} run={run} />
       <Reports read={read} run={run} />
       <Files read={read} run={run} onUploaded={() => void router.invalidate().then(() => undefined)} />
       <Profile read={read} run={run} />
+      <DefaultPriceContact read={read} run={run} />
     </div>
+  );
+}
+
+type Run = (work: () => Write) => Promise<string>;
+type PriceRow = Ok["prices"][number];
+
+/**
+ * The vendor's awarded program prices with their references and terms. Before
+ * a term ends the vendor confirms the prices unchanged (the owner approves the
+ * new term) or sends updated prices (they become its quote again).
+ */
+function Prices({ read, run }: { read: Ok; run: Run }) {
+  const prices = read.prices;
+  const bids = [...new Set(prices.map((row) => row.bidId))];
+  return (
+    <Card title="Your program prices" id="prices">
+      <p className="mt-2 max-w-2xl text-sm text-muted">
+        Each awarded price has a program reference and a price term. A church that orders gives you
+        the reference; under the Vendor Covenant you charge no more than the awarded price for the
+        term. Before a term ends, confirm your prices for a new term or send updated prices.
+      </p>
+      {prices.length === 0 ? (
+        <p className="mt-4 text-muted">You have no awarded prices yet.</p>
+      ) : (
+        <div className="mt-4 grid gap-6">
+          {bids.map((bidId) => (
+            <BidPrices
+              key={bidId}
+              rows={prices.filter((row) => row.bidId === bidId)}
+              run={run}
+              defaultContact={read.priceContact}
+              disabled={read.view.vendor.needsTerms}
+            />
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function BidPrices({
+  rows,
+  run,
+  defaultContact,
+  disabled,
+}: {
+  rows: PriceRow[];
+  run: Run;
+  defaultContact: PriceContact;
+  disabled: boolean;
+}) {
+  const company = rows[0]!.vendorName;
+  const [mode, setMode] = useState<"" | "confirm" | "update">("");
+  const [contact, setContact] = useState<PriceContact>(rows[0]!.priceContact.name ? rows[0]!.priceContact : defaultContact);
+  const [attested, setAttested] = useState(false);
+  const [prices, setPrices] = useState<Record<string, string>>(() =>
+    Object.fromEntries(rows.map((row) => [row.itemId, row.updatedPrice || row.unitPrice])),
+  );
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const waiting = rows.some((row) => row.pendingConfirmation);
+  const updated = rows.some((row) => row.updatedPricesWaiting);
+
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    let error = "";
+    if (mode === "confirm") {
+      for (const row of rows) {
+        error = await run(() =>
+          confirmPortalPricesFn({ data: { bookId: row.bookId, priceContact: contact, attested } }),
+        );
+        if (error) break;
+      }
+    } else {
+      error = await run(() =>
+        submitPortalPriceUpdateFn({
+          data: {
+            bidId: rows[0]!.bidId,
+            lines: rows.map((row) => ({ itemId: row.itemId, unitPrice: prices[row.itemId] ?? "" })),
+            priceContact: contact,
+            attested,
+          },
+        }),
+      );
+    }
+    setBusy(false);
+    if (error) setNote(error);
+    else {
+      setNote(
+        mode === "confirm"
+          ? "Thank you. We will approve the new term and let you know."
+          : "Thank you. We will review your updated prices before they are published.",
+      );
+      setMode("");
+      setAttested(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg bg-paper p-4 shadow-[var(--shadow-border)]">
+      <p className="font-medium">{rows[0]!.bidTitle}</p>
+      <ul className="mt-2 grid gap-1 text-sm">
+        {rows.map((row) => (
+          <li key={row.bookId}>
+            {row.title}: ${row.unitPrice}
+            {row.unit ? ` / ${row.unit}` : ""}
+            <span className="text-muted">
+              {" "}
+              · <span className="font-mono">{row.referenceCode}</span> ·{" "}
+              {row.ended ? `ended ${longDate(row.expiresOn)}` : `good through ${longDate(row.expiresOn)}`}
+              {row.pendingConfirmation ? " · confirmation waiting for approval" : ""}
+              {row.updatedPricesWaiting ? ` · updated to $${row.updatedPrice}, waiting for review` : ""}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {mode ? (
+        <form className="mt-4 grid gap-4" onSubmit={(event) => void onSubmit(event)}>
+          {mode === "update" ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {rows.map((row) => (
+                <div key={row.itemId} className="grid gap-1.5">
+                  <Label htmlFor={`update-${row.bookId}`}>
+                    {row.title} (USD{row.unit ? ` / ${row.unit}` : ""})
+                  </Label>
+                  <Input
+                    id={`update-${row.bookId}`}
+                    inputMode="decimal"
+                    value={prices[row.itemId] ?? ""}
+                    onChange={(event) => setPrices((current) => ({ ...current, [row.itemId]: event.target.value }))}
+                    required
+                    disabled={busy}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">
+              You confirm these prices are unchanged for a new term. The new term starts once United
+              Under God approves it; until then the current term stands.
+            </p>
+          )}
+          <PriceContactFields
+            idPrefix={`prices-${rows[0]!.bidId}`}
+            contact={contact}
+            onChange={setContact}
+            disabled={busy}
+            attestation={attestationText(company)}
+            attested={attested}
+            onAttest={setAttested}
+          />
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" disabled={busy}>
+              {busy ? "Sending…" : mode === "confirm" ? "Confirm unchanged" : "Send updated prices"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setMode("")}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button type="button" variant="secondary" disabled={disabled || waiting} onClick={() => setMode("confirm")}>
+            {waiting ? "Confirmation sent" : "Confirm prices unchanged for a new term"}
+          </Button>
+          <Button type="button" variant="secondary" disabled={disabled} onClick={() => setMode("update")}>
+            {updated ? "Revise updated prices" : "Send updated prices"}
+          </Button>
+        </div>
+      )}
+      {disabled ? <p className="mt-2 text-sm text-muted">Accept the updated Vendor Terms above first.</p> : null}
+      <Note text={note} />
+    </div>
+  );
+}
+
+/** The default price contact, prefilled on every quote and confirmation. */
+function DefaultPriceContact({ read, run }: { read: Ok; run: Run }) {
+  const [contact, setContact] = useState<PriceContact>(read.priceContact);
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    const error = await run(() => savePortalPriceContactFn({ data: contact }));
+    setBusy(false);
+    setNote(error || "Saved.");
+  }
+  return (
+    <Card title="Default price contact" id="price-contact">
+      <p className="mt-2 max-w-2xl text-sm text-muted">
+        The senior person at your company who is authorized to commit it to the prices you quote.
+        We fill this in on each quote for you; you can change it on any quote.
+      </p>
+      <form className="mt-4 grid gap-4" onSubmit={(event) => void onSubmit(event)}>
+        <PriceContactFields idPrefix="default" contact={contact} onChange={setContact} disabled={busy} />
+        <div>
+          <Button type="submit" disabled={busy}>
+            {busy ? "Saving…" : "Save price contact"}
+          </Button>
+        </div>
+        <Note text={note} />
+      </form>
+    </Card>
   );
 }
 

@@ -58,7 +58,12 @@ test("vendor pages keep the owner's copy rules", () => {
   assert.ok(!/\bAI\b/.test(text), "no 'AI'");
   assert.ok(!NAME.test(text), "never name the installer");
   assert.ok(!/\blowest\b|\bcheapest\b|best price|save up to/i.test(text), "no lowest-price claims");
-  assert.ok(!/\bmembers?(hip)?\b/i.test(text), "no 'membership' or 'members'");
+  // "member church" appears only in the covenant's honor-the-price line, which
+  // the owner asked for word for word (2026-10-27). Nothing else says members.
+  assert.ok(
+    !/\bmembers?(hip)?\b/i.test(text.replace(/\bmember church(es)?\b/g, "")),
+    "no 'membership' or 'members'",
+  );
   // Rates come from the config, not from page copy.
   for (const page of files.filter(
     (f) => f.startsWith("src/routes") || f.startsWith("src/components"),

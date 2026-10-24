@@ -9,12 +9,14 @@ import type { BuyingModel } from "./church-spend.ts";
  */
 
 /** Bump when the terms text or a rate changes. Stored with each acceptance. */
-export const VENDOR_TERMS_VERSION = "2026-10-26";
+export const VENDOR_TERMS_VERSION = "2026-10-27";
 
 /**
- * The first terms version that carries the Vendor Covenant. The covenant's
- * words have not changed since, so a vendor that accepted this version or
- * later has accepted the current covenant.
+ * The first terms version that carries the Vendor Covenant. A vendor that
+ * accepted this version or later stands behind the covenant (the badge, and
+ * ranking eligibility). 2026-10-27 added one line to it, "Honor the program
+ * price"; a vendor on an older version is asked to accept the new one
+ * (needsCovenant) through the same re-acceptance link and portal banner.
  */
 export const COVENANT_SINCE = "2026-10-25";
 
@@ -27,6 +29,8 @@ export const TERMS_CHANGES: Record<string, string> = {
     "The terms now begin with the Vendor Covenant, the standard every vendor in the program agrees to keep. The rates have not changed.",
   "2026-10-26":
     "The rebate and referral fee are now minimum rates. You may offer a higher rate in any category, in your vendor portal. The covenant has not changed.",
+  "2026-10-27":
+    "The covenant adds one line: honor the program price. When a member church gives you a program reference, you charge no more than the awarded price for the term. The rates have not changed.",
 };
 
 export function termsChange(version = VENDOR_TERMS_VERSION): string {
@@ -158,6 +162,10 @@ export type TermsSection = {
   covenant?: boolean;
 };
 
+/** The covenant line added in 2026-10-27, word for word. */
+export const HONOR_PRICE_TEXT =
+  "When a member church gives you a program reference, charge no more than the awarded price for the term. Charging more is a breach of this covenant.";
+
 /** The Vendor Covenant: the standard every vendor agrees to. */
 export function vendorCovenant(covenant = COVENANT): TermsSection {
   const days = covenant.responseBusinessDays;
@@ -187,6 +195,10 @@ export function vendorCovenant(covenant = COVENANT): TermsSection {
       {
         title: "Quote honestly.",
         text: "The final bill matches the quote, unless the church approves a change in writing.",
+      },
+      {
+        title: "Honor the program price.",
+        text: HONOR_PRICE_TEXT,
       },
       {
         title: "Answer problems quickly.",
@@ -256,6 +268,13 @@ export function vendorTerms(config: FeeConfig = FEES, covenant = COVENANT): Term
       body: [
         `The ${rebate} rebate and the ${referral} referral fee are minimums. You may offer a higher rate in any category you serve, to show you want the work. Many vendors ask their manufacturers to help cover it. You set the rate you offer for each category in your vendor portal, and it applies to sales and jobs in that category from the day you save it until you change it.`,
         "The rate you offer is one part of how vendors are ranked in the catalogs, and it counts for less than your price to the church and your service record. Raising your prices to pay a higher rate lowers your ranking. Offering more does not promise you any sales.",
+      ],
+    },
+    {
+      heading: "Program prices and price terms",
+      body: [
+        "Every quote names a senior person at your company who is authorized to commit it to the quoted prices, and that person attests to it. An awarded price is listed with a program reference, such as UUG-2026-0142, and a price term, usually 6 or 12 months. A church that orders gives you the reference.",
+        "Before a price term ends, we ask you to confirm your prices for a new term or send updated prices. A confirmed term starts once United Under God approves it.",
       ],
     },
     {

@@ -9,6 +9,8 @@ import {
   FEE_DISCLOSURE,
   VENDOR_TERMS_VERSION,
   FEE_OFFER_MAX,
+  HONOR_PRICE_TEXT,
+  TERMS_CHANGES,
   acceptedCovenant,
   cleanFeeOffer,
   covenantText,
@@ -68,7 +70,8 @@ test("the terms say what the owner decided, and nothing licensed", () => {
   assert.ok(!/premium|underwrit|fiduciary|broker/i.test(text), "no licensed-industry terms");
   assert.ok(!/\bAI\b/.test(text));
   assert.ok(!/lowest|cheapest|best price|save up to/i.test(text));
-  assert.ok(!/\bmembers?(hip)?\b/i.test(text));
+  // "member church" appears only in the honor-the-price line the owner asked for.
+  assert.ok(!/\bmembers?(hip)?\b/i.test(text.replace(/\bmember church(es)?\b/g, "")));
   assert.ok(!new RegExp(["mes", "sen", "ger"].join(""), "i").test(text));
 });
 
@@ -85,8 +88,8 @@ test("the disclosure line is short, plain, and says UUG retains the rebates", ()
 // --- the Vendor Covenant ------------------------------------------------------
 
 test("the terms version is bumped for the covenant, and the covenant leads", () => {
-  assert.equal(VENDOR_TERMS_VERSION, "2026-10-26");
-  assert.ok(VENDOR_TERMS_VERSION > "2026-10-24", "newer than the version vendors first accepted");
+  assert.equal(VENDOR_TERMS_VERSION, "2026-10-27");
+  assert.ok(VENDOR_TERMS_VERSION > "2026-10-26", "newer than the minimum-rates version");
   assert.equal(COVENANT_SINCE, "2026-10-25");
   assert.ok(COVENANT_SINCE <= VENDOR_TERMS_VERSION);
   const sections = vendorTerms();
@@ -116,6 +119,7 @@ test("the covenant says what the owner asked for, in short commitments", () => {
     "Go above and beyond.",
     "Care about the church’s success.",
     "Quote honestly.",
+    "Honor the program price.",
     "Answer problems quickly.",
     "Accept United Under God’s resolution.",
   ]);
@@ -145,7 +149,7 @@ test("the covenant says what the owner asked for, in short commitments", () => {
   assert.ok(!/\bfine[sd]?\b|\$\d|penalty fee/i.test(text), "no cash fines");
   assert.ok(!/background check|reference call|certificate of insurance/i.test(text));
   assert.ok(!/\bAI\b/.test(text));
-  assert.ok(!/\bmembers?(hip)?\b/i.test(text));
+  assert.ok(!/\bmembers?(hip)?\b/i.test(text.replace(/\bmember church(es)?\b/g, "")));
   assert.ok(!/guarantee/i.test(text));
   assert.ok(!new RegExp(["mes", "sen", "ger"].join(""), "i").test(text));
 });
@@ -160,6 +164,8 @@ test("vendors on an older version need to accept the new covenant", () => {
   assert.equal(needsCovenant("2026-10-24"), true);
   assert.equal(needsCovenant(""), true);
   assert.equal(needsCovenant(VENDOR_TERMS_VERSION), false);
+  assert.equal(needsCovenant("2026-10-26"), true, "the honor-the-price line needs re-acceptance");
+  assert.equal(acceptedCovenant("2026-10-26"), true, "still stands behind the covenant meanwhile");
   assert.equal(acceptedCovenant("2026-10-24"), false);
   assert.equal(acceptedCovenant(VENDOR_TERMS_VERSION), true);
   // 2026-10-26 changed the rates, not the covenant: 2026-10-25 still carries it.
@@ -201,4 +207,34 @@ test("floors are enforced on an offered rate", () => {
   // The floor follows the config, not a typed number.
   const higher: FeeConfig = { ...FEES, rebate: { ...FEES.rebate, percent: 3 } };
   assert.throws(() => cleanFeeOffer("2.5", "rebate", higher), /at least 3%/);
+});
+
+// --- honoring the program price (2026-10-27) --------------------------------------
+
+test("the covenant says to honor the program price, word for word, and keeps the consequences", () => {
+  assert.equal(
+    HONOR_PRICE_TEXT,
+    "When a member church gives you a program reference, charge no more than the awarded price for the term. Charging more is a breach of this covenant.",
+  );
+  const points = vendorCovenant().points!;
+  const honor = points.find((point) => point.title === "Honor the program price.");
+  assert.ok(honor, "the line is in the covenant");
+  assert.equal(honor!.text, HONOR_PRICE_TEXT);
+  const text = covenantText();
+  assert.match(
+    text,
+    /Honor the program price\. When a member church gives you a program reference, charge no more than the awarded price for the term\. Charging more is a breach of this covenant\./,
+  );
+  // The consequences did not change.
+  for (const step of ["warned;", "placed on probation;", "suspended from bid invitations and catalogs;", "revoked from the program."]) {
+    assert.ok(text.includes(step), step);
+  }
+  assert.match(termsChange("2026-10-27"), /honor the program price/);
+  assert.match(termsChange(), /rates have not changed/);
+  assert.ok(TERMS_CHANGES["2026-10-27"], "the re-acceptance email and page say what changed");
+  // Vendors on 2026-10-26 are asked again through the same flow.
+  assert.equal(needsCovenant("2026-10-26"), true);
+  assert.match(vendorTermsText(), /program reference, such as UUG-2026-0142/);
+  assert.match(vendorTermsText(), /A confirmed term starts once United Under God approves it/);
+  assert.ok(!/discount|save up to|lowest/i.test(vendorTermsText()), "no promised discounts");
 });

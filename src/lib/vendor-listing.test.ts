@@ -18,7 +18,15 @@ const SITE = "https://www.unitedundergod.org";
 const PDF = new TextEncoder().encode("%PDF-1.7\nprice sheet\n");
 
 /** Strings that must never reach a viewer who is not a member church. */
-const SECRET = ["Floors since 1998", "shine.example", "404-555-0123", "Fall price sheet", "/api/vendor-files/", "Spotless every week"];
+const SECRET = [
+  "Floors since 1998",
+  "shine.example",
+  "sam@shine.example",
+  "404-555-0123",
+  "Fall price sheet",
+  "/api/vendor-files/",
+  "Spotless every week",
+];
 
 async function seeded() {
   const sql = await freshProgramDb();
@@ -84,16 +92,34 @@ test("catalog: a non-member gets names, the count, and Preferred only; a member 
   assert.deepEqual(locked.vendors, [{ id, company: "Shine Janitorial", preferred: true, locked: true }]);
   const lockedJson = JSON.stringify(locked);
   for (const secret of SECRET) assert.ok(!lockedJson.includes(secret), `non-member sees ${secret}`);
-  assert.ok(!/reviewCount|reviewAverage|score|website|phone|files/.test(JSON.stringify(locked.vendors)));
+  assert.ok(!/reviewCount|reviewAverage|score|website|phone|email|files/.test(JSON.stringify(locked.vendors)));
 
   const open = await catalogVendorsForViewer(sql, "janitorial-supplies", { member: true });
   assert.equal(open.member, true);
   const json = JSON.stringify(open);
-  for (const secret of ["Floors since 1998", "shine.example", "404-555-0123", "Fall price sheet"]) {
+  for (const secret of ["Floors since 1998", "shine.example", "sam@shine.example", "404-555-0123", "Fall price sheet"]) {
     assert.ok(json.includes(secret), `member misses ${secret}`);
   }
   const vendor = open.vendors[0]!;
   assert.ok(!vendor.locked && vendor.files.length === 1 && vendor.reviewCount === 3);
+});
+
+test("the vendor's email: member churches and staff see it; non-members never do", async () => {
+  const { sql, id } = await seeded();
+  const member = await catalogVendorsForViewer(sql, "janitorial-supplies", { member: true });
+  const card = member.vendors[0]!;
+  assert.ok(!card.locked);
+  if (!card.locked) assert.equal(card.email, "sam@shine.example");
+  const profile = await vendorProfileForViewer(sql, id, { member: true });
+  assert.ok(profile && !profile.locked);
+  if (profile && !profile.locked) assert.equal(profile.email, "sam@shine.example");
+
+  const locked = await catalogVendorsForViewer(sql, "janitorial-supplies", { member: false });
+  assert.ok(!JSON.stringify(locked).includes("sam@shine.example"));
+  assert.ok(!("email" in locked.vendors[0]!));
+  const lockedProfile = await vendorProfileForViewer(sql, id, { member: false });
+  assert.ok(!JSON.stringify(lockedProfile).includes("sam@"));
+  assert.ok(!("email" in lockedProfile!));
 });
 
 test("profile: a non-member gets the name, catalogs, and standing; a member gets reviews and files", async () => {

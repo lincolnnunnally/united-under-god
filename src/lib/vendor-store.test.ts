@@ -26,6 +26,7 @@ import {
   type VendorSignupInput,
 } from "./vendor-store.ts";
 import { VENDOR_TERMS_VERSION } from "./vendor-terms.ts";
+import { ATTESTED } from "./program-test-db.ts";
 
 const SITE = "https://www.unitedundergod.org";
 
@@ -51,6 +52,7 @@ async function fresh() {
     "0004_source_buying.sql",
     "0006_source_bid_category.sql",
     "0007_source_vendors.sql",
+    "0012_program_price_honor.sql",
   ]) {
     await pg.exec(readFileSync(new URL(`../../migrations/${file}`, import.meta.url), "utf8"));
   }
@@ -428,6 +430,7 @@ test("an online quote lands on the desk next to typed-in quotes and can be revis
   const saved = await submitOnlineQuote(sql, {
     bidId,
     token,
+    ...ATTESTED,
     notes: "Prices hold 90 days.",
     lines: [
       { itemId: first!.id, unitPrice: "$61.00", notes: "OEM" },
@@ -449,6 +452,7 @@ test("an online quote lands on the desk next to typed-in quotes and can be revis
   const revised = await submitOnlineQuote(sql, {
     bidId,
     token,
+    ...ATTESTED,
     lines: [
       { itemId: first!.id, unitPrice: "59.5" },
       { itemId: second!.id, unitPrice: "12" },

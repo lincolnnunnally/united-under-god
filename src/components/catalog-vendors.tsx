@@ -111,7 +111,13 @@ function VendorCard({ vendor, filesVisible }: { vendor: CatalogVendor; filesVisi
       {vendor.area ? <p className="mt-1 text-sm text-muted">Area: {vendor.area}</p> : null}
       <p className="mt-1 text-sm text-muted">
         {vendor.phone ? <a href={`tel:${vendor.phone.replace(/[^\d+]/g, "")}`}>{vendor.phone}</a> : null}
-        {vendor.phone && vendor.website ? " · " : null}
+        {vendor.phone && (vendor.email || vendor.website) ? " · " : null}
+        {vendor.email ? (
+          <a href={`mailto:${vendor.email}`} className="text-forest underline-offset-4 hover:underline">
+            {vendor.email}
+          </a>
+        ) : null}
+        {vendor.email && vendor.website ? " · " : null}
         {vendor.website ? (
           <a
             href={vendor.website}

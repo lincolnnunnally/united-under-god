@@ -111,8 +111,12 @@ export type GateableEntry = {
   [key: string]: unknown;
 };
 
-/** Fields a non-member may receive: what was priced, never by whom or for how much. */
-const OPEN_FIELDS = ["id", "title", "unit", "quantity", "category", "catalogItem", "publishedAt"];
+/**
+ * Fields a non-member may receive: what was priced, never by whom or for how
+ * much. priceStatus ('current' | 'ended') says only whether a price term is
+ * running, so an ended price is not shown as a current one.
+ */
+const OPEN_FIELDS = ["id", "title", "unit", "quantity", "category", "catalogItem", "publishedAt", "priceStatus"];
 
 /**
  * Strip vendor, price, notes, and vendor standing from one entry. Built from

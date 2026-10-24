@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
 import { pgliteBootstrapAllowed } from "./db-runtime.ts";
+import { ATTESTED } from "./program-test-db.ts";
 import {
   addQuote,
   createBid,
@@ -48,6 +49,9 @@ async function fresh({ categories = true } = {}) {
       ),
     );
   }
+  await pg.exec(
+    readFileSync(new URL("../../migrations/0012_program_price_honor.sql", import.meta.url), "utf8"),
+  );
   return toSql(pg);
 }
 
@@ -123,6 +127,7 @@ test("bid, two quotes, two winners, one published entry", async () => {
       bidId,
       vendorName: "Alpha Supply",
       vendorContact: "ada@alpha.example",
+      ...ATTESTED,
       lines: [
         { itemId: paper.id, unitPrice: "24.50" },
         { itemId: toner.id, unitPrice: "61" },
@@ -135,6 +140,7 @@ test("bid, two quotes, two winners, one published entry", async () => {
     {
       bidId,
       vendorName: "Beta Goods",
+      ...ATTESTED,
       lines: [
         { itemId: paper.id, unitPrice: "$22.00" },
         { itemId: toner.id, unitPrice: "" },

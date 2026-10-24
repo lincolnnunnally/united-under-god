@@ -17,8 +17,9 @@ import { vendorReviewSummary, type PublicReview } from "./review-store.ts";
 /**
  * What a church sees of program vendors: each catalog's ranked list and each
  * vendor's profile. Only the score, the review summary, published reviews,
- * and the vendor's own business details leave here; never a church's contact,
- * a case, an eligibility reason, or a fee.
+ * and the vendor's own business details (including its email, so a member
+ * church can order directly) leave here; never a church's contact, a case, an
+ * eligibility reason, or a fee.
  *
  * Imported by node's test runner: relative imports, no framework code.
  */
@@ -39,6 +40,8 @@ export type CatalogVendor = {
   description: string;
   website: string;
   phone: string;
+  /** The vendor's main email. Member churches and staff only (not in the allow-list). */
+  email: string;
   area: string;
   /** Subcategory names it serves in this catalog. */
   serves: string[];
@@ -79,6 +82,7 @@ type VendorDetail = {
   description: string;
   website: string;
   phone: string;
+  email: string;
   categories: string[];
   states: string[];
   places: string[];
@@ -101,7 +105,7 @@ function list(value: unknown): string[] {
 async function vendorDetails(sql: Sql, ids: string[]): Promise<Map<string, VendorDetail>> {
   if (ids.length === 0) return new Map();
   const rows = await sql`
-    select id, website, phone, categories, states, places, nationwide,
+    select id, website, phone, email, categories, states, places, nationwide,
       coalesce(to_jsonb(v) ->> 'description', '') as description
     from source_vendors v where id = any(${ids})
   `;
@@ -113,6 +117,7 @@ async function vendorDetails(sql: Sql, ids: string[]): Promise<Map<string, Vendo
         description: String(row.description ?? ""),
         website: String(row.website ?? ""),
         phone: String(row.phone ?? ""),
+        email: String(row.email ?? ""),
         categories: list(row.categories),
         states: list(row.states),
         places: list(row.places),
@@ -166,6 +171,7 @@ export async function readCatalogVendors(
         description: detail?.description ?? "",
         website: detail?.website ?? "",
         phone: detail?.phone ?? "",
+        email: detail?.email ?? "",
         area: detail ? describeArea(detail) : "",
         serves,
         score: row.ranked ? displayScore(row.breakdown) : null,
@@ -189,6 +195,8 @@ export type VendorProfile = {
   description: string;
   website: string;
   phone: string;
+  /** The vendor's main email. Member churches and staff only (not in the allow-list). */
+  email: string;
   area: string;
   covenant: boolean;
   catalogs: {
@@ -237,6 +245,7 @@ export async function readVendorProfile(
     description: detail.description,
     website: detail.website,
     phone: detail.phone,
+    email: detail.email,
     area: describeArea(detail),
     covenant: acceptedCovenant(vendor.termsVersion),
     catalogs,
