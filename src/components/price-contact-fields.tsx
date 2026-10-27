@@ -30,7 +30,10 @@ export function PriceContactFields({
 }) {
   const field = (key: keyof PriceContact, label: string, type = "text", autoComplete?: string) => (
     <div className="grid gap-1.5">
-      <Label htmlFor={`${idPrefix}-pc-${key}`}>{label}</Label>
+      <Label htmlFor={`${idPrefix}-pc-${key}`}>
+        {label}
+        {attestation ? <span className="text-muted"> (required)</span> : null}
+      </Label>
       <Input
         id={`${idPrefix}-pc-${key}`}
         type={type}

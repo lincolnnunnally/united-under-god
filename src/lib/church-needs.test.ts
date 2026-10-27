@@ -9,6 +9,9 @@ import {
   createNeed,
   declineNeedQuotes,
   needConfirmationEmail,
+  needDecisionNotice,
+  needIntroToChurch,
+  needIntroToSupplier,
   needLinkPath,
   readNeedByToken,
   readNeedsDesk,
@@ -221,6 +224,19 @@ test("start a bid, group a second church on it, compare, choose", async () => {
   const chosen = await chooseNeedQuote(sql, { token: grace.token, quoteId: alpha });
   assert.equal(chosen.vendorName, "Alpha Seating");
   assert.equal(chosen.churchName, "Grace Chapel");
+  // The introduction goes both ways: the church gets the supplier's person, the supplier gets the church.
+  assert.ok(chosen.supplierEmail, "the chosen quote carries the supplier's email");
+  const toChurch = needIntroToChurch(chosen);
+  assert.equal(toChurch.to, "ruth@gracechapel.example");
+  assert.ok(toChurch.text.includes(chosen.supplierEmail) && toChurch.text.includes("Alpha Seating"));
+  const toSupplier = needIntroToSupplier(chosen);
+  assert.equal(toSupplier.to, chosen.supplierEmail);
+  assert.ok(toSupplier.text.includes("Grace Chapel") && toSupplier.text.includes("ruth@gracechapel.example"));
+  assert.ok(!toSupplier.text.includes("Hope Fellowship"));
+  const told = needDecisionNotice(chosen, true, { church: true, supplier: true });
+  assert.match(told.subject, /\(introduced\)$/);
+  assert.ok(told.text.includes(`Supplier email: ${chosen.supplierEmail}`));
+  assert.match(needDecisionNotice(chosen, true, { church: true, supplier: false }).text, /call the supplier/);
   const after = await needOf(sql, grace.id);
   assert.equal(after.status, "chosen");
   assert.equal(after.chosenQuoteId, alpha);

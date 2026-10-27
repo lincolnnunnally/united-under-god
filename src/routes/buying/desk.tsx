@@ -772,13 +772,32 @@ function QuoteForm({
   const [contact, setContact] = useState<PriceContact>({ ...EMPTY_PRICE_CONTACT });
   const [attested, setAttested] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Shown beside the button: what is missing, or why the save failed. The
+  // browser's own "fill out this field" bubble is easy to miss on a long page.
+  const [problem, setProblem] = useState("");
+
+  function onInvalid(event: FormEvent<HTMLFormElement>) {
+    const form = event.currentTarget;
+    const missing = Array.from(form.querySelectorAll<HTMLInputElement>("input, textarea"))
+      .filter((field) => !field.checkValidity())
+      .map((field) =>
+        field.type === "checkbox"
+          ? "the price contact's confirmation box"
+          : (form.querySelector(`label[for="${field.id}"]`)?.textContent ?? "a field")
+              .replace("(required)", "")
+              .trim(),
+      );
+    setProblem(`Not saved yet. Fill in: ${[...new Set(missing)].join(", ")}.`);
+  }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    setProblem("");
     setBusy(true);
     try {
-      const saved = await onRun(() =>
-        addSourceQuote({
+      const saved = await onRun(async () => {
+        try {
+          return await addSourceQuote({
           data: {
             bidId: bid.id,
             vendorName,
@@ -791,8 +810,12 @@ function QuoteForm({
             priceContact: contact,
             attested,
           },
-        }),
-      );
+          });
+        } catch (err) {
+          setProblem(`Not saved: ${err instanceof Error ? err.message : "please try again."}`);
+          throw err;
+        }
+      });
       if (!saved) return;
       setVendorName("");
       setVendorContact("");
@@ -806,7 +829,11 @@ function QuoteForm({
   }
 
   return (
-    <form className="mt-4 grid gap-3" onSubmit={(event) => void onSubmit(event)}>
+    <form
+      className="mt-4 grid gap-3"
+      onSubmit={(event) => void onSubmit(event)}
+      onInvalidCapture={onInvalid}
+    >
       <h4 className="text-sm font-medium">Record a quote</h4>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="grid gap-1.5">
@@ -867,6 +894,11 @@ function QuoteForm({
         <Button type="submit" disabled={disabled || busy}>
           {busy ? "Saving…" : "Save quote"}
         </Button>
+        {problem ? (
+          <p className="mt-2 text-sm text-ink" role="alert">
+            {problem}
+          </p>
+        ) : null}
       </div>
     </form>
   );

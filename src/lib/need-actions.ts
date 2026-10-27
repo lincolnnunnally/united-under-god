@@ -17,6 +17,8 @@ import {
   declineNeedQuotes,
   needConfirmationEmail,
   needDecisionNotice,
+  needIntroToChurch,
+  needIntroToSupplier,
   needInquiry,
   needNotice,
   readNeedByToken,
@@ -150,7 +152,12 @@ export const chooseNeedQuoteFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     try {
       const chosen = await chooseNeedQuote(await publicSql(), data);
-      await ownerMail(needDecisionNotice(chosen, true));
+      // The church's page promises the introduction: make it now, both ways.
+      const church = await mail(needIntroToChurch(chosen)).catch(() => ({ ok: false, error: "" }));
+      const supplier = chosen.supplierEmail
+        ? await mail(needIntroToSupplier(chosen)).catch(() => ({ ok: false, error: "" }))
+        : { ok: false, error: "" };
+      await ownerMail(needDecisionNotice(chosen, true, { church: church.ok, supplier: supplier.ok }));
       return { ok: true as const };
     } catch (err) {
       return { ok: false as const, error: plainError(err, "Your choice did not save. Please try again shortly.") };
