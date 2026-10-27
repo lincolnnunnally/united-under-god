@@ -16,7 +16,7 @@ import {
   sendResendText,
 } from "./desk-mail.ts";
 
-const emptyDesk = { routes: [], staff: [] as const };
+const emptyDesk = { routes: [], staff: [] };
 
 function row(overrides: Partial<InquiryNoticeRow> = {}): InquiryNoticeRow {
   return {

@@ -3,7 +3,7 @@
  * Writes public/sitemap.xml: every public, indexable page on the production
  * host (the apex 308s to www), each with the date its own source files last
  * changed. Private pages (/login, /account, /admin, /membership/welcome,
- * /buying/desk, /buying/bids/<id>, /buying/cases/<id>, /buying/mediate/<id>,
+ * /buying/desk, /buying/bids/<id>, /buying/need/<token>, /buying/cases/<id>, /buying/mediate/<id>,
  * /buying/covenant, /buying/portal, /buying/review/<id>, /give/thanks) and redirects (/donate) stay out on purpose.
  *
  *   node scripts/sitemap.mjs          # rewrite public/sitemap.xml
@@ -33,6 +33,7 @@ export const STATIC_PATHS = [
   "/buying/sell-to-churches",
   "/buying/vendor-terms",
   "/buying/report",
+  "/buying/need",
   "/buying/how-vendors-are-ranked",
   "/church-av",
   "/assessment",
@@ -119,6 +120,7 @@ export function sourcesFor(path, root = ROOT) {
     ];
   }
   if (path === "/buying/report") return ["src/routes/buying/report.tsx"];
+  if (path === "/buying/need") return ["src/routes/buying/need/index.tsx"];
   if (path === "/buying/how-vendors-are-ranked") {
     return ["src/routes/buying/how-vendors-are-ranked.tsx", "src/lib/vendor-rank.ts"];
   }
