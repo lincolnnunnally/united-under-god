@@ -69,6 +69,8 @@ import { Route as ApiVendorFilesIdRouteImport } from './routes/api/vendor-files/
 import { Route as BuyingBidsIdRouteImport } from './routes/buying/bids/$id'
 import { Route as BuyingCasesIdRouteImport } from './routes/buying/cases/$id'
 import { Route as BuyingMediateIdRouteImport } from './routes/buying/mediate/$id'
+import { Route as BuyingNeedIndexRouteImport } from './routes/buying/need/index'
+import { Route as BuyingNeedTokenRouteImport } from './routes/buying/need/$token'
 import { Route as BuyingReviewIdRouteImport } from './routes/buying/review/$id'
 import { Route as BuyingVendorIdRouteImport } from './routes/buying/vendor/$id'
 import { Route as ChurchAvStateIndexRouteImport } from './routes/church-av/$state/index'
@@ -380,6 +382,16 @@ const BuyingMediateIdRoute = BuyingMediateIdRouteImport.update({
   path: '/mediate/$id',
   getParentRoute: () => BuyingRouteRoute,
 } as any)
+const BuyingNeedIndexRoute = BuyingNeedIndexRouteImport.update({
+  id: '/need/',
+  path: '/need/',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
+const BuyingNeedTokenRoute = BuyingNeedTokenRouteImport.update({
+  id: '/need/$token',
+  path: '/need/$token',
+  getParentRoute: () => BuyingRouteRoute,
+} as any)
 const BuyingReviewIdRoute = BuyingReviewIdRouteImport.update({
   id: '/review/$id',
   path: '/review/$id',
@@ -481,12 +493,14 @@ export interface FileRoutesByFullPath {
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
+  '/buying/need/$token': typeof BuyingNeedTokenRoute
   '/buying/review/$id': typeof BuyingReviewIdRoute
   '/buying/vendor/$id': typeof BuyingVendorIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files/': typeof ApiVendorFilesIndexRoute
+  '/buying/need/': typeof BuyingNeedIndexRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
   '/church-av/help/': typeof ChurchAvHelpIndexRoute
   '/church-av/planner/': typeof ChurchAvPlannerIndexRoute
@@ -548,12 +562,14 @@ export interface FileRoutesByTo {
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
+  '/buying/need/$token': typeof BuyingNeedTokenRoute
   '/buying/review/$id': typeof BuyingReviewIdRoute
   '/buying/vendor/$id': typeof BuyingVendorIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files': typeof ApiVendorFilesIndexRoute
+  '/buying/need': typeof BuyingNeedIndexRoute
   '/church-av/$state': typeof ChurchAvStateIndexRoute
   '/church-av/help': typeof ChurchAvHelpIndexRoute
   '/church-av/planner': typeof ChurchAvPlannerIndexRoute
@@ -619,12 +635,14 @@ export interface FileRoutesById {
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
+  '/buying/need/$token': typeof BuyingNeedTokenRoute
   '/buying/review/$id': typeof BuyingReviewIdRoute
   '/buying/vendor/$id': typeof BuyingVendorIdRoute
   '/church-av/$state/$city': typeof ChurchAvStateCityRoute
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files/': typeof ApiVendorFilesIndexRoute
+  '/buying/need/': typeof BuyingNeedIndexRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
   '/church-av/help/': typeof ChurchAvHelpIndexRoute
   '/church-av/planner/': typeof ChurchAvPlannerIndexRoute
@@ -691,12 +709,14 @@ export interface FileRouteTypes {
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
+    | '/buying/need/$token'
     | '/buying/review/$id'
     | '/buying/vendor/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files/'
+    | '/buying/need/'
     | '/church-av/$state/'
     | '/church-av/help/'
     | '/church-av/planner/'
@@ -758,12 +778,14 @@ export interface FileRouteTypes {
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
+    | '/buying/need/$token'
     | '/buying/review/$id'
     | '/buying/vendor/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files'
+    | '/buying/need'
     | '/church-av/$state'
     | '/church-av/help'
     | '/church-av/planner'
@@ -828,12 +850,14 @@ export interface FileRouteTypes {
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
+    | '/buying/need/$token'
     | '/buying/review/$id'
     | '/buying/vendor/$id'
     | '/church-av/$state/$city'
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files/'
+    | '/buying/need/'
     | '/church-av/$state/'
     | '/church-av/help/'
     | '/church-av/planner/'
@@ -1308,6 +1332,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BuyingMediateIdRouteImport
       parentRoute: typeof BuyingRouteRoute
     }
+    '/buying/need/': {
+      id: '/buying/need/'
+      path: '/need'
+      fullPath: '/buying/need/'
+      preLoaderRoute: typeof BuyingNeedIndexRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
+    '/buying/need/$token': {
+      id: '/buying/need/$token'
+      path: '/need/$token'
+      fullPath: '/buying/need/$token'
+      preLoaderRoute: typeof BuyingNeedTokenRouteImport
+      parentRoute: typeof BuyingRouteRoute
+    }
     '/buying/review/$id': {
       id: '/buying/review/$id'
       path: '/review/$id'
@@ -1417,8 +1455,10 @@ interface BuyingRouteRouteChildren {
   BuyingBidsIdRoute: typeof BuyingBidsIdRoute
   BuyingCasesIdRoute: typeof BuyingCasesIdRoute
   BuyingMediateIdRoute: typeof BuyingMediateIdRoute
+  BuyingNeedTokenRoute: typeof BuyingNeedTokenRoute
   BuyingReviewIdRoute: typeof BuyingReviewIdRoute
   BuyingVendorIdRoute: typeof BuyingVendorIdRoute
+  BuyingNeedIndexRoute: typeof BuyingNeedIndexRoute
 }
 
 const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
@@ -1435,8 +1475,10 @@ const BuyingRouteRouteChildren: BuyingRouteRouteChildren = {
   BuyingBidsIdRoute: BuyingBidsIdRoute,
   BuyingCasesIdRoute: BuyingCasesIdRoute,
   BuyingMediateIdRoute: BuyingMediateIdRoute,
+  BuyingNeedTokenRoute: BuyingNeedTokenRoute,
   BuyingReviewIdRoute: BuyingReviewIdRoute,
   BuyingVendorIdRoute: BuyingVendorIdRoute,
+  BuyingNeedIndexRoute: BuyingNeedIndexRoute,
 }
 
 const BuyingRouteRouteWithChildren = BuyingRouteRoute._addFileChildren(

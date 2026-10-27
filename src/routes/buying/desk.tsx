@@ -29,6 +29,7 @@ import {
 } from "@/lib/source-actions";
 import { VendorsSection, InvitePanel } from "@/components/source-vendors";
 import { CasesSection } from "@/components/source-cases";
+import { NeedsSection } from "@/components/source-needs";
 import { ProgramSection } from "@/components/source-program";
 import { PriceSection } from "@/components/source-prices";
 import { PriceContactFields } from "@/components/price-contact-fields";
@@ -132,6 +133,8 @@ function SourceDesk() {
       ) : null}
 
       {desk ? <CoverageView desk={desk} /> : null}
+
+      {desk ? <NeedsSection bids={desk.bids} onBidsChanged={() => apply()} /> : null}
 
       {desk ? <VendorsSection desk={desk} onRun={run} /> : null}
 

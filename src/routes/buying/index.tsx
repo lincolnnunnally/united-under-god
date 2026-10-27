@@ -89,6 +89,21 @@ function BuyingPage() {
               </Button>
             )}
           </div>
+          <div
+            className="mt-8 flex max-w-3xl flex-col gap-4 rounded-xl bg-paper p-5 shadow-[var(--shadow-border)] sm:flex-row sm:items-center sm:justify-between"
+            data-post-need=""
+          >
+            <div>
+              <h2 className="font-display text-xl">Need something? We’ll bid it out for you.</h2>
+              <p className="mt-1 text-sm text-muted">
+                Suppliers compete for the work, your contact stays private, and you choose a quote
+                or none. No obligation.
+              </p>
+            </div>
+            <Button asChild className="shrink-0">
+              <Link to="/buying/need">Post a need — we’ll get it quoted</Link>
+            </Button>
+          </div>
           <FeeDisclosure className="mt-6" />
           <ReportProblemLink className="mt-3" />
           <SignInNudge about="group buying" />

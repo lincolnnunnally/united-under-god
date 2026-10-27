@@ -241,7 +241,7 @@ export const submitInquiry = createServerFn({ method: "POST" })
       assigned_email: null,
     };
     const settled = await settleInquirySubmit({
-      inquiry,
+      inquiry: { ...inquiry, assigned_name: inquiry.assigned_name ?? undefined },
       write: async () => {
         const sql = await getSql();
         await sql`
