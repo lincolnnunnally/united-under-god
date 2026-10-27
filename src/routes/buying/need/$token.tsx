@@ -166,8 +166,8 @@ function OpenNeed({ view, token }: { view: Extract<NeedView, { state: "open" }>;
         <div className="mt-8 rounded-xl bg-cream p-5 shadow-[var(--shadow-border)]" role="status">
           <h2 className="font-display text-xl">Thank you. We have your choice.</h2>
           <p className="mt-2 text-muted">
-            {chosen ? `You chose ${chosen.vendorName}. ` : ""}We will connect you with the supplier
-            by email to take it from here.
+            {chosen ? `You chose ${chosen.vendorName}. ` : ""}We have emailed you how to reach the
+            supplier, and sent them your details so they can contact you about the order.
           </p>
         </div>
       ) : null}

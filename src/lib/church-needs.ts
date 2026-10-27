@@ -534,7 +534,11 @@ export function needQuotesEmail(row: Pick<NeedRecord, "contactName" | "title" | 
 async function pricedOnLine(sql: Sql, itemId: string) {
   if (!itemId) return [];
   return sql`
-    select q.id, q.vendor_name, q.notes as quote_notes, l.unit_price, l.notes as line_notes,
+    select q.id, q.vendor_name, q.vendor_contact, q.notes as quote_notes, l.unit_price, l.notes as line_notes,
+      coalesce(to_jsonb(q) ->> 'price_contact_name', '') as pc_name,
+      coalesce(to_jsonb(q) ->> 'price_contact_title', '') as pc_title,
+      coalesce(to_jsonb(q) ->> 'price_contact_email', '') as pc_email,
+      coalesce(to_jsonb(q) ->> 'price_contact_phone', '') as pc_phone,
       coalesce((to_jsonb(r) ->> 'price_term_months')::int, ${DEFAULT_TERM_MONTHS}) as term_months,
       q.created_at
     from source_quote_lines l
@@ -658,9 +662,23 @@ export type NeedDecision = {
   vendorName: string;
   unitPrice: string;
   bidId: string;
+  /** The supplier's person for this quote, so the introduction can be made. */
+  supplierContact: string;
+  supplierEmail: string;
+  supplierPhone: string;
 };
 
-function decision(row: Record<string, unknown>, quote?: { vendorName: string; unitPrice: string }): NeedDecision {
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** The supplier's email for the introduction: the authorized price contact, else the quote's contact if it is an address. */
+function supplierEmailOf(quote: Record<string, unknown>) {
+  const pc = text(quote.pc_email).trim();
+  if (EMAIL_SHAPE.test(pc)) return pc;
+  const found = text(quote.vendor_contact).match(/[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+/);
+  return found ? found[0] : "";
+}
+
+function decision(row: Record<string, unknown>, quote?: Record<string, unknown>): NeedDecision {
   return {
     churchName: text(row.church_name),
     contactName: text(row.contact_name),
@@ -669,9 +687,14 @@ function decision(row: Record<string, unknown>, quote?: { vendorName: string; un
     place: `${text(row.city)}, ${text(row.state)}`,
     title: text(row.title),
     quantity: text(row.quantity),
-    vendorName: quote?.vendorName ?? "",
-    unitPrice: quote?.unitPrice ?? "",
+    vendorName: quote ? text(quote.vendor_name) : "",
+    unitPrice: quote ? text(quote.unit_price) : "",
     bidId: text(row.bid_id),
+    supplierContact: quote
+      ? [text(quote.pc_name), text(quote.pc_title)].filter(Boolean).join(", ") || text(quote.vendor_contact)
+      : "",
+    supplierEmail: quote ? supplierEmailOf(quote) : "",
+    supplierPhone: quote ? text(quote.pc_phone) : "",
   };
 }
 
@@ -695,7 +718,7 @@ export async function chooseNeedQuote(
       status = ${"chosen"}, updated_at = now()
     where id = ${text(row.id)}
   `;
-  return decision(row, { vendorName: text(quote.vendor_name), unitPrice: text(quote.unit_price) });
+  return decision(row, quote);
 }
 
 /** "None of these work": the need closes, with the church's note for the desk. */
@@ -717,15 +740,28 @@ export async function declineNeedQuotes(
 }
 
 /** The owner's notice when a church chooses a quote, or none. */
-export function needDecisionNotice(d: NeedDecision & { note?: string }, chose: boolean) {
+export function needDecisionNotice(
+  d: NeedDecision & { note?: string },
+  chose: boolean,
+  introduced: { church: boolean; supplier: boolean } = { church: false, supplier: false },
+) {
+  const both = introduced.church && introduced.supplier;
   return {
     subject: chose
-      ? `Church chose a quote: ${d.churchName} — ${d.title} from ${d.vendorName}`
+      ? `Church chose a quote: ${d.churchName} — ${d.title} from ${d.vendorName}` +
+        (both ? " (introduced)" : " (introduce them)")
       : `None of the quotes work: ${d.churchName} — ${d.title}`,
     text: [
       chose
-        ? `${d.churchName} chose ${d.vendorName} at ${d.unitPrice} each for "${d.title}". Please introduce them to the supplier.`
+        ? `${d.churchName} chose ${d.vendorName} at ${d.unitPrice} each for "${d.title}".`
         : `${d.churchName} said none of the quotes for "${d.title}" work. The need is closed.`,
+      chose
+        ? both
+          ? "We emailed the church and the supplier each other's contact details. Nothing more is needed unless one of them asks."
+          : !introduced.church
+            ? "The introduction email to the church did not send. Please introduce them by hand."
+            : "The supplier has no email on its quote, so it was not introduced. Please call the supplier and pass on the church's details below."
+        : "",
       "",
       `Church: ${d.churchName}`,
       `Contact: ${d.contactName}`,
@@ -734,8 +770,65 @@ export function needDecisionNotice(d: NeedDecision & { note?: string }, chose: b
       `Place: ${d.place}`,
       d.quantity ? `Quantity: ${d.quantity}` : "",
       d.note ? `Their note: ${d.note}` : "",
+      chose ? "" : "",
+      chose ? `Supplier: ${d.vendorName}` : "",
+      chose && d.supplierContact ? `Supplier contact: ${d.supplierContact}` : "",
+      chose && d.supplierEmail ? `Supplier email: ${d.supplierEmail}` : "",
+      chose && d.supplierPhone ? `Supplier phone: ${d.supplierPhone}` : "",
       "",
       "Church needs on the desk: https://www.unitedundergod.org/buying/desk",
+    ]
+      .filter((line, index, all) => line !== "" || all[index - 1] !== "")
+      .join("\n"),
+  };
+}
+
+
+/** The introduction to the church: who the supplier is and how to reach them. */
+export function needIntroToChurch(d: NeedDecision) {
+  return {
+    to: d.email,
+    subject: `Your supplier for "${d.title}": ${d.vendorName}`,
+    text: [
+      `Hello ${d.contactName || "friends"},`,
+      "",
+      `Thank you for choosing ${d.vendorName} at ${d.unitPrice} each for "${d.title}". Here is how to reach them:`,
+      "",
+      d.supplierContact ? `Contact: ${d.supplierContact}` : "",
+      d.supplierEmail ? `Email: ${d.supplierEmail}` : "",
+      d.supplierPhone ? `Phone: ${d.supplierPhone}` : "",
+      "",
+      "We have sent them your name and contact details, so they will be in touch to arrange the order. Mention United Under God so they hold the quoted price.",
+      "",
+      "If anything does not go as quoted, reply to this email and we will help.",
+      "",
+      "United Under God",
+    ]
+      .filter((line, index, all) => line !== "" || all[index - 1] !== "")
+      .join("\n"),
+  };
+}
+
+/** The introduction to the supplier: the church that chose its quote, now that the church has said yes. */
+export function needIntroToSupplier(d: NeedDecision) {
+  return {
+    to: d.supplierEmail,
+    subject: `A church chose your quote: ${d.title} (United Under God)`,
+    text: [
+      `Hello${d.supplierContact ? ` ${d.supplierContact.split(",")[0]}` : ""},`,
+      "",
+      `${d.churchName} chose your quote of ${d.unitPrice} each for "${d.title}" through United Under God.`,
+      "",
+      `Church: ${d.churchName}`,
+      `Contact: ${d.contactName}`,
+      `Email: ${d.email}`,
+      d.phone ? `Phone: ${d.phone}` : "",
+      `Place: ${d.place}`,
+      d.quantity ? `Quantity: ${d.quantity}` : "",
+      "",
+      "Please contact them to arrange the order at the quoted price. They chose you; please treat them well.",
+      "",
+      "United Under God",
     ]
       .filter((line, index, all) => line !== "" || all[index - 1] !== "")
       .join("\n"),
