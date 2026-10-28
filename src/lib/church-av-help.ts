@@ -115,10 +115,10 @@ export const HELP_PAGES: HelpPage[] = [
       "Turning the main system up does not help them. It adds more of the same echo and makes the squeal worse.",
     ],
     fixes: [
-      // OWNER: confirm with installer before claiming install
+      // Owner, 2026-10-28: the installation team installs hearing loops.
       {
         title: "A hearing loop to the hearing aid’s “T” setting",
-        body: "A hearing (induction) loop is a wire around the seating area that carries the sound from the sound board as a magnetic signal. Hearing aids and cochlear implants with a telecoil pick it up directly when switched to the “T” or telecoil setting — no room echo, no squeal, just the microphone feed. Many hearing aids have a telecoil, but not all, and an audiologist sometimes needs to turn it on.",
+        body: "A hearing (induction) loop is a wire around the seating area that carries the sound from the sound board as a magnetic signal. Hearing aids and cochlear implants with a telecoil pick it up directly when switched to the “T” or telecoil setting — no room echo, no squeal, just the microphone feed. Many hearing aids have a telecoil, but not all, and an audiologist sometimes needs to turn it on. Our installation team installs hearing loops and tests them from the pews.",
       },
       {
         title: "Auracast for newer hearing aids and phones",
@@ -632,7 +632,8 @@ export function helpPath(page: HelpPage) {
 // Planner problems are symptoms a church is living with. A new building and a
 // traditional room are answered by their own planner questions, not listed here.
 export const PLANNER_PROBLEMS = HELP_PAGES.filter(
-  (p) => p.slug !== "planning-a-new-building" && p.slug !== "traditional-sanctuary-without-a-big-screen",
+  (p) =>
+    p.slug !== "planning-a-new-building" && p.slug !== "traditional-sanctuary-without-a-big-screen",
 );
 
 /** Help pages that fit a service id, for linking from state and city pages. */

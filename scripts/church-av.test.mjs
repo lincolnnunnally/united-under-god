@@ -260,16 +260,12 @@ test("the hearing aid page is accurate and does not overclaim", () => {
     assert.match(page, term);
   }
   assert.match(page, /we’ll help you choose the right option/i);
-  assert.match(page, /\/\/ OWNER: confirm with installer before claiming install/);
+  // Owner, 2026-10-28: the installation team installs hearing loops. Auracast stays "help you choose".
+  assert.match(page, /Our installation team installs hearing loops/);
   assert.match(page, /religious organizations are (generally|largely) exempt/i);
   for (const file of SOURCES) {
     const text = readFileSync(file, "utf8");
-    assert.ok(
-      !/install(s|ed|ing)?\s+(a\s+|the\s+|your\s+)?(hearing\s+|induction\s+)?loops?\b|install(s|ed|ing)?\s+Auracast/i.test(
-        text,
-      ),
-      `${file} claims hearing loop or Auracast installation`,
-    );
+    assert.ok(!/install(s|ed|ing)?\s+Auracast/i.test(text), `${file} claims Auracast installation`);
     assert.ok(
       !/(churches|you) (are|is) (legally )?required to (provide|have|install)/i.test(text),
       `${file} says churches are legally required`,
@@ -354,6 +350,10 @@ const LANDING = {
   blended: "blended",
   "livestream-ministry": "livestream",
   "new-building": "newbuild",
+  sound: "blended",
+  video: "livestream",
+  lighting: "modern",
+  "hearing-help": "traditional",
 };
 
 test("every landing page has a route, a sitemap entry, and is checked", () => {
@@ -463,7 +463,7 @@ test("each landing look is scoped to its page and readable", () => {
     if (!/\.tsx?$/.test(file)) continue;
     const rel = file.slice(ROOT.length + 1);
     if (
-      /church-av-landing\.tsx?$|routes\/church-av\/(traditional|modern|blended|livestream-ministry|new-building)\.tsx$/.test(
+      /church-av-landing\.tsx?$|routes\/church-av\/(traditional|modern|blended|livestream-ministry|new-building|sound|video|lighting|hearing-help)\.tsx$/.test(
         rel,
       )
     )
@@ -478,10 +478,11 @@ test("hub, help pages, and planner results link to the landing pages", () => {
   assert.match(comp, /Choose your direction/);
   assert.match(comp, /LANDING_STYLES\.map/);
   assert.match(comp, /LANDING_OUTCOMES\.map/);
+  assert.match(comp, /LANDING_COMPONENTS\.map/);
   const src = read("src/lib/church-av-landing.ts");
   for (const [help, slug] of [
     ["traditional-sanctuary-without-a-big-screen", "traditional"],
-    ["hearing-aids-squeal-or-echo", "traditional"],
+    ["hearing-aids-squeal-or-echo", "hearing-help"],
     ["livestream-keeps-dropping", "livestream-ministry"],
     ["planning-a-new-building", "new-building"],
   ]) {
