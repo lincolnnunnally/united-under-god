@@ -93,7 +93,8 @@ export function SiteFooter() {
           <p className="mt-3 text-sm leading-relaxed text-muted">
             Based in Vidalia, Georgia, serving churches and neighbors across
             the region. Food help through Plenty, donated goods through
-            Operate, and church tools through ChurchConnect.
+            Operate, church tools through ChurchConnect, and websites through
+            EasyPeazy.
           </p>
           <p className="mt-4 text-sm text-muted">
             {LEGAL.status}. EIN {LEGAL.ein}.
@@ -113,6 +114,13 @@ export function SiteFooter() {
             <Link to="/church-av" className="text-forest underline-offset-4 hover:underline">
               Church sound & video
             </Link>
+            {" · "}
+            <a
+              href="https://easypeazy.site"
+              className="text-forest underline-offset-4 hover:underline"
+            >
+              Church & small business websites
+            </a>
             {" · "}
             <Link to="/apps" className="text-forest underline-offset-4 hover:underline">
               All apps & services
