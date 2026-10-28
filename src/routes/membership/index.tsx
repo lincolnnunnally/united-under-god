@@ -82,7 +82,7 @@ export const Route = createFileRoute("/membership/")({
 function MembershipPage() {
   return (
     <SiteShell>
-      <section className="relative isolate overflow-hidden bg-ink text-paper">
+      <section className="relative isolate overflow-hidden tone-night bg-ink text-paper">
         <img
           src="/images/fellowship.jpg"
           alt="Pastors and church leaders gathered around a table"

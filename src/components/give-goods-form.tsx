@@ -302,7 +302,7 @@ function PhotoPicker({
               type="button"
               aria-label="Remove picture"
               onClick={() => onRemove(index)}
-              className="absolute top-1 right-1 flex size-7 items-center justify-center rounded-full bg-ink/80 text-paper"
+              className="absolute top-1 right-1 flex size-7 items-center justify-center rounded-full bg-night/80 text-bone"
             >
               <X className="size-3.5" />
             </button>

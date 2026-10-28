@@ -1,28 +1,43 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #f3eee4;
-  --color-cream: #ebe4d6;
-  --color-surface: #e4dccb;
-  --color-ink: #1a1814;
-  --color-muted: #6b645a;
-  --color-subtle: #8a8276;
-  --color-forest: #2e4a3c;
-  --color-forest-deep: #243b30;
+  /* The battle standard (2026-10-27): near-black ground, the logo's stone as
+     the one accent. Token names are historical — "paper" is the ground,
+     "ink" is the text, "forest" is the accent (stone). Every text/ground pair
+     here clears 4.5:1 (subtle on the second surface is the tightest, 4.9:1). */
+  --color-paper: #101010;
+  --color-cream: #1a1917;
+  --color-surface: #24221f;
+  --color-ink: #e9e3d9;
+  --color-heading: #f3eee6;
+  --color-muted: #b8b0a4;
+  --color-subtle: #968f83;
+  --color-forest: #c9b08c;
+  --color-forest-deep: #e6d3b3;
+  --color-stone: #c9b08c;
+  --color-stone-hover: #e6d3b3;
+  /* Always-dark / always-light, for photo overlays and marks that keep their
+     own card (Live on Mission) no matter the theme. */
+  --color-night: #101010;
+  --color-bone: #f3eee6;
+  /* Live on Mission keeps its own red. --color-mission-ink is the same red
+     lifted for small text on the near-black ground (5.6:1). */
   --color-mission: #b3251e;
   --color-mission-deep: #8f1c17;
   --color-mission-soft: #c4453c;
-  --color-rule: #d4cbba;
-  --color-bg: #f3eee4;
-  --color-fg: #1a1814;
-  --color-primary: #2e4a3c;
-  --color-primary-foreground: #f3eee4;
-  --color-border: #d4cbba;
-  --color-card: #ebe4d6;
-  --color-ring: #2e4a3c;
+  --color-mission-ink: #e0645a;
+  --color-rule: #2e2a26;
+  --color-rule-strong: #3a352f;
+  --color-bg: #101010;
+  --color-fg: #e9e3d9;
+  --color-primary: #c9b08c;
+  --color-primary-foreground: #101010;
+  --color-border: #2e2a26;
+  --color-card: #1a1917;
+  --color-ring: #c9b08c;
 
-  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-  --font-sans: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Oswald", "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
+  --font-sans: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
   --font-mission: "Bebas Neue", "Oswald", Impact, "Arial Narrow", sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
@@ -33,32 +48,33 @@
   --radius-xl: 24px;
   --radius: 12px;
 
+  /* Dark shadows vanish on a near-black ground, so edges are light hairlines. */
   --shadow-border:
-    0px 0px 0px 1px rgba(26, 24, 20, 0.08),
-    0px 1px 2px -1px rgba(26, 24, 20, 0.06),
-    0px 2px 4px 0px rgba(26, 24, 20, 0.04);
+    0px 0px 0px 1px rgba(243, 238, 230, 0.08),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.4);
   --shadow-border-hover:
-    0px 0px 0px 1px rgba(26, 24, 20, 0.12),
-    0px 1px 2px -1px rgba(26, 24, 20, 0.08),
-    0px 2px 6px 0px rgba(26, 24, 20, 0.06);
-  --shadow-soft: 0 18px 40px -24px rgba(26, 24, 20, 0.28);
+    0px 0px 0px 1px rgba(243, 238, 230, 0.16),
+    0px 2px 6px 0px rgba(0, 0, 0, 0.5);
+  --shadow-soft:
+    0 0 0 1px rgba(243, 238, 230, 0.08),
+    0 18px 40px -24px rgba(0, 0, 0, 0.8);
 
   --text-xs: 0.75rem;
   --text-sm: 0.9375rem;
   --text-base: 1.0625rem;
   --text-lg: 1.1875rem;
   --text-xl: clamp(1.35rem, 1.1rem + 0.8vw, 1.65rem);
-  --text-2xl: clamp(1.85rem, 1.3rem + 1.8vw, 2.6rem);
-  --text-3xl: clamp(2.4rem, 1.5rem + 3.2vw, 4.15rem);
-  --text-4xl: clamp(2.9rem, 1.6rem + 4.4vw, 5.4rem);
+  --text-2xl: clamp(1.7rem, 1.25rem + 1.5vw, 2.3rem);
+  --text-3xl: clamp(2.05rem, 1.4rem + 2.4vw, 3.25rem);
+  --text-4xl: clamp(2.5rem, 1.5rem + 3.6vw, 4.5rem);
 
   --leading-tight: 1.12;
   --leading-snug: 1.28;
   --leading-normal: 1.58;
 
-  --tracking-display: -0.03em;
-  --tracking-tight: -0.02em;
-  --tracking-wide: 0.14em;
+  --tracking-display: 0.01em;
+  --tracking-tight: 0.005em;
+  --tracking-wide: 0.16em;
 
   --motion-stagger: 40ms;
   --motion-micro: 80ms;
@@ -76,6 +92,7 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: dark;
     background: var(--color-paper);
     color: var(--color-ink);
   }
@@ -102,7 +119,15 @@
     letter-spacing: var(--tracking-display);
     line-height: var(--leading-tight);
     font-weight: 500;
+    color: var(--color-heading);
   }
+
+  /* On the stone accent (and other filled bands) a heading takes the band's
+     text color instead of the light heading color. */
+  :where(.bg-forest, .bg-forest-deep, .bg-primary, .bg-mission, .bg-bone, .bible-root, .av-look) :is(h1, h2, h3, h4) {
+    color: inherit;
+  }
+
 
   p {
     text-wrap: pretty;
@@ -113,18 +138,71 @@
   }
 
   img {
-    outline: 1px solid rgba(26, 24, 20, 0.1);
+    outline: 1px solid rgba(243, 238, 230, 0.08);
     outline-offset: -1px;
   }
 
-  img.seal-photo {
+  img.seal-photo,
+  img.standard-lockup {
     outline: none;
   }
 
+  /* The lockup photo has its own textured near-black ground; feather its
+     edges into the page so no rectangle shows. */
+  img.standard-lockup {
+    -webkit-mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 62%, transparent 100%);
+    mask-image: radial-gradient(ellipse 72% 72% at 50% 50%, #000 62%, transparent 100%);
+  }
+
   ::selection {
-    background: color-mix(in oklab, var(--color-forest) 22%, transparent);
+    background: var(--color-stone);
+    color: var(--color-night);
+  }
+
+  /* Native form controls follow the dark scheme; give fields a raised fill so
+     they read as fields, and a stone focus ring. */
+  input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"]),
+  textarea,
+  select {
+    background-color: var(--color-cream);
     color: var(--color-ink);
   }
+
+  ::placeholder {
+    color: var(--color-subtle);
+    opacity: 1;
+  }
+}
+
+/* Squared display type has no true italic (the browser would fake a slant);
+   the old serif italics read as emphasis, so keep the weight, drop the slant.
+   Unlayered so it beats the .italic utility. */
+.font-display.italic,
+:is(h1, h2, h3, h4).italic {
+  font-style: normal;
+}
+
+/* Fields sit on the ground and on raised cards alike, so a hairline the
+   ground can swallow is not enough: give every text field a visible edge
+   drawn from the current ink. Unlayered so it wins over the field classes'
+   shared shadow; focus keeps their stone ring. */
+:is(
+    input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="hidden"], [type="submit"], [type="button"], [type="color"]),
+    textarea,
+    select
+  ):not(:focus-visible):not(.bible-root *) {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-ink) 24%, transparent);
+}
+
+/* Photo heroes and night bands were drawn as "light text on a dark photo"
+   with bg-ink / text-paper / from-ink. On the dark theme those names would
+   flip, so inside .tone-night they keep their original meaning: ink is the
+   night behind the photo, paper is the light text on it. */
+.tone-night {
+  --color-ink: #101010;
+  --color-paper: #f3eee6;
+  --color-heading: #f3eee6;
+  color-scheme: dark;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -185,6 +263,7 @@
   font-family: var(--font-body);
   line-height: 1.65;
   overflow-x: clip;
+  color-scheme: light;
 }
 
 .bible-root h1,
@@ -481,15 +560,15 @@
 
 .doctrine-root {
   --paper: var(--color-paper);
-  --panel: #fffdf8;
+  --panel: var(--color-cream);
   --ink: var(--color-ink);
   --muted: var(--color-muted);
   --accent: var(--color-forest);
   --accent-soft: color-mix(in oklab, var(--color-forest) 12%, transparent);
   --line: var(--color-rule);
   --emerald: var(--color-forest);
-  --amber: #92600a;
-  --amber-soft: rgba(180, 121, 16, 0.12);
+  --amber: #d9a441;
+  --amber-soft: rgba(217, 164, 65, 0.1);
   --shadow: var(--shadow-soft);
   --font-head: var(--font-display);
   overflow-x: clip;
@@ -551,7 +630,7 @@
 .doctrine-root .button-primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #f3eee4;
+  color: var(--color-primary-foreground);
 }
 
 .doctrine-root .verse-pair {
@@ -1088,6 +1167,19 @@
 @layer components {
   .av-look {
     --av-accent-text: var(--color-forest);
+    /* The looks below are their own light (or modern-dark) pages; restore the
+       light-ground shadows they were drawn with before each look re-points. */
+    --shadow-border:
+      0px 0px 0px 1px rgba(26, 24, 20, 0.08),
+      0px 1px 2px -1px rgba(26, 24, 20, 0.06),
+      0px 2px 4px 0px rgba(26, 24, 20, 0.04);
+    --shadow-border-hover:
+      0px 0px 0px 1px rgba(26, 24, 20, 0.12),
+      0px 1px 2px -1px rgba(26, 24, 20, 0.08),
+      0px 2px 6px 0px rgba(26, 24, 20, 0.06);
+    --shadow-soft: 0 18px 40px -24px rgba(26, 24, 20, 0.28);
+    --tracking-display: -0.02em;
+    color-scheme: light;
     background: var(--color-paper);
     color: var(--color-ink);
     overflow-x: clip;
@@ -1341,7 +1433,7 @@
     --av-cyan: #22d3ee;
     --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
     --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.1);
-    --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.22);
+    --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.22);    color-scheme: dark;
   }
 
   .av-look-modern :is(h1, h2, h3) {

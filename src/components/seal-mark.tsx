@@ -1,4 +1,3 @@
-import { useId } from "react";
 import { cn } from "@/lib/utils";
 
 type SealMarkProps = {
@@ -6,82 +5,68 @@ type SealMarkProps = {
   title?: string;
 };
 
-/** Official seal: three interlocking rings, the cross, and the circular inscription. */
-export function SealMark({ className, title = "United Under God seal" }: SealMarkProps) {
-  return <OfficialSeal className={cn("block", className)} title={title} />;
+/**
+ * The battle standard (owner decision 2026-10-27): an open ring that breaks at
+ * the lower left and lower right, a shield-shaped U with a pointed base, and a
+ * cross that rises out of the U to a spear point. Emblem only — the lettering
+ * lives in the full lockup image (/images/uug-standard.jpg). Draws in
+ * `currentColor`, so callers tint it with a text color (stone by default).
+ * Same geometry as /images/seal.svg and /favicon.svg.
+ */
+export function SealMark({ className, title = "United Under God" }: SealMarkProps) {
+  return <BattleStandard className={cn("block text-forest", className)} title={title} bold />;
 }
 
 export function SealBadge({ className }: { className?: string }) {
   return (
-    <OfficialSeal
+    <BattleStandard
       className={cn("block size-52 text-forest sm:size-60", className)}
-      title="United Under God seal. God's Kingdom, our purpose."
+      title="United Under God standard. God's Kingdom, our purpose."
     />
   );
 }
 
-function OfficialSeal({ className, title }: { className?: string; title: string }) {
-  const uid = useId();
-  const top = `${uid}-top`;
-  const bot = `${uid}-bot`;
-
+/** Decorative copy of the emblem (aria-hidden) in the surrounding text color, for wordmarks that carry their own label. */
+export function SealGlyph({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 200 200"
-      className={className}
-      role="img"
-      aria-label={title}
-    >
-      <title>{title}</title>
-      <circle cx="100" cy="100" r="97.2" fill="#F3EEE4" stroke="currentColor" strokeWidth="3.1" />
-      <circle
-        cx="100"
-        cy="100"
-        r="90.6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.05"
-        opacity="0.8"
-      />
-      <defs>
-        <path id={top} d="M 32 100 A 68 68 0 0 1 168 100" fill="none" />
-        <path id={bot} d="M 32 100 A 68 68 0 0 0 168 100" fill="none" />
-      </defs>
-      <text
-        fill="currentColor"
-        fontFamily="Figtree, Segoe UI, sans-serif"
-        fontSize="10.2"
-        fontWeight="650"
-        letterSpacing="2.8"
-      >
-        <textPath href={`#${top}`} startOffset="50%" textAnchor="middle">
-          UNITED UNDER GOD
-        </textPath>
-      </text>
-      <text
-        fill="currentColor"
-        fontFamily="Figtree, Segoe UI, sans-serif"
-        fontSize="8.4"
-        fontWeight="550"
-        letterSpacing="1.7"
-      >
-        <textPath href={`#${bot}`} startOffset="50%" textAnchor="middle">
-          GOD’S KINGDOM · OUR PURPOSE
-        </textPath>
-      </text>
-      <circle cx="100" cy="100" r="56.5" fill="none" stroke="currentColor" strokeWidth="1.35" />
-      <g fill="none" stroke="currentColor" strokeWidth="2.05">
-        <circle cx="100" cy="82.2" r="23.6" />
-        <circle cx="84.4" cy="110.2" r="23.6" />
-        <circle cx="115.6" cy="110.2" r="23.6" />
+    <svg viewBox={VIEW_BOX} className={className} aria-hidden="true" focusable="false">
+      <g fill="currentColor">
+        <path d={RING_BOLD} />
+        <path d={SHIELD_U} />
+        <path d={SPEAR_CROSS} />
       </g>
-      <path
-        d="M100 68.2v48.2M84.2 91.2h31.6"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3.15"
-        strokeLinecap="round"
-      />
+    </svg>
+  );
+}
+
+const VIEW_BOX = "226 4 500 500";
+const RING =
+  "M384.1 476.5L341.8 469A240 240 0 1 1 610.2 469L567.9 476.5L583.5 472.2A229 229 0 1 0 368.5 472.2Z";
+const RING_BOLD =
+  "M385.7 472.8L340.7 470.6A242 242 0 1 1 611.3 470.6L566.3 472.8L580.2 466A222 222 0 1 0 371.8 466Z";
+const SHIELD_U =
+  "M382 150L326 150L335 159L335 338C335 392 400 432 476 466C552 432 617 392 617 338L617 159L626 150L570 150L570 325Q570 375 492.5 402L459.5 402Q382 375 382 325Z";
+const SPEAR_CROSS =
+  "M476 90L492.5 107L492.5 176L543 176L543 207L492.5 207L492.5 410L459.5 410L459.5 207L409 207L409 176L459.5 176L459.5 107Z";
+
+/** `bold` thickens the ring for small marks (header, footer, tab), where the fine ring vanishes. */
+function BattleStandard({
+  className,
+  title,
+  bold = false,
+}: {
+  className?: string;
+  title: string;
+  bold?: boolean;
+}) {
+  return (
+    <svg viewBox={VIEW_BOX} className={className} role="img" aria-label={title}>
+      <title>{title}</title>
+      <g fill="currentColor">
+        <path d={bold ? RING_BOLD : RING} />
+        <path d={SHIELD_U} />
+        <path d={SPEAR_CROSS} />
+      </g>
     </svg>
   );
 }

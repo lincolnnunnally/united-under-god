@@ -13,11 +13,11 @@ const buttonVariants = cva(
         secondary:
           "bg-cream text-ink shadow-[var(--shadow-border)] hover:bg-surface",
         outline:
-          "bg-transparent text-paper shadow-[inset_0_0_0_1px_rgba(243,238,228,0.38)] hover:bg-paper/10",
+          "bg-transparent text-paper shadow-[inset_0_0_0_1px_color-mix(in_oklab,currentColor_45%,transparent)] hover:bg-paper/10",
         ghost: "bg-transparent text-ink hover:bg-cream",
-        invert: "bg-paper text-ink hover:bg-cream",
+        invert: "bg-paper text-ink hover:bg-paper/85",
         mission:
-          "bg-mission text-paper hover:bg-mission-deep shadow-[var(--shadow-border)]",
+          "bg-mission text-bone hover:bg-mission-deep shadow-[var(--shadow-border)]",
       },
       size: {
         default: "min-h-11 px-5 text-sm",

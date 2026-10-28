@@ -51,7 +51,7 @@ export function EcosystemDeskCard({
         </a>
         <a
           href="/"
-          className="inline-flex min-h-11 items-center gap-2 rounded-md px-4 text-sm font-medium text-paper shadow-[inset_0_0_0_1px_rgba(243,238,228,0.28)] hover:bg-paper/10"
+          className="inline-flex min-h-11 items-center gap-2 rounded-md px-4 text-sm font-medium text-paper shadow-[inset_0_0_0_1px_color-mix(in_oklab,currentColor_40%,transparent)] hover:bg-paper/10"
         >
           Public site
         </a>
@@ -68,7 +68,7 @@ export function EcosystemDeskCard({
         <GlanceStat label="Goods waiting" value={activity?.goodsWaiting ?? 0} />
       </dl>
 
-      <p className="mt-5 text-xs leading-normal text-paper/65">
+      <p className="mt-5 text-xs leading-normal text-paper/80">
         {reportingArmed
           ? "Counts from this desk (no names) report to the owner dashboard."
           : "This deploy has no stats token yet — the owner dashboard cannot see these numbers until reporting is armed on publish."}
@@ -95,11 +95,11 @@ function GlanceStat({
 }) {
   return (
     <div className="rounded-lg bg-paper/10 px-3 py-3">
-      <dt className="text-xs font-semibold tracking-[0.14em] text-paper/55 uppercase">
+      <dt className="text-xs font-semibold tracking-[0.14em] text-paper/80 uppercase">
         {label}
       </dt>
       <dd className={cn("mt-1 font-display text-2xl text-paper")}>{value}</dd>
-      {hint ? <p className="mt-0.5 text-xs text-paper/55">{hint}</p> : null}
+      {hint ? <p className="mt-0.5 text-xs text-paper/80">{hint}</p> : null}
     </div>
   );
 }

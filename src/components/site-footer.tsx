@@ -9,7 +9,7 @@ export function SiteFooter() {
         <div>
           <div className="flex items-center gap-2.5 text-forest">
             <SealMark className="size-11" />
-            <span className="font-display text-lg font-medium text-ink">
+            <span className="font-display text-lg font-medium tracking-[0.12em] text-heading uppercase">
               United Under God
             </span>
           </div>

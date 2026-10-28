@@ -31,7 +31,7 @@ export function SiteHeader() {
           aria-label="United Under God home"
         >
           <SealMark className="size-11 md:size-12" title="United Under God" />
-          <span className="font-display text-[1.05rem] font-medium tracking-tight text-ink">
+          <span className="font-display text-[1.05rem] font-medium tracking-[0.12em] whitespace-nowrap text-heading uppercase">
             United Under God
           </span>
         </Link>
@@ -42,7 +42,7 @@ export function SiteHeader() {
               key={item.to}
               to={item.to}
               className={cn(
-                "rounded-md px-3 py-2 text-sm text-muted transition-colors duration-[var(--motion-quick)] hover:text-ink",
+                "rounded-md px-2.5 py-2 text-sm whitespace-nowrap text-muted transition-colors duration-[var(--motion-quick)] hover:text-ink",
                 pathname === item.to && "text-ink",
               )}
             >
@@ -52,7 +52,7 @@ export function SiteHeader() {
           <SignedOut>
             <Link
               to="/login"
-              className="ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink"
+              className="ml-1 rounded-md px-2.5 py-2 text-sm whitespace-nowrap text-muted hover:text-ink"
             >
               Sign in
             </Link>
@@ -61,14 +61,14 @@ export function SiteHeader() {
             <Link
               to="/account"
               className={cn(
-                "ml-2 rounded-md px-3 py-2 text-sm text-muted hover:text-ink",
+                "ml-1 rounded-md px-2.5 py-2 text-sm whitespace-nowrap text-muted hover:text-ink",
                 pathname === "/account" && "text-ink",
               )}
             >
               My account
             </Link>
           </SignedIn>
-          <Button asChild className="ml-3">
+          <Button asChild className="ml-3 whitespace-nowrap">
             <Link to="/join">Take the seal</Link>
           </Button>
         </nav>

@@ -173,7 +173,7 @@ export function GiveForm() {
             : "Choose an amount"}
       </Button>
       {error ? (
-        <p className="mt-3 text-sm text-red-800" role="alert">
+        <p className="mt-3 text-sm text-red-300" role="alert">
           {error}
         </p>
       ) : null}

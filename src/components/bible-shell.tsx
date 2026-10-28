@@ -1,25 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { SealGlyph } from "@/components/seal-mark";
 import { LEGAL } from "@/lib/content";
 
 function Wordmark({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <circle cx="16" cy="16" r="14.9" fill="none" stroke="currentColor" strokeWidth="1.5" />
-      <g fill="none" stroke="currentColor" strokeWidth="1.45">
-        <circle cx="16" cy="12.52" r="4.93" />
-        <circle cx="12.13" cy="18.62" r="4.93" />
-        <circle cx="19.87" cy="18.62" r="4.93" />
-      </g>
-      <circle cx="16" cy="16.42" r="3.26" fill="var(--paper)" />
-      <path
-        d="M16 13.25V20.29M13.84 15.71h4.32"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
+  return <SealGlyph className={className} />;
 }
 
 export function BibleShell({ children }: { children: ReactNode }) {

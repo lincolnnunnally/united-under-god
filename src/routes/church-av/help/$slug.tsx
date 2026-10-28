@@ -117,7 +117,7 @@ function HelpPageView() {
 
         <section className="bg-forest text-paper">
           <div className="mx-auto max-w-3xl px-5 py-16 md:px-8 md:py-20">
-            <p className="text-xs font-semibold tracking-[0.18em] text-paper/60 uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-paper/80 uppercase">
               Why it matters
             </p>
             <h2 className="mt-3 text-3xl text-paper">How it serves your mission</h2>
