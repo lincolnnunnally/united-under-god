@@ -37,6 +37,7 @@ export const CHURCHCONNECT_TOWNS: Record<string, string> = {
 
 export const LANDING_CHURCHCONNECT: Record<string, ChurchConnectTopic[]> = {
   "livestream-ministry": ["livestream"],
+  video: ["livestream"],
 };
 
 export const HELP_CHURCHCONNECT: Record<string, ChurchConnectTopic[]> = {

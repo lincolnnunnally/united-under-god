@@ -51,10 +51,14 @@ import { Route as BuyingVendorTermsRouteImport } from './routes/buying/vendor-te
 import { Route as BuyingVendorsRouteImport } from './routes/buying/vendors'
 import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
 import { Route as ChurchAvBlendedRouteImport } from './routes/church-av/blended'
+import { Route as ChurchAvHearingHelpRouteImport } from './routes/church-av/hearing-help'
+import { Route as ChurchAvLightingRouteImport } from './routes/church-av/lighting'
 import { Route as ChurchAvLivestreamMinistryRouteImport } from './routes/church-av/livestream-ministry'
 import { Route as ChurchAvModernRouteImport } from './routes/church-av/modern'
 import { Route as ChurchAvNewBuildingRouteImport } from './routes/church-av/new-building'
+import { Route as ChurchAvSoundRouteImport } from './routes/church-av/sound'
 import { Route as ChurchAvTraditionalRouteImport } from './routes/church-av/traditional'
+import { Route as ChurchAvVideoRouteImport } from './routes/church-av/video'
 import { Route as GiveThanksRouteImport } from './routes/give.thanks'
 import { Route as MembershipIndexRouteImport } from './routes/membership/index'
 import { Route as MembershipWelcomeRouteImport } from './routes/membership/welcome'
@@ -291,6 +295,16 @@ const ChurchAvBlendedRoute = ChurchAvBlendedRouteImport.update({
   path: '/church-av/blended',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChurchAvHearingHelpRoute = ChurchAvHearingHelpRouteImport.update({
+  id: '/church-av/hearing-help',
+  path: '/church-av/hearing-help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvLightingRoute = ChurchAvLightingRouteImport.update({
+  id: '/church-av/lighting',
+  path: '/church-av/lighting',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChurchAvLivestreamMinistryRoute =
   ChurchAvLivestreamMinistryRouteImport.update({
     id: '/church-av/livestream-ministry',
@@ -307,9 +321,19 @@ const ChurchAvNewBuildingRoute = ChurchAvNewBuildingRouteImport.update({
   path: '/church-av/new-building',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChurchAvSoundRoute = ChurchAvSoundRouteImport.update({
+  id: '/church-av/sound',
+  path: '/church-av/sound',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChurchAvTraditionalRoute = ChurchAvTraditionalRouteImport.update({
   id: '/church-av/traditional',
   path: '/church-av/traditional',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvVideoRoute = ChurchAvVideoRouteImport.update({
+  id: '/church-av/video',
+  path: '/church-av/video',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GiveThanksRoute = GiveThanksRouteImport.update({
@@ -472,10 +496,14 @@ export interface FileRoutesByFullPath {
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/sound': typeof ChurchAvSoundRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
+  '/church-av/video': typeof ChurchAvVideoRoute
   '/give/thanks': typeof GiveThanksRoute
   '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
@@ -541,10 +569,14 @@ export interface FileRoutesByTo {
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/sound': typeof ChurchAvSoundRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
+  '/church-av/video': typeof ChurchAvVideoRoute
   '/give/thanks': typeof GiveThanksRoute
   '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
@@ -614,10 +646,14 @@ export interface FileRoutesById {
   '/buying/vendor-terms': typeof BuyingVendorTermsRoute
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
+  '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
   '/church-av/new-building': typeof ChurchAvNewBuildingRoute
+  '/church-av/sound': typeof ChurchAvSoundRoute
   '/church-av/traditional': typeof ChurchAvTraditionalRoute
+  '/church-av/video': typeof ChurchAvVideoRoute
   '/give/thanks': typeof GiveThanksRoute
   '/membership/welcome': typeof MembershipWelcomeRoute
   '/verse/$slug': typeof VerseSlugRoute
@@ -688,10 +724,14 @@ export interface FileRouteTypes {
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
+    | '/church-av/hearing-help'
+    | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
     | '/church-av/new-building'
+    | '/church-av/sound'
     | '/church-av/traditional'
+    | '/church-av/video'
     | '/give/thanks'
     | '/membership/welcome'
     | '/verse/$slug'
@@ -757,10 +797,14 @@ export interface FileRouteTypes {
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
+    | '/church-av/hearing-help'
+    | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
     | '/church-av/new-building'
+    | '/church-av/sound'
     | '/church-av/traditional'
+    | '/church-av/video'
     | '/give/thanks'
     | '/membership/welcome'
     | '/verse/$slug'
@@ -829,10 +873,14 @@ export interface FileRouteTypes {
     | '/buying/vendor-terms'
     | '/buying/vendors'
     | '/church-av/blended'
+    | '/church-av/hearing-help'
+    | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
     | '/church-av/new-building'
+    | '/church-av/sound'
     | '/church-av/traditional'
+    | '/church-av/video'
     | '/give/thanks'
     | '/membership/welcome'
     | '/verse/$slug'
@@ -887,10 +935,14 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
   ChurchAvBlendedRoute: typeof ChurchAvBlendedRoute
+  ChurchAvHearingHelpRoute: typeof ChurchAvHearingHelpRoute
+  ChurchAvLightingRoute: typeof ChurchAvLightingRoute
   ChurchAvLivestreamMinistryRoute: typeof ChurchAvLivestreamMinistryRoute
   ChurchAvModernRoute: typeof ChurchAvModernRoute
   ChurchAvNewBuildingRoute: typeof ChurchAvNewBuildingRoute
+  ChurchAvSoundRoute: typeof ChurchAvSoundRoute
   ChurchAvTraditionalRoute: typeof ChurchAvTraditionalRoute
+  ChurchAvVideoRoute: typeof ChurchAvVideoRoute
   MembershipWelcomeRoute: typeof MembershipWelcomeRoute
   VerseSlugRoute: typeof VerseSlugRoute
   ChurchAvIndexRoute: typeof ChurchAvIndexRoute
@@ -1206,6 +1258,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChurchAvBlendedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/church-av/hearing-help': {
+      id: '/church-av/hearing-help'
+      path: '/church-av/hearing-help'
+      fullPath: '/church-av/hearing-help'
+      preLoaderRoute: typeof ChurchAvHearingHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/lighting': {
+      id: '/church-av/lighting'
+      path: '/church-av/lighting'
+      fullPath: '/church-av/lighting'
+      preLoaderRoute: typeof ChurchAvLightingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/church-av/livestream-ministry': {
       id: '/church-av/livestream-ministry'
       path: '/church-av/livestream-ministry'
@@ -1227,11 +1293,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChurchAvNewBuildingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/church-av/sound': {
+      id: '/church-av/sound'
+      path: '/church-av/sound'
+      fullPath: '/church-av/sound'
+      preLoaderRoute: typeof ChurchAvSoundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/church-av/traditional': {
       id: '/church-av/traditional'
       path: '/church-av/traditional'
       fullPath: '/church-av/traditional'
       preLoaderRoute: typeof ChurchAvTraditionalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/video': {
+      id: '/church-av/video'
+      path: '/church-av/video'
+      fullPath: '/church-av/video'
+      preLoaderRoute: typeof ChurchAvVideoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/give/thanks': {
@@ -1519,10 +1599,14 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
   ChurchAvBlendedRoute: ChurchAvBlendedRoute,
+  ChurchAvHearingHelpRoute: ChurchAvHearingHelpRoute,
+  ChurchAvLightingRoute: ChurchAvLightingRoute,
   ChurchAvLivestreamMinistryRoute: ChurchAvLivestreamMinistryRoute,
   ChurchAvModernRoute: ChurchAvModernRoute,
   ChurchAvNewBuildingRoute: ChurchAvNewBuildingRoute,
+  ChurchAvSoundRoute: ChurchAvSoundRoute,
   ChurchAvTraditionalRoute: ChurchAvTraditionalRoute,
+  ChurchAvVideoRoute: ChurchAvVideoRoute,
   MembershipWelcomeRoute: MembershipWelcomeRoute,
   VerseSlugRoute: VerseSlugRoute,
   ChurchAvIndexRoute: ChurchAvIndexRoute,

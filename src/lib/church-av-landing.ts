@@ -19,7 +19,15 @@ import { pageHead } from "@/lib/seo";
 
 export type LandingLook = "traditional" | "modern" | "blended" | "livestream" | "newbuild";
 export type LandingSlug =
-  "traditional" | "modern" | "blended" | "livestream-ministry" | "new-building";
+  | "traditional"
+  | "modern"
+  | "blended"
+  | "livestream-ministry"
+  | "new-building"
+  | "sound"
+  | "video"
+  | "lighting"
+  | "hearing-help";
 
 export type Benefit = { title: string; body: string };
 
@@ -45,6 +53,8 @@ export type LandingPage = {
   planner: PlannerSearch;
   plannerLabel: string;
   faq: Faq[];
+  /** Component pages (sound, video, lighting, hearing help): the problems it ends, shown in the hero. */
+  pains?: string[];
 };
 
 const WARRANTY_FAQ: Faq = {
@@ -302,7 +312,7 @@ export const LANDING_PAGES: LandingPage[] = [
     label: "New buildings",
     title: "Church AV Design for New Buildings & Renovations | United Under God",
     description:
-      "Building or remodeling a church? Plan the sound system, screens, cameras, and lighting with your architect while the building is still on paper, so nothing has to be cut into a finished wall.",
+      "Building or remodeling a church: plan the sound, screens, cameras, and lighting with your architect while it is on paper, so no finished wall gets cut.",
     serviceName: "Audio, video, and lighting design for new church buildings",
     eyebrow: "New building or remodel",
     h1: "Building or remodeling? Plan the sound now.",
@@ -358,10 +368,267 @@ export const LANDING_PAGES: LandingPage[] = [
       PRICE_FAQ,
     ],
   },
+  // Owner (2026-10-28): a page for each part of the work (sound, video, lighting) and for hearing
+  // help, each leading with the problems it ends. The installation team installs hearing loops.
+  {
+    slug: "sound",
+    look: "blended",
+    label: "Church sound",
+    title: "Church Sound System Installation: Every Word Heard | United Under God",
+    description:
+      "Church sound system design and installation: clear speech to the back row, no feedback during prayer, and a board volunteers can run, in GA, FL, and SC.",
+    serviceName: "Church sound system design, installation, and acoustics",
+    eyebrow: "Church sound · Speakers, microphones, mixing, acoustics",
+    h1: "Every word heard, from the front pew to the back row.",
+    lead: "Clear speech for the sermon, a mix the congregation can sing with, no feedback during prayer, and a board your volunteers can run. Designed for your room and tuned in it.",
+    cardTitle: "Sound: every word heard",
+    cardBody:
+      "Speakers, microphones, a simple board, and room treatment that end feedback and echo.",
+    benefitsTitle: "What changes on Sunday",
+    benefits: [
+      {
+        title: "The back row hears the sermon.",
+        body: "Speakers chosen and aimed for speech, so the words reach every seat clearly instead of bouncing off the walls and ceiling.",
+      },
+      {
+        title: "No more feedback during prayer.",
+        body: "Microphones and speakers placed and tuned so a quiet moment stays quiet, and the system can be turned up without a squeal.",
+      },
+      {
+        title: "Hearing aids without the squeal.",
+        body: "Our installation team installs hearing loops that carry the sermon straight to hearing aids, with no room echo in between.",
+      },
+      {
+        title: "Volunteers stop guessing.",
+        body: "Saved settings, clear labels, and on-site training, including the first Sunday, so whoever is at the board that week can run it.",
+      },
+      {
+        title: "Echoing rooms, calmed.",
+        body: "Sound panels where the room echoes most, so gyms, domes, and hard sanctuaries stop blurring the words.",
+      },
+    ],
+    pains: [
+      "Feedback during prayer or the sermon",
+      "Members who hear the words but cannot understand them",
+      "A sanctuary that echoes",
+      "Hearing aids that squeal",
+      "Volunteers afraid to touch the board",
+    ],
+    stages: ["traditional", "blended", "modern"],
+    stageTitle: "Built around your platform",
+    stageBody:
+      "A pulpit and choir, a band, or both: the speakers, microphones, and board are chosen for how your church actually worships.",
+    caseStudies: ["mount-vernon", "unity-baptist", "st-jude-the-apostle", "legacy-church"],
+    testimonial: "jerry-allen",
+    planner: {},
+    plannerLabel: "Plan your room",
+    faq: [
+      {
+        q: "Can you fix our sound without replacing everything?",
+        a: "Often, yes. Sometimes better-aimed speakers, sound panels, and a properly tuned system solve most of it. We look at the room and what you already own before recommending anything new.",
+      },
+      {
+        q: "Do you install hearing loops?",
+        a: "Yes. Our installation team installs hearing loops that send the sermon straight to hearing aids and cochlear implants set to the telecoil, and we help you choose receivers for members without one.",
+      },
+      {
+        q: "Will our volunteers be able to run it?",
+        a: "That is the goal. The board is set up with saved settings and clear labels, and your team is trained on-site, including the first Sunday.",
+      },
+      WARRANTY_FAQ,
+      PRICE_FAQ,
+    ],
+  },
+  {
+    slug: "video",
+    look: "livestream",
+    label: "Church video",
+    title: "Church Screens, LED Walls, Cameras & Livestream | United Under God",
+    description:
+      "Church screens, projection, LED walls, cameras, and livestream: lyrics every seat can read and a stream that feels like being there, in GA, FL, and SC.",
+    serviceName: "Church projection, LED walls, cameras, and livestream installation",
+    eyebrow: "Church video · Screens, projection, LED walls, cameras, livestream",
+    h1: "Everyone sees the words. Everyone at home sees the service.",
+    lead: "Lyrics and Scripture every seat can read, faces large enough to see in a big room, and a livestream that stays up and sounds like being there.",
+    cardTitle: "Video: screens, cameras, livestream",
+    cardBody:
+      "Projection or an LED wall every seat can read, cameras, and a livestream that stays up.",
+    benefitsTitle: "What changes on Sunday",
+    benefits: [
+      {
+        title: "Lyrics every seat can read.",
+        body: "Screens sized and placed for your room, and bright enough for it, so nobody squints at washed-out words.",
+      },
+      {
+        title: "An LED wall when projection isn't enough.",
+        body: "For bright rooms and wide rooms where projection fades or the back rows cannot see the stage.",
+      },
+      {
+        title: "Faces you can see in a big room.",
+        body: "Cameras that put the preacher and the worship team on the big screen, in true color.",
+      },
+      {
+        title: "A livestream that stays up.",
+        body: "A stream that doesn't drop or go silent, with sound mixed for home, so homebound members and family far away are truly in the service.",
+      },
+    ],
+    pains: [
+      "Lyrics that are hard to read",
+      "Projection that washes out in a bright room",
+      "Back rows that cannot see the stage",
+      "A livestream that drops or goes silent",
+      "Cameras that look flat or off-color",
+    ],
+    stages: ["blended", "modern"],
+    stageTitle: "Screens that suit your platform",
+    stageBody:
+      "Screens at the sides, a large wall behind the stage, or a fellowship hall that needs its own: each is placed for clear sight lines from every seat.",
+    caseStudies: ["rock-springs", "word-of-faith", "turning-point-at-calvary", "church-unlimited"],
+    testimonial: "tony-yang",
+    planner: { livestream: "yes" },
+    plannerLabel: "Plan your screens",
+    faq: [
+      {
+        q: "Projection or an LED wall?",
+        a: "It depends on the room. Projection suits many sanctuaries and fellowship halls; an LED wall suits bright rooms and wide rooms where projection fades. We'll help you choose for your room and your budget.",
+      },
+      {
+        q: "Can you fix a livestream that keeps dropping?",
+        a: "Usually. Drops come from the connection, the encoder, or the settings, and thin sound comes from using the room mix for the stream. Both are fixable.",
+      },
+      WARRANTY_FAQ,
+      PRICE_FAQ,
+    ],
+  },
+  {
+    slug: "lighting",
+    look: "modern",
+    label: "Church lighting",
+    title: "Church Stage Lighting: Light That Serves Worship | United Under God",
+    description:
+      "Church stage lighting that keeps faces out of shadow on the livestream, replaces old hot fixtures, and helps people lift their eyes, in GA, FL, and SC.",
+    serviceName: "Church stage and worship lighting installation",
+    eyebrow: "Church lighting · Stage, worship, and room lighting",
+    h1: "Light that helps people lift their eyes.",
+    lead: "Faces lit clearly for the room and the livestream, worship lighting that sets the tone without becoming a concert, and cool, efficient fixtures in place of old hot ones.",
+    cardTitle: "Lighting that serves worship",
+    cardBody: "Faces out of shadow on the livestream, and lighting that sets the tone for worship.",
+    benefitsTitle: "What changes on Sunday",
+    benefits: [
+      {
+        title: "Faces out of shadow.",
+        body: "The preacher and the worship team lit evenly, so they look right in the room and on the livestream.",
+      },
+      {
+        title: "Lighting that suits worship.",
+        body: "Looks for a quiet hymn and a full-band song, saved so a volunteer recalls them with one button.",
+      },
+      {
+        title: "Old, hot lights replaced.",
+        body: "Efficient fixtures that run cooler, last longer, and draw less power.",
+      },
+      {
+        title: "A second room with its own look.",
+        body: "A youth room or second venue lit for the way it is used.",
+      },
+    ],
+    pains: [
+      "Faces in shadow on the livestream",
+      "Old, hot stage lights",
+      "A stage that looks flat or dark",
+      "A youth room or second venue that needs its own look",
+    ],
+    stages: ["blended", "modern"],
+    stageTitle: "Lighting for your stage",
+    stageBody:
+      "A simple wash for the pulpit, or color and movement for a band: the lights are chosen for what your services need.",
+    caseStudies: ["central-church", "mountain-view-baptist", "mount-vernon"],
+    testimonial: "tony-yang",
+    planner: {},
+    plannerLabel: "Plan your stage",
+    faq: [
+      {
+        q: "We're a traditional church. Is lighting for us?",
+        a: "Often, yes. Even a traditional sanctuary benefits from even, warm light on the pulpit and choir, especially if you livestream.",
+      },
+      {
+        q: "Can volunteers run it?",
+        a: "Yes. Lighting looks are saved and recalled with a button, and your team is trained on-site.",
+      },
+      WARRANTY_FAQ,
+      PRICE_FAQ,
+    ],
+  },
+  {
+    slug: "hearing-help",
+    look: "traditional",
+    label: "Hearing help",
+    title: "Church Hearing Loops: The Sermon Straight to Hearing Aids | United Under God",
+    description:
+      "Church hearing loops send the sermon straight to hearing aids: no echo, no squeal. We install loops and help you choose receivers, in GA, FL, and SC.",
+    serviceName: "Church hearing loop installation and hearing help",
+    eyebrow: "Hearing help · Hearing loops, receivers, Auracast",
+    h1: "The sermon, straight to their hearing aids.",
+    lead: "No echo, no squeal. Our installation team installs hearing loops that carry the sound from your board straight to hearing aids and cochlear implants, so the members who have been faithful the longest hear every word again.",
+    cardTitle: "Hearing help: the sermon to their hearing aids",
+    cardBody:
+      "Hearing loops we install, and receivers for members without a compatible hearing aid.",
+    benefitsTitle: "What changes on Sunday",
+    benefits: [
+      {
+        title: "No more squeal or echo.",
+        body: "A hearing loop sends the sermon as a magnetic signal straight to hearing aids switched to the telecoil (T) setting, so the room's echo never reaches them.",
+      },
+      {
+        title: "Installed by our team.",
+        body: "We plan the loop around your seating and the building, install it, and test it from the pews.",
+      },
+      {
+        title: "Help for everyone else too.",
+        body: "Receivers with earbuds at the welcome desk for members whose hearing aids have no telecoil, and Auracast, a newer kind of Bluetooth, as an option we'll help you weigh.",
+      },
+      {
+        title: "Members who stopped coming, back in the pew.",
+        body: "Helping them hear again is not a technical upgrade. It is honoring the people who built the church.",
+      },
+    ],
+    pains: [
+      "Hearing aids that squeal when the music starts",
+      "A sermon that sounds like a blur of echo",
+      "Members who stopped wearing their hearing aids in church",
+      "Members who stopped coming",
+    ],
+    stages: ["traditional"],
+    stageTitle: "Nothing new to look at",
+    stageBody:
+      "The loop runs out of sight around the seating, and the sanctuary looks exactly as it did. Only the sound reaching the hearing aids changes.",
+    caseStudies: ["st-jude-the-apostle", "mountain-view-baptist", "legacy-church"],
+    testimonial: "jerry-allen",
+    planner: { style: "traditional" },
+    plannerLabel: "Plan your room",
+    faq: [
+      {
+        q: "Will it work with our members' hearing aids?",
+        a: "Many hearing aids and cochlear implants have a telecoil (T setting); some need an audiologist to turn it on. For members without one, receivers with earbuds work the same way.",
+      },
+      {
+        q: "Do you install hearing loops?",
+        a: "Yes. Our installation team plans, installs, and tests the loop in your sanctuary.",
+      },
+      {
+        q: "Are churches required to provide hearing help?",
+        a: "Religious organizations are generally exempt from the ADA's rules on hearing help. Churches add it because they love their members and want every one of them hearing the word.",
+      },
+      WARRANTY_FAQ,
+      PRICE_FAQ,
+    ],
+  },
 ];
 
 export const LANDING_STYLES: LandingSlug[] = ["traditional", "blended", "modern"];
 export const LANDING_OUTCOMES: LandingSlug[] = ["livestream-ministry", "new-building"];
+/** One page per part of the work, and hearing help (owner, 2026-10-28). */
+export const LANDING_COMPONENTS: LandingSlug[] = ["sound", "video", "lighting", "hearing-help"];
 
 export function getLanding(slug: LandingSlug) {
   return LANDING_PAGES.find((p) => p.slug === slug)!;
@@ -379,7 +646,7 @@ export function landingForStyle(style: Style) {
 /** Help pages that point to a landing page. */
 export const HELP_LANDING: Record<string, LandingSlug> = {
   "traditional-sanctuary-without-a-big-screen": "traditional",
-  "hearing-aids-squeal-or-echo": "traditional",
+  "hearing-aids-squeal-or-echo": "hearing-help",
   "livestream-keeps-dropping": "livestream-ministry",
   "older-members-staying-home": "livestream-ministry",
   "planning-a-new-building": "new-building",

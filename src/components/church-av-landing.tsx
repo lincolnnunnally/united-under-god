@@ -14,6 +14,7 @@ import { AV_PROCESS, INSTALLER_LINE } from "@/lib/church-av";
 import { churchConnectLinks, LANDING_CHURCHCONNECT } from "@/lib/church-av-churchconnect";
 import {
   getLanding,
+  LANDING_COMPONENTS,
   LANDING_OUTCOMES,
   LANDING_STYLES,
   landingPath,
@@ -222,7 +223,9 @@ export function LandingRequest({ page }: { page: LandingPage }) {
 
 /** Links to the other directions, at the foot of each landing page. */
 export function LandingOthers({ page }: { page: LandingPage }) {
-  const others = [...LANDING_STYLES, ...LANDING_OUTCOMES].filter((s) => s !== page.slug);
+  const others = [...LANDING_STYLES, ...LANDING_OUTCOMES, ...LANDING_COMPONENTS].filter(
+    (s) => s !== page.slug,
+  );
   return (
     <section className="av-l-section av-l-others">
       <div className="mx-auto max-w-6xl px-5 md:px-8">
@@ -241,6 +244,29 @@ export function LandingOthers({ page }: { page: LandingPage }) {
         </ul>
       </div>
     </section>
+  );
+}
+
+/**
+ * "Problems this ends", beside the hero on the part-of-the-work pages (sound,
+ * video, lighting, hearing help). Colors come from the page's look.
+ */
+export function LandingPains({ page }: { page: LandingPage }) {
+  if (!page.pains?.length) return null;
+  return (
+    <div className="av-part-pains">
+      <p className="av-l-eyebrow">Problems this ends</p>
+      <ul className="mt-4 space-y-3">
+        {page.pains.map((pain) => (
+          <li key={pain} className="flex gap-3">
+            <span className="av-part-check" aria-hidden="true">
+              ✓
+            </span>
+            <span>{pain}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -311,6 +337,10 @@ export function DirectionCards() {
         </ul>
         <ul className="mt-6 grid gap-6 md:grid-cols-2">
           {LANDING_OUTCOMES.map((slug) => card(slug, false))}
+        </ul>
+        <h3 className="mt-12 text-2xl">Or start with one part of the work</h3>
+        <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {LANDING_COMPONENTS.map((slug) => card(slug, false))}
         </ul>
       </div>
     </section>
