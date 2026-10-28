@@ -445,10 +445,16 @@ test("landing pages have unique SEO, real case studies, and the full set of sect
   }
 });
 
-test("each landing look is scoped to its page and readable", () => {
+test("each landing look is scoped to its page, readable, and in the site's look", () => {
   const css = read("src/styles.css");
-  for (const look of Object.values(LANDING)) {
-    assert.match(css, new RegExp(`\\.av-look-${look} \\{\\n\\s+--color-paper:`), `${look} tokens`);
+  const av = css.slice(css.indexOf("Church AV landing pages"));
+  // Owner (2026-10-28): every page wears the battle standard. A look keeps its
+  // picture and reading needs but never re-points the palette or the type.
+  assert.ok(!/\.av-look[^{]*\{[^}]*--color-(paper|ink|cream|forest|primary)\s*:/.test(av), "a look re-points the palette");
+  assert.ok(!/--font-display\s*:/.test(av), "a look sets its own display type");
+  assert.ok(!/Fraunces|Figtree/.test(av + read("src/lib/church-av-landing.ts")), "a look loads its own font");
+  for (const look of new Set(Object.values(LANDING))) {
+    assert.match(css, new RegExp(`\\.av-look-${look}[ ,.]`), `${look} still has its own picture`);
   }
   // Traditional: body at least 18px for older readers, no motion.
   const trad = css.slice(css.indexOf(".av-look-traditional {"));

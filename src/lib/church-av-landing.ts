@@ -12,9 +12,10 @@ import { pageHead } from "@/lib/seo";
 /**
  * Church AV landing pages: one per worship style (traditional, blended,
  * modern) and one per outcome (livestream ministry, new building). Each page
- * has its own look, scoped to a wrapper class (`av-look-<look>` in
- * styles.css), and the same rules as the rest of /church-av: no installer
- * name, no prices, no ratings, testimonials verbatim from the data.
+ * has its own picture and reading needs, scoped to a wrapper class
+ * (`av-look-<look>` in styles.css), in the site's battle-standard colors and
+ * type, and the same rules as the rest of /church-av: no installer name, no
+ * prices, no ratings, testimonials verbatim from the data.
  */
 
 export type LandingLook = "traditional" | "modern" | "blended" | "livestream" | "newbuild";
@@ -652,16 +653,8 @@ export const HELP_LANDING: Record<string, LandingSlug> = {
   "planning-a-new-building": "new-building",
 };
 
-/** The church AV looks keep their own type (Fraunces, Figtree); the site no longer loads them sitewide. */
-const LANDING_FONTS =
-  "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap";
-
+/** The landing pages use the site's own type (Oswald, Source Sans), so they load no fonts of their own. */
 export function landingHead(page: LandingPage) {
-  const head = landingPageHead(page);
-  return { ...head, links: [...(head.links ?? []), { rel: "stylesheet", href: LANDING_FONTS }] };
-}
-
-function landingPageHead(page: LandingPage) {
   const path = landingPath(page);
   return pageHead({
     title: page.title,
