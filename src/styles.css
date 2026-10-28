@@ -124,7 +124,7 @@
 
   /* On the stone accent (and other filled bands) a heading takes the band's
      text color instead of the light heading color. */
-  :where(.bg-forest, .bg-forest-deep, .bg-primary, .bg-mission, .bg-bone, .bible-root, .av-look) :is(h1, h2, h3, h4) {
+  :where(.bg-forest, .bg-forest-deep, .bg-primary, .bg-mission, .bg-bone, .bible-root) :is(h1, h2, h3, h4) {
     color: inherit;
   }
 
@@ -1159,27 +1159,28 @@
 
 /* ------------------------------------------------------------------------
  * Church AV landing pages (/church-av/traditional, /modern, /blended,
- * /livestream-ministry, /new-building, /sound, /video, /lighting, /hearing-help). Each page wraps its content in
- * `.av-look.av-look-<look>`, which re-points the theme tokens for that page
- * only, so the shared components (cards, FAQ, form, stage) take on its look
- * and the rest of the site is untouched. Contrast is AA at every look.
+ * /livestream-ministry, /new-building, /sound, /video, /lighting, /hearing-help).
+ * Each page wraps its content in `.av-look.av-look-<look>`.
+ *
+ * Owner (2026-10-28): every page carries the battle-standard look, these
+ * included. A look no longer re-points the palette or the type: the pages use
+ * the site's near-black ground, stone accent, Oswald and Source Sans. What a
+ * look keeps is its own picture (stained glass, stage beams, the livestream
+ * screen, the floor plan) drawn in the site's colors, plus the reading needs
+ * of its people (larger type and no motion on the traditional page).
  * ---------------------------------------------------------------------- */
 @layer components {
   .av-look {
-    --av-accent-text: var(--color-forest);
-    /* The looks below are their own light (or modern-dark) pages; restore the
-       light-ground shadows they were drawn with before each look re-points. */
-    --shadow-border:
-      0px 0px 0px 1px rgba(26, 24, 20, 0.08),
-      0px 1px 2px -1px rgba(26, 24, 20, 0.06),
-      0px 2px 4px 0px rgba(26, 24, 20, 0.04);
-    --shadow-border-hover:
-      0px 0px 0px 1px rgba(26, 24, 20, 0.12),
-      0px 1px 2px -1px rgba(26, 24, 20, 0.08),
-      0px 2px 6px 0px rgba(26, 24, 20, 0.06);
-    --shadow-soft: 0 18px 40px -24px rgba(26, 24, 20, 0.28);
-    --tracking-display: -0.02em;
-    color-scheme: light;
+    --av-accent-text: var(--color-stone);
+    /* The pictures' own colors, all drawn from the battle standard. */
+    --av-gold: var(--color-stone);
+    --av-ruby: var(--color-mission);
+    --av-blue: #34465a;
+    --av-green: #4a5a3e;
+    --av-red: var(--color-mission);
+    --av-red-soft: var(--color-mission-soft);
+    --av-dark-stone: #5c4f3d;
+    --av-live: var(--color-mission);
     background: var(--color-paper);
     color: var(--color-ink);
     overflow-x: clip;
@@ -1237,7 +1238,7 @@
 
   .av-look .av-l-benefit,
   .av-look .av-l-step {
-    border-top: 1px solid var(--color-rule);
+    border-top: 1px solid var(--color-rule-strong);
     padding-top: 1.25rem;
   }
 
@@ -1288,35 +1289,13 @@
   }
 
   /* ---------------------------------------------------------- traditional
-   * Calm and reverent: cream, parchment, deep wood brown, muted gold. Serif
-   * display, large body type for older readers, thin rules, no motion. */
+   * Calm and reverent: a stained-glass rose, thin stone rules. Large body
+   * type for older readers, and no motion. */
   .av-look-traditional {
-    --color-paper: #f8f2e4;
-    --color-cream: #f0e6cf;
-    --color-surface: #e6d7b6;
-    --color-ink: #2a1c10;
-    --color-muted: #574330;
-    --color-subtle: #6a5440;
-    --color-rule: #cdb88c;
-    --color-forest: #5c3a1e;
-    --color-forest-deep: #432a14;
-    --color-primary: #5c3a1e;
-    --color-primary-foreground: #f8f2e4;
-    --color-ring: #5c3a1e;
-    --color-border: #cdb88c;
-    --color-card: #f0e6cf;
-    --av-gold: #9a7a2a;
-    --av-accent-text: #6e5212;
-    --av-ruby: #8c2f2a;
-    --av-blue: #2c4a6b;
-    --av-green: #46623d;
-    --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
     --text-xs: 1rem;
     --text-sm: 1.125rem;
     --text-base: 1.1875rem;
     --text-lg: 1.3125rem;
-    --shadow-border: 0 0 0 1px rgba(92, 58, 30, 0.18);
-    --shadow-border-hover: 0 0 0 1px rgba(92, 58, 30, 0.35);
     font-size: var(--text-base);
     line-height: 1.7;
   }
@@ -1326,15 +1305,6 @@
   .av-look-traditional *::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .av-look-traditional :is(h1, h2, h3) {
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-
-  .av-look-traditional .av-l-h3 {
-    font-style: italic;
   }
 
   .av-look-traditional .av-l-section + .av-l-section {
@@ -1348,9 +1318,9 @@
 
   .av-trad-hero {
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(154, 122, 42, 0.14), transparent 60%),
+      radial-gradient(ellipse at 50% 0%, rgba(201, 176, 140, 0.14), transparent 60%),
       var(--color-cream);
-    border-bottom: 1px solid var(--av-gold);
+    border-bottom: 1px solid var(--color-rule-strong);
   }
 
   .av-trad-rose {
@@ -1373,14 +1343,13 @@
     fill: var(--av-gold);
   }
   .av-trad-lead {
-    stroke: var(--color-ink);
+    stroke: var(--color-paper);
   }
 
   .av-trad-h1 {
     margin-top: 1rem;
     font-size: clamp(2.4rem, 1.6rem + 3.4vw, 4.4rem);
     line-height: 1.1;
-    color: var(--color-ink);
   }
 
   .av-trad-fleuron {
@@ -1410,43 +1379,14 @@
   }
 
   /* --------------------------------------------------------------- modern
-   * Dark stage, bold sans, saturated light beams, high contrast. Motion is
+   * A dark stage with light beams in the standard's red and stone. Motion is
    * slow and only when the visitor has not asked for reduced motion. */
-  .av-look-modern {
-    --color-paper: #0a0a12;
-    --color-cream: #15151f;
-    --color-surface: #1e1e2c;
-    --color-ink: #f4f4fb;
-    --color-muted: #bdbdd0;
-    --color-subtle: #a0a0b8;
-    --color-rule: #34344a;
-    --color-forest: #67e8f9;
-    --color-forest-deep: #a5f3fc;
-    --color-primary: #22d3ee;
-    --color-primary-foreground: #06060c;
-    --color-ring: #67e8f9;
-    --color-border: #34344a;
-    --color-card: #15151f;
-    --av-accent-text: #67e8f9;
-    --av-magenta: #ff2e88;
-    --av-violet: #7c3aed;
-    --av-cyan: #22d3ee;
-    --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
-    --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.1);
-    --shadow-border-hover: 0 0 0 1px rgba(255, 255, 255, 0.22);    color-scheme: dark;
-  }
-
-  .av-look-modern :is(h1, h2, h3) {
-    font-weight: 700;
-    letter-spacing: -0.02em;
-  }
-
   .av-look-modern .av-l-benefit-num,
   .av-look-modern .av-l-step-num {
     font-family: var(--font-mission);
     font-size: 2.25rem;
     line-height: 1;
-    background: linear-gradient(90deg, var(--av-magenta), var(--av-cyan));
+    background: linear-gradient(90deg, var(--av-red-soft), var(--color-stone));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -1455,7 +1395,7 @@
   .av-look-modern .av-l-stage,
   .av-look-modern .av-l-plan {
     background:
-      radial-gradient(ellipse at 20% 0%, rgba(124, 58, 237, 0.22), transparent 55%),
+      radial-gradient(ellipse at 20% 0%, rgba(179, 37, 30, 0.16), transparent 55%),
       var(--color-cream);
   }
 
@@ -1466,8 +1406,8 @@
     min-height: min(92svh, 56rem);
     display: flex;
     background:
-      radial-gradient(ellipse at 50% 120%, rgba(124, 58, 237, 0.45), transparent 60%),
-      linear-gradient(180deg, #05050a 0%, #0a0a12 100%);
+      radial-gradient(ellipse at 50% 120%, rgba(179, 37, 30, 0.38), transparent 60%),
+      linear-gradient(180deg, #070707 0%, var(--color-paper) 100%);
   }
   .av-mod-hero > div:last-child {
     width: 100%;
@@ -1487,27 +1427,27 @@
     height: 130%;
     transform-origin: 50% 0;
     filter: blur(6px);
-    opacity: 0.42;
+    opacity: 0.36;
     clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
   }
   .av-mod-beam-1 {
     left: -6%;
-    background: linear-gradient(180deg, var(--av-magenta), transparent 85%);
+    background: linear-gradient(180deg, var(--av-red), transparent 85%);
     transform: rotate(-18deg);
   }
   .av-mod-beam-2 {
     left: 22%;
-    background: linear-gradient(180deg, var(--av-violet), transparent 85%);
+    background: linear-gradient(180deg, var(--av-dark-stone), transparent 85%);
     transform: rotate(-6deg);
   }
   .av-mod-beam-3 {
     left: 44%;
-    background: linear-gradient(180deg, var(--av-cyan), transparent 85%);
+    background: linear-gradient(180deg, var(--color-stone), transparent 85%);
     transform: rotate(8deg);
   }
   .av-mod-beam-4 {
     left: 68%;
-    background: linear-gradient(180deg, var(--av-magenta), transparent 85%);
+    background: linear-gradient(180deg, var(--av-red), transparent 85%);
     transform: rotate(20deg);
   }
 
@@ -1531,7 +1471,7 @@
     line-height: 0.92;
     letter-spacing: 0.01em;
     text-transform: uppercase;
-    color: #ffffff;
+    color: var(--color-heading);
     text-shadow: 0 2px 30px rgba(0, 0, 0, 0.6);
   }
 
@@ -1539,7 +1479,7 @@
     margin-top: 1.5rem;
     max-width: 38rem;
     font-size: var(--text-lg);
-    color: #e4e4f0;
+    color: var(--color-ink);
     text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7);
   }
 
@@ -1548,15 +1488,16 @@
     max-width: 34rem;
     padding: 1.25rem;
     border-radius: 12px;
-    background: rgba(10, 10, 18, 0.82);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    background: rgba(16, 16, 16, 0.82);
+    box-shadow: inset 0 0 0 1px rgba(201, 176, 140, 0.22);
     backdrop-filter: blur(8px);
   }
   .av-mod-feature-title {
     margin-top: 0.4rem;
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 600;
     font-size: var(--text-xl);
+    color: var(--color-heading);
   }
   .av-mod-feature-list {
     margin-top: 0.5rem;
@@ -1569,48 +1510,20 @@
   }
 
   /* -------------------------------------------------------------- blended
-   * Warm and balanced: the serif of the traditional page with the sans
-   * labels and a soft stage-light gradient from the modern one. */
-  .av-look-blended {
-    --color-paper: #fbf7f1;
-    --color-cream: #f3eadf;
-    --color-surface: #e9dccb;
-    --color-ink: #221d1a;
-    --color-muted: #554941;
-    --color-subtle: #6b5d52;
-    --color-rule: #dccbb6;
-    --color-forest: #263a5e;
-    --color-forest-deep: #1b2b47;
-    --color-primary: #263a5e;
-    --color-primary-foreground: #fbf7f1;
-    --color-ring: #263a5e;
-    --color-border: #dccbb6;
-    --color-card: #f3eadf;
-    --av-accent-text: #9a4422;
-    --av-amber: #e8a45c;
-    --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
-    --shadow-border: 0 0 0 1px rgba(38, 58, 94, 0.12), 0 2px 6px rgba(34, 29, 26, 0.05);
-  }
-
-  .av-look-blended .av-l-eyebrow,
-  .av-look-blended .av-l-benefit-num,
-  .av-look-blended .av-l-step-num {
-    font-family: "Outfit", system-ui, sans-serif;
-  }
-
+   * Warm and balanced: a soft stone-and-red stage glow. */
   .av-look-blended .av-l-benefit,
   .av-look-blended .av-l-step {
     border-top: 2px solid transparent;
-    border-image: linear-gradient(90deg, var(--av-accent-text), var(--color-forest)) 1;
+    border-image: linear-gradient(90deg, var(--color-stone), var(--av-red)) 1;
   }
 
   /* Part-of-the-work pages (/church-av/sound, /video, /lighting, /hearing-help):
-     one hero drawn only from the page's look tokens, so it suits any look. */
+     one hero drawn only from the page's tokens, so it suits any look. */
   .av-part-hero {
     background:
       linear-gradient(
         120deg,
-        color-mix(in srgb, var(--av-accent-text) 16%, transparent) 0%,
+        color-mix(in srgb, var(--av-accent-text) 14%, transparent) 0%,
         transparent 50%
       ),
       var(--color-paper);
@@ -1621,7 +1534,6 @@
     margin-top: 0.75rem;
     font-size: clamp(2.3rem, 1.5rem + 3.2vw, 4.2rem);
     line-height: 1.06;
-    color: var(--color-ink);
   }
 
   .av-part-lead {
@@ -1648,8 +1560,8 @@
 
   .av-blend-hero {
     background:
-      linear-gradient(115deg, rgba(232, 164, 92, 0.22) 0%, transparent 45%),
-      linear-gradient(295deg, rgba(38, 58, 94, 0.16) 0%, transparent 50%),
+      linear-gradient(115deg, rgba(201, 176, 140, 0.16) 0%, transparent 45%),
+      linear-gradient(295deg, rgba(179, 37, 30, 0.14) 0%, transparent 50%),
       var(--color-paper);
     border-bottom: 1px solid var(--color-rule);
   }
@@ -1671,7 +1583,7 @@
     min-width: 0;
     padding: 1.25rem;
     border-radius: 20px;
-    background: linear-gradient(160deg, #f6d9b4 0%, #f3eadf 45%, #cfd6e6 100%);
+    background: linear-gradient(160deg, #2b2620 0%, var(--color-cream) 45%, var(--color-surface) 100%);
     box-shadow: var(--shadow-border);
   }
 
@@ -1685,51 +1597,25 @@
     padding: 0.2rem 0.75rem;
     border-radius: 999px;
     background: var(--color-paper);
-    font-family: "Outfit", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: var(--text-sm);
-    font-weight: 600;
-    color: var(--color-forest);
+    font-weight: 500;
+    color: var(--color-stone);
   }
 
   /* ----------------------------------------------------------- livestream
-   * Clean and trustworthy: blue-grey, a plain sans, one live dot. */
-  .av-look-livestream {
-    --color-paper: #f3f6f9;
-    --color-cream: #e5ebf1;
-    --color-surface: #d4dee8;
-    --color-ink: #16212c;
-    --color-muted: #435465;
-    --color-subtle: #566778;
-    --color-rule: #c3cfdb;
-    --color-forest: #285780;
-    --color-forest-deep: #1d4263;
-    --color-primary: #285780;
-    --color-primary-foreground: #ffffff;
-    --color-ring: #285780;
-    --color-border: #c3cfdb;
-    --color-card: #e5ebf1;
-    --av-accent-text: #285780;
-    --av-live: #c62828;
-    --font-display: "Figtree", "Segoe UI", system-ui, sans-serif;
-    --shadow-border: 0 0 0 1px rgba(22, 33, 44, 0.08), 0 2px 8px rgba(22, 33, 44, 0.06);
-  }
-
-  .av-look-livestream :is(h1, h2, h3) {
-    font-weight: 650;
-    letter-spacing: -0.015em;
-  }
-
+   * Clean and trustworthy: a plain screen and one red live dot. */
   .av-look-livestream .av-l-benefit,
   .av-look-livestream .av-l-step {
     border-top: 0;
     padding: 1.25rem;
     border-radius: 12px;
-    background: #ffffff;
+    background: var(--color-cream);
     box-shadow: var(--shadow-border);
   }
 
   .av-live-hero {
-    background: linear-gradient(180deg, #e5ebf1 0%, #f3f6f9 100%);
+    background: linear-gradient(180deg, var(--color-cream) 0%, var(--color-paper) 100%);
     border-bottom: 1px solid var(--color-rule);
   }
 
@@ -1753,8 +1639,10 @@
     position: relative;
     padding: 0.85rem;
     border-radius: 22px;
-    background: #1f2a36;
-    box-shadow: 0 24px 48px -24px rgba(22, 33, 44, 0.45);
+    background: #070707;
+    box-shadow:
+      inset 0 0 0 1px var(--color-rule-strong),
+      0 24px 48px -24px rgba(0, 0, 0, 0.7);
   }
   .av-live-screen svg {
     display: block;
@@ -1763,19 +1651,19 @@
     border-radius: 10px;
   }
   .av-live-scene {
-    fill: #dfe7ef;
+    fill: #24221f;
   }
   .av-live-floor {
-    fill: #b9c7d5;
+    fill: #34302b;
   }
   .av-live-window {
-    fill: #f7fafc;
+    fill: #e6d3b3;
   }
   .av-live-ink {
-    fill: #2c4256;
+    fill: #c9b08c;
   }
   .av-live-choir {
-    fill: #6c8197;
+    fill: #7d7366;
   }
   .av-live-pill {
     position: absolute;
@@ -1806,33 +1694,7 @@
   }
 
   /* --------------------------------------------------------- new building
-   * Architectural: blueprint blue, grid paper, line work, mono labels. */
-  .av-look-newbuild {
-    --color-paper: #f5f8fc;
-    --color-cream: #e8eff7;
-    --color-surface: #d5e1ef;
-    --color-ink: #0f2238;
-    --color-muted: #3d526b;
-    --color-subtle: #50657e;
-    --color-rule: #b9cbe0;
-    --color-forest: #17599e;
-    --color-forest-deep: #0f3a6b;
-    --color-primary: #0f3a6b;
-    --color-primary-foreground: #ffffff;
-    --color-ring: #17599e;
-    --color-border: #b9cbe0;
-    --color-card: #e8eff7;
-    --av-accent-text: #17599e;
-    --av-blueprint: #0d2c52;
-    --font-display: "Outfit", "Segoe UI", system-ui, sans-serif;
-    --shadow-border: 0 0 0 1px rgba(15, 34, 56, 0.14);
-  }
-
-  .av-look-newbuild :is(h1, h2, h3) {
-    font-weight: 600;
-    letter-spacing: -0.015em;
-  }
-
+   * Architectural: grid paper, line work, mono labels, in stone on black. */
   .av-look-newbuild .av-l-eyebrow,
   .av-look-newbuild .av-l-benefit-num,
   .av-look-newbuild .av-l-step-num {
@@ -1844,40 +1706,29 @@
   .av-look-newbuild .av-l-plan {
     background-color: var(--color-cream);
     background-image:
-      linear-gradient(rgba(23, 89, 158, 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(23, 89, 158, 0.07) 1px, transparent 1px);
+      linear-gradient(rgba(201, 176, 140, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 176, 140, 0.06) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
   .av-look-newbuild .av-l-benefit,
   .av-look-newbuild .av-l-step {
-    border-top: 1px dashed var(--color-forest);
+    border-top: 1px dashed var(--color-stone);
   }
 
   .av-nb-hero {
-    --color-ink: #ffffff;
-    --color-muted: #c9d8ea;
-    --color-cream: #163d6b;
-    --color-surface: #1d4c82;
-    --color-primary: #ffffff;
-    --color-primary-foreground: #0d2c52;
-    --color-forest-deep: #dbe8f6;
-    --shadow-border: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
-    --av-accent-text: #9cc7f2;
-    color: #ffffff;
-    background-color: var(--av-blueprint);
+    background-color: #0b0b0b;
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.14) 1px, transparent 1px),
-      linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+      linear-gradient(rgba(201, 176, 140, 0.13) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 176, 140, 0.13) 1px, transparent 1px),
+      linear-gradient(rgba(201, 176, 140, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201, 176, 140, 0.05) 1px, transparent 1px);
     background-size:
       120px 120px,
       120px 120px,
       24px 24px,
       24px 24px;
   }
-
 
   .av-nb-h1 {
     margin-top: 0.75rem;
@@ -1902,31 +1753,31 @@
   }
   .av-nb-wall {
     fill: none;
-    stroke: #ffffff;
+    stroke: var(--color-ink);
     stroke-width: 1.5;
   }
   .av-nb-wall-thick {
     fill: none;
-    stroke: #ffffff;
+    stroke: var(--color-ink);
     stroke-width: 3;
   }
   .av-nb-line {
     fill: none;
-    stroke: rgba(255, 255, 255, 0.55);
+    stroke: rgba(233, 227, 217, 0.45);
     stroke-width: 1;
   }
   .av-nb-dim {
     fill: none;
-    stroke: #9cc7f2;
+    stroke: var(--color-stone);
     stroke-width: 1;
   }
   .av-nb-mark {
-    fill: var(--av-blueprint);
-    stroke: #ffd36b;
+    fill: #0b0b0b;
+    stroke: var(--av-red-soft);
     stroke-width: 2;
   }
   .av-nb-label {
-    fill: #ffd36b;
+    fill: var(--color-stone-hover);
     font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.06em;
@@ -1935,7 +1786,7 @@
     margin-top: 0.75rem;
     font-family: var(--font-mono);
     font-size: var(--text-xs);
-    color: #c9d8ea;
+    color: var(--color-muted);
   }
 
   /* --------------------------------------------------- hub direction cards */
@@ -1945,19 +1796,19 @@
     border-radius: 999px;
   }
   .av-dir-traditional .av-dir-swatch {
-    background: linear-gradient(90deg, #5c3a1e, #9a7a2a, #f0e6cf);
+    background: linear-gradient(90deg, #5c4f3d, #c9b08c, #e6d3b3);
   }
   .av-dir-modern .av-dir-swatch {
-    background: linear-gradient(90deg, #ff2e88, #7c3aed, #22d3ee);
+    background: linear-gradient(90deg, #8f1c17, #b3251e, #c9b08c);
   }
   .av-dir-blended .av-dir-swatch {
-    background: linear-gradient(90deg, #e8a45c, #9a4422, #263a5e);
+    background: linear-gradient(90deg, #c9b08c, #8a6f4d, #b3251e);
   }
   .av-dir-livestream .av-dir-swatch {
-    background: linear-gradient(90deg, #285780, #9fb4c8, #e5ebf1);
+    background: linear-gradient(90deg, #3a352f, #968f83, #e9e3d9);
   }
   .av-dir-newbuild .av-dir-swatch {
-    background: repeating-linear-gradient(90deg, #0d2c52 0 10px, #17599e 10px 12px);
+    background: repeating-linear-gradient(90deg, #3a352f 0 10px, #c9b08c 10px 12px);
   }
 }
 

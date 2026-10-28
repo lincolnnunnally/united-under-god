@@ -25,9 +25,9 @@ import { cn } from "@/lib/utils";
 
 /**
  * Shared sections for the church AV landing pages. Each page wraps itself in
- * <LandingLook>, which sets `av-look-<look>`: the colors, type, and spacing
- * for that page live in styles.css under that class and nowhere else, so the
- * rest of the site keeps its own look. The H1 and hero stay in each route.
+ * <LandingLook>, which sets `av-look-<look>`: the page's picture and reading
+ * needs live in styles.css under that class, in the site's own colors and
+ * type. The H1 and hero stay in each route.
  */
 
 export function LandingLook({ page, children }: { page: LandingPage; children: ReactNode }) {
