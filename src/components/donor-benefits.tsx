@@ -61,7 +61,7 @@ export function DonorBenefits({ compact = false, className }: Props) {
             <p
               className={cn(
                 "text-xs font-semibold tracking-[0.16em] uppercase",
-                compact ? "text-paper/55" : "text-forest",
+                compact ? "text-paper/80" : "text-forest",
               )}
             >
               {item.kicker}

@@ -41,13 +41,13 @@ export function LiveOnMissionMark({
   return (
     <div
       className={cn(
-        "bg-paper text-ink shadow-[var(--shadow-soft)]",
+        "bg-bone text-night shadow-[var(--shadow-soft)]",
         s.card,
         className,
       )}
     >
-      <div className={cn("flex items-center justify-between bg-mission text-paper", s.bar)}>
-        <span className={cn("font-mission text-paper", s.word)}>LIVE ON</span>
+      <div className={cn("flex items-center justify-between bg-mission text-bone", s.bar)}>
+        <span className={cn("font-mission text-bone", s.word)}>LIVE ON</span>
         <img
           src="/images/live-on-mission-heart-and-hands.png"
           alt=""
@@ -58,7 +58,7 @@ export function LiveOnMissionMark({
       </div>
       <p
         className={cn(
-          "pl-1 font-sans font-semibold text-ink uppercase",
+          "pl-1 font-sans font-semibold text-night uppercase",
           s.sub,
         )}
       >
@@ -79,7 +79,7 @@ export function LiveOnMissionLockup({ className }: { className?: string }) {
         height={48}
       />
       <div>
-        <p className="font-mission text-2xl leading-none text-mission">LIVE ON</p>
+        <p className="font-mission text-2xl leading-none text-mission-soft">LIVE ON</p>
         <p className="mt-0.5 text-[0.65rem] font-semibold tracking-[0.28em] text-ink uppercase">
           Mission
         </p>

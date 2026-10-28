@@ -59,7 +59,7 @@ const HELPS = [
 function OrganizationsPage() {
   return (
     <SiteShell>
-      <section className="relative isolate overflow-hidden bg-ink text-paper">
+      <section className="relative isolate overflow-hidden tone-night bg-ink text-paper">
         <img
           src="/images/fellowship.jpg"
           alt="Pastors and local leaders gathered around a table"

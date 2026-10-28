@@ -385,7 +385,16 @@ export const HELP_LANDING: Record<string, LandingSlug> = {
   "planning-a-new-building": "new-building",
 };
 
+/** The church AV looks keep their own type (Fraunces, Figtree); the site no longer loads them sitewide. */
+const LANDING_FONTS =
+  "https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&display=swap";
+
 export function landingHead(page: LandingPage) {
+  const head = landingPageHead(page);
+  return { ...head, links: [...(head.links ?? []), { rel: "stylesheet", href: LANDING_FONTS }] };
+}
+
+function landingPageHead(page: LandingPage) {
   const path = landingPath(page);
   return pageHead({
     title: page.title,

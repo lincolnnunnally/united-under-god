@@ -33,7 +33,7 @@ export function AvHero({
   crumbs?: { name: string; to?: string; params?: Record<string, string> }[];
 }) {
   return (
-    <section className="relative isolate overflow-hidden bg-ink text-paper">
+    <section className="relative isolate overflow-hidden tone-night bg-ink text-paper">
       <img
         src="/images/sanctuary.jpg"
         alt="A congregation in worship, one hand raised toward the stage"
@@ -97,14 +97,14 @@ export function ProcessSection({ compact = false }: { compact?: boolean }) {
   return (
     <section className="border-y border-rule bg-forest text-paper">
       <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-        <p className="text-xs font-semibold tracking-[0.18em] text-paper/60 uppercase">
+        <p className="text-xs font-semibold tracking-[0.18em] text-paper/80 uppercase">
           How the installation team works
         </p>
         <h2 className="mt-3 max-w-2xl text-3xl text-paper">Dream, Design, Deliver, Dedication</h2>
         <div className="mt-8 grid gap-8 sm:grid-cols-2">
           {AV_PROCESS.map((step, i) => (
             <article key={step.step} className="border-t border-paper/20 pt-5">
-              <p className="font-display text-sm text-paper/60">0{i + 1}</p>
+              <p className="font-display text-sm text-paper/80">0{i + 1}</p>
               <h3 className="mt-2 font-display text-xl text-paper italic">{step.step}</h3>
               <p className="mt-2 text-sm text-paper/80">{step.lead}</p>
               {compact ? null : (

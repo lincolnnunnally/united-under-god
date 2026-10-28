@@ -106,7 +106,7 @@ function MissionPage() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-[auto_1fr] md:px-8 md:py-24">
           <LiveOnMissionMark size="lg" className="mx-auto md:mx-0" />
           <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-mission uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-mission-ink uppercase">
               Live on Mission
             </p>
             <h1 className="mt-3 max-w-xl text-3xl text-balance">
@@ -160,7 +160,7 @@ function MissionPage() {
 
       <section className="border-y border-rule bg-paper">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-          <p className="text-xs font-semibold tracking-[0.18em] text-mission uppercase">
+          <p className="text-xs font-semibold tracking-[0.18em] text-mission-ink uppercase">
             What mission does
           </p>
           <h2 className="mt-3 max-w-2xl text-3xl text-balance">
@@ -189,7 +189,7 @@ function MissionPage() {
                   href={step.href}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-4 inline-block text-sm font-medium text-mission"
+                  className="mt-4 inline-block text-sm font-medium text-mission-ink"
                 >
                   Open Spark of Hope
                 </a>
@@ -214,7 +214,7 @@ function MissionPage() {
         </div>
       </section>
 
-      <section className="border-y border-rule bg-ink text-paper">
+      <section className="border-y border-rule tone-night bg-ink text-paper">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
           <p className="text-xs font-semibold tracking-[0.18em] text-paper/60 uppercase">
             One mission. Three doors.
@@ -271,7 +271,7 @@ function MissionPage() {
             </p>
             <SignInNudge about="Live on Mission" />
             <p className="mt-4">
-              <Link to="/happenings" className="text-mission underline-offset-4 hover:underline">
+              <Link to="/happenings" className="text-mission-ink underline-offset-4 hover:underline">
                 See what’s on this week
               </Link>
             </p>

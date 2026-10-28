@@ -104,13 +104,13 @@ function SellToChurchesPage() {
 
 function Hero({ market }: { market: ChurchMarket | null }) {
   return (
-    <section className="relative isolate overflow-hidden bg-forest-deep text-paper">
+    <section className="tone-night relative isolate overflow-hidden bg-ink text-paper">
       <img
         src="/images/sanctuary.jpg"
         alt=""
         className="absolute inset-0 -z-10 size-full object-cover opacity-25"
       />
-      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-forest-deep/70 via-forest-deep/85 to-forest-deep" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-ink/70 via-ink/85 to-ink" />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-16 md:grid-cols-[1.25fr_1fr] md:items-center md:px-8 md:py-24">
         <div>
           <nav aria-label="Breadcrumb" className="text-sm text-paper/70">
@@ -145,7 +145,7 @@ function Hero({ market }: { market: ChurchMarket | null }) {
         </div>
 
         {market ? (
-          <div className="rise-in rise-in-2 rounded-2xl bg-paper/8 p-6 shadow-[inset_0_0_0_1px_rgba(243,238,228,0.18)] backdrop-blur-sm sm:p-8">
+          <div className="rise-in rise-in-2 rounded-2xl bg-paper/8 p-6 shadow-[inset_0_0_0_1px_var(--color-rule)] backdrop-blur-sm sm:p-8">
             <div className="flex items-center gap-3 text-paper/75">
               <Church className="size-5" aria-hidden="true" />
               <span className="text-xs font-semibold tracking-[0.16em] uppercase">

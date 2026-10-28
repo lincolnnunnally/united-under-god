@@ -31,34 +31,82 @@ function Home() {
   }, [navigate]);
   return (
     <SiteShell>
-      <section className="relative isolate min-h-[92svh] overflow-hidden bg-ink text-paper">
+      <section className="relative isolate overflow-hidden border-b border-rule bg-paper">
+        <div className="mx-auto grid max-w-6xl items-center gap-8 px-5 pt-10 pb-16 md:grid-cols-[1.05fr_0.95fr] md:gap-12 md:px-8 md:pt-14 md:pb-24">
+          <figure className="rise-in mx-auto w-full max-w-[34rem] md:max-w-none">
+            <img
+              src="/images/uug-standard.jpg"
+              alt="United Under God: a shield-shaped U with a cross rising from it like a spear, inside an open ring, over the words United Under God"
+              width={959}
+              height={728}
+              className="standard-lockup h-auto w-full"
+            />
+          </figure>
+          <div>
+            <p className="rise-in rise-in-1 flex items-center gap-3 font-display text-xs font-medium tracking-[0.32em] text-forest uppercase sm:text-sm">
+              <span aria-hidden="true" className="h-px w-8 bg-forest/60" />
+              God’s Kingdom · Our Purpose
+            </p>
+            <h1 className="rise-in rise-in-1 mt-5 text-4xl uppercase">
+              Unity under God does not happen by accident.
+            </h1>
+            <div className="rise-in rise-in-2 mt-6 max-w-xl space-y-4 text-lg text-muted">
+              <p>
+                It is a decision, and it takes effort. We have to fight for it.
+                We have to work for it.
+              </p>
+              <p>
+                What we are doing is new — and it is really something old.
+                Jesus told us to do it, and it has not been done. So we stand
+                for the Lord of heaven’s armies, and for His kingdom to come on
+                earth.
+              </p>
+            </div>
+            <p className="rise-in rise-in-3 mt-6 border-l-2 border-forest pl-4 font-display text-xl font-medium tracking-[0.02em] text-heading uppercase">
+              We have a mission. We have a purpose. We have a kingdom to stand
+              for.
+            </p>
+            <div className="rise-in rise-in-4 mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg">
+                <Link to="/join">
+                  Join the movement
+                  <ArrowRight className="size-4" />
+                </Link>
+              </Button>
+              <Button asChild variant="secondary" size="lg">
+                <Link to="/give">Give what you have</Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="tone-night relative isolate overflow-hidden bg-ink text-paper">
         <img
           src="/images/hero.jpg"
           alt="Neighbors packing food together in a small-town warehouse"
           className="absolute inset-0 size-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/62 to-ink/28" />
-        <div className="relative mx-auto flex min-h-[92svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 md:px-8 md:pb-20">
-          <p className="rise-in text-xs font-semibold tracking-[0.2em] text-paper/80 uppercase">
+        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 to-ink/35" />
+        <div className="relative mx-auto flex min-h-[60svh] max-w-6xl flex-col justify-end px-5 pt-28 pb-16 md:px-8 md:pb-20">
+          <p className="text-xs font-semibold tracking-[0.2em] text-paper/80 uppercase">
             A movement of Christians
           </p>
-          <h1 className="rise-in rise-in-1 mt-4 max-w-3xl font-display text-4xl italic text-paper sm:text-5xl">
-            United. Loving. Active.
-          </h1>
-          <p className="rise-in rise-in-2 mt-5 max-w-2xl text-lg text-paper/88">
+          <h2 className="mt-4 max-w-3xl text-4xl uppercase">United. Loving. Active.</h2>
+          <p className="mt-5 max-w-2xl text-lg text-paper/88">
             Not united because we share a building on Sunday. United under the
             authority of God — in grace, forgiveness, and reconciliation — and
             in work that makes the world look more like His Kingdom.
           </p>
-          <div className="rise-in rise-in-3 mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="invert" size="lg">
-              <Link to="/join">
-                Join the movement
+              <Link to="/doctrine">
+                What we believe
                 <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/give">Give what you have</Link>
+              <Link to="/mission">Live on mission</Link>
             </Button>
           </div>
         </div>
@@ -137,7 +185,7 @@ function Home() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 md:grid-cols-[auto_1fr] md:px-8 md:py-24">
           <LiveOnMissionMark size="md" className="mx-auto md:mx-0" />
           <div>
-            <p className="text-xs font-semibold tracking-[0.18em] text-mission uppercase">
+            <p className="text-xs font-semibold tracking-[0.18em] text-mission-ink uppercase">
               Live on Mission
             </p>
             <h2 className="mt-3 text-3xl text-balance">
@@ -182,7 +230,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="border-y border-rule bg-ink text-paper">
+      <section className="border-y border-rule tone-night bg-ink text-paper">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-24">
           <p className="text-xs font-semibold tracking-[0.18em] text-paper/60 uppercase">
             Why join
@@ -257,8 +305,14 @@ function Home() {
               the biblical mandate.
             </h2>
             <p className="mt-5 max-w-prose text-muted">
+              The seal is a battle standard: a shield, a cross raised like a
+              spear, and a ring around them. It stands for something. Unity
+              under God is not handed to us and it does not drift our way — we
+              decide on it, and we work for it.
+            </p>
+            <p className="mt-4 max-w-prose text-muted">
               Churches, businesses, charities, governments, and Christian-led
-              teams can display the seal. It is free. It is never for sale. It
+              teams can display the seal, at no charge. It is never for sale. It
               always links back to a public page, so anyone can see what you
               meant by it. Keep your denomination. Keep your associations. We
               are not competing with you. We are calling you into one body —
@@ -274,7 +328,7 @@ function Home() {
         </div>
       </section>
 
-      <section className="relative isolate overflow-hidden bg-ink text-paper">
+      <section className="relative isolate overflow-hidden tone-night bg-ink text-paper">
         <img
           src="/images/sanctuary.jpg"
           alt="A congregation in worship, one hand raised toward the stage"
