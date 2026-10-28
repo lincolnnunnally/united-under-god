@@ -76,6 +76,7 @@ function plainError(err: unknown, fallback: string) {
 // ---------------------------------------------------------------------------
 
 const needInput = z.object({
+  orgKind: z.string().max(40).optional().default(""),
   churchName: z.string().max(400),
   contactName: z.string().max(400),
   email: z.string().max(400),

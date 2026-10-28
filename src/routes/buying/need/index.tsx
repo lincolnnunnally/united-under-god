@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { needCategories } from "@/lib/church-needs";
+import { ORG_KINDS, needCategories } from "@/lib/church-needs";
 import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { submitNeedFn } from "@/lib/need-actions";
 import { pageHead } from "@/lib/seo";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/buying/need/")({
     pageHead({
       title: "Post a need: we’ll get it quoted | United Under God",
       description:
-        "Tell United Under God what your church needs. We ask suppliers to quote, keep your contact private, and show you the quotes side by side. You choose, or choose none.",
+        "Tell United Under God what your church, ministry, or Christian-owned business needs. We ask suppliers to quote, keep your contact private, and show you the quotes side by side. You choose, or choose none.",
       path: "/buying/need",
     }),
 });
@@ -28,7 +28,7 @@ const SELECT_CLASS =
 const PROMISES = [
   {
     title: "Your contact stays private",
-    body: "Suppliers never see your name, your church’s name, or how to reach you. Nobody calls you to sell.",
+    body: "Suppliers never see your name, your organization’s name, or how to reach you. Nobody calls you to sell.",
   },
   {
     title: "Quotes side by side",
@@ -40,7 +40,7 @@ const PROMISES = [
   },
   {
     title: "Stronger together",
-    body: "When churches need something similar, we put those needs in the same bid, so suppliers quote on the larger order.",
+    body: "When several members need something similar, we put those needs in the same bid, so suppliers quote on the larger order.",
   },
 ];
 
@@ -57,13 +57,12 @@ function NeedPage() {
             <span aria-current="page">Post a need</span>
           </nav>
           <p className="mt-6 text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-            For churches
+            For churches, ministries, and Christian-owned businesses
           </p>
           <h1 className="mt-3 max-w-3xl text-4xl">Post a need. We’ll get it quoted.</h1>
           <p className="mt-5 max-w-2xl text-muted">
-            Tell us what your church needs. United Under God asks suppliers to quote on it, so they
-            compete for the work and you don’t have to field the calls. This is at no charge to your
-            church.
+            Tell us what you need. United Under God asks suppliers to quote on it, so they compete for
+            the work and you don’t have to field the calls. This is at no charge to you.
           </p>
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             {PROMISES.map((item) => (
@@ -95,6 +94,8 @@ function NeedForm() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ saved: boolean; emailed: boolean } | null>(null);
+  const [kind, setKind] = useState<keyof typeof ORG_KINDS>("church");
+  const noun = ORG_KINDS[kind].noun;
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -105,6 +106,7 @@ function NeedForm() {
     try {
       const result = await submitNeedFn({
         data: {
+          orgKind: value("orgKind"),
           churchName: value("church"),
           contactName: value("contactName"),
           email: value("email"),
@@ -146,7 +148,7 @@ function NeedForm() {
             <h3 className="mt-6 font-display text-lg">What happens next</h3>
             <ol className="mt-2 grid list-decimal gap-2 pl-5 text-muted">
               <li>We ask suppliers to quote. They never see who you are.</li>
-              <li>If other churches need something similar, we may put the needs in one bid.</li>
+              <li>If others need something similar, we may put the needs in one bid.</li>
               <li>When the quotes are in, we email you and show them side by side.</li>
               <li>You choose one and we introduce you to the supplier, or you choose none.</li>
             </ol>
@@ -200,14 +202,36 @@ function NeedForm() {
           </Field>
         </div>
         <p className="text-sm text-muted">
-          Please leave your church’s name out of the details. We share what you need with suppliers,
+          Please leave your {noun}’s name out of the details. We share what you need with suppliers,
           never who you are.
         </p>
       </fieldset>
 
       <fieldset className="grid gap-4 sm:grid-cols-2">
-        <legend className="mb-2 font-display text-xl">Your church</legend>
-        <Field label="Church name" htmlFor="need-church">
+        <legend className="mb-2 font-display text-xl">Who it’s for</legend>
+        <div className="grid gap-1.5 sm:col-span-2">
+          <span className="text-sm font-medium" id="need-kind-label">
+            We are a
+          </span>
+          <div role="radiogroup" aria-labelledby="need-kind-label" className="flex flex-wrap gap-2">
+            {(Object.keys(ORG_KINDS) as (keyof typeof ORG_KINDS)[]).map((key) => (
+              <label
+                key={key}
+                className="flex min-h-11 cursor-pointer items-center gap-2 rounded-md bg-paper px-3.5 text-sm shadow-[var(--shadow-border)] has-[:checked]:shadow-[0_0_0_2px_var(--color-forest)]"
+              >
+                <input
+                  type="radio"
+                  name="orgKind"
+                  value={key}
+                  checked={kind === key}
+                  onChange={() => setKind(key)}
+                />
+                {ORG_KINDS[key].label}
+              </label>
+            ))}
+          </div>
+        </div>
+        <Field label={kind === "church" ? "Church name" : "Organization name"} htmlFor="need-church">
           <Input id="need-church" name="church" autoComplete="organization" required />
         </Field>
         <Field label="Your name" htmlFor="need-contact">

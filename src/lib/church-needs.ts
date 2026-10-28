@@ -29,10 +29,27 @@ export type NeedStatus = (typeof NEED_STATUSES)[number];
 export const NEED_STATUS_LABELS: Record<NeedStatus, string> = {
   new: "New",
   bidding: "Out for quotes",
-  quotes_sent: "Quotes sent to the church",
-  chosen: "Church chose a quote",
+  quotes_sent: "Quotes sent",
+  chosen: "Quote chosen",
   closed: "Closed",
 };
+
+/**
+ * Who can post a need: the same members group buying serves (churches,
+ * charities and ministries, Christian-owned businesses). Stored as
+ * org_kind; rows from before it existed read as churches.
+ */
+export const ORG_KINDS = {
+  church: { label: "Church", noun: "church" },
+  ministry: { label: "Charity or ministry", noun: "ministry" },
+  business: { label: "Christian-owned business", noun: "business" },
+} as const;
+export type OrgKind = keyof typeof ORG_KINDS;
+
+export function orgKindOf(value: unknown): OrgKind {
+  const kind = String(value ?? "");
+  return kind in ORG_KINDS ? (kind as OrgKind) : "church";
+}
 
 /** Needs still being worked: they count toward "similar needs". */
 const OPEN_STATUSES: NeedStatus[] = ["new", "bidding", "quotes_sent"];
@@ -63,6 +80,9 @@ export function needCategoryName(id: string) {
 // ---------------------------------------------------------------------------
 
 export type NeedInput = {
+  /** church | ministry | business; blank reads as church. */
+  orgKind?: string;
+  /** The organization's name (stored as church_name, from when only churches posted). */
   churchName: string;
   contactName: string;
   email: string;
@@ -79,7 +99,7 @@ export type NeedInput = {
   hp?: string;
 };
 
-export type CleanNeed = Required<Omit<NeedInput, "hp">>;
+export type CleanNeed = Required<Omit<NeedInput, "hp" | "orgKind">> & { orgKind: OrgKind };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -98,7 +118,10 @@ function optional(value: string | undefined, max: number) {
 
 /** Every rule for a posted need. Throws a sentence the church can act on. */
 export function cleanNeed(input: NeedInput): CleanNeed {
-  const churchName = need(input.churchName, "Enter your church’s name.", 160);
+  const kind = (input.orgKind ?? "").trim();
+  if (kind && !(kind in ORG_KINDS)) throw new Error("Choose who the need is for.");
+  const orgKind = orgKindOf(kind);
+  const churchName = need(input.churchName, `Enter your ${ORG_KINDS[orgKind].noun}’s name.`, 160);
   const contactName = need(input.contactName, "Enter your name.", 120);
   const email = need(input.email, "Enter an email address.", 200).toLowerCase();
   if (!EMAIL.test(email)) throw new Error("Enter a working email address.");
@@ -120,6 +143,7 @@ export function cleanNeed(input: NeedInput): CleanNeed {
   const quantity = optional(input.quantity, 120);
   const neededBy = optional(input.neededBy, 40);
   return {
+    orgKind,
     churchName,
     contactName,
     email,
@@ -168,10 +192,10 @@ export async function createNeed(
   const stamp = at.toISOString();
   await sql`
     insert into source_church_needs (
-      id, token, church_name, contact_name, email, phone, city, state, zip,
+      id, token, org_kind, church_name, contact_name, email, phone, city, state, zip,
       category, title, details, quantity, needed_by, status, ip, created_at, updated_at
     ) values (
-      ${id}, ${token}, ${clean.churchName}, ${clean.contactName}, ${clean.email},
+      ${id}, ${token}, ${clean.orgKind}, ${clean.churchName}, ${clean.contactName}, ${clean.email},
       ${clean.phone}, ${clean.city}, ${clean.state}, ${clean.zip}, ${clean.category},
       ${clean.title}, ${clean.details}, ${clean.quantity}, ${clean.neededBy}, ${"new"},
       ${ip}, ${stamp}, ${stamp}
@@ -216,13 +240,13 @@ export function needConfirmationEmail(clean: CleanNeed, token: string, siteUrl: 
 /** The owner's notice for a new need (or one that did not save). */
 export function needNotice(clean: CleanNeed, meta: { id: string; saved: boolean }) {
   return {
-    subject: `${meta.saved ? "" : "NOT SAVED: "}Church need: ${clean.title} (${clean.churchName}, ${clean.state})`,
+    subject: `${meta.saved ? "" : "NOT SAVED: "}${ORG_KINDS[clean.orgKind].label} need: ${clean.title} (${clean.churchName}, ${clean.state})`,
     text: [
       meta.saved
-        ? "A church posted a need to bid out. It is on the desk under Church needs: https://www.unitedundergod.org/buying/desk"
-        : "A church posted a need to bid out, but it did not save. Everything they sent is below.",
+        ? `A ${ORG_KINDS[clean.orgKind].noun} posted a need to bid out. It is on the desk under Needs to bid out: https://www.unitedundergod.org/buying/desk`
+        : `A ${ORG_KINDS[clean.orgKind].noun} posted a need to bid out, but it did not save. Everything they sent is below.`,
       "",
-      `Church: ${clean.churchName}`,
+      `${ORG_KINDS[clean.orgKind].label}: ${clean.churchName}`,
       `Contact: ${clean.contactName}`,
       `Email: ${clean.email}`,
       clean.phone ? `Phone: ${clean.phone}` : "",
@@ -249,7 +273,7 @@ export function needInquiry(clean: CleanNeed, id: string) {
     city: `${clean.city}, ${clean.state}`,
     address: clean.zip,
     message: [
-      "Posted a need to bid out (/buying/need).",
+      `Posted a need to bid out (/buying/need) as a ${ORG_KINDS[clean.orgKind].noun}.`,
       ...needLines(clean),
     ].join("\n"),
   };
@@ -262,6 +286,7 @@ export function needInquiry(clean: CleanNeed, id: string) {
 export type NeedRow = {
   id: string;
   status: NeedStatus;
+  orgKind: OrgKind;
   churchName: string;
   contactName: string;
   email: string;
@@ -343,6 +368,7 @@ export async function readNeedsDesk(sql: Sql): Promise<NeedsDesk> {
       return {
         id: text(row.id),
         status,
+        orgKind: orgKindOf(row.org_kind),
         churchName: text(row.church_name),
         contactName: text(row.contact_name),
         email: text(row.email),
@@ -598,6 +624,7 @@ export type NeedView =
   | {
       state: "open";
       status: NeedStatus;
+      orgKind: OrgKind;
       churchName: string;
       title: string;
       category: string;
@@ -632,6 +659,7 @@ export async function readNeedByToken(sql: Sql, token: string): Promise<NeedView
   return {
     state: "open",
     status,
+    orgKind: orgKindOf(row.org_kind),
     churchName: text(row.church_name),
     title: text(row.title),
     category: needCategoryName(text(row.category)),
@@ -652,6 +680,7 @@ export async function readNeedByToken(sql: Sql, token: string): Promise<NeedView
 }
 
 export type NeedDecision = {
+  orgKind: OrgKind;
   churchName: string;
   contactName: string;
   email: string;
@@ -680,6 +709,7 @@ function supplierEmailOf(quote: Record<string, unknown>) {
 
 function decision(row: Record<string, unknown>, quote?: Record<string, unknown>): NeedDecision {
   return {
+    orgKind: orgKindOf(row.org_kind),
     churchName: text(row.church_name),
     contactName: text(row.contact_name),
     email: text(row.email),
@@ -746,9 +776,10 @@ export function needDecisionNotice(
   introduced: { church: boolean; supplier: boolean } = { church: false, supplier: false },
 ) {
   const both = introduced.church && introduced.supplier;
+  const who = ORG_KINDS[d.orgKind ?? "church"];
   return {
     subject: chose
-      ? `Church chose a quote: ${d.churchName} — ${d.title} from ${d.vendorName}` +
+      ? `${who.label} chose a quote: ${d.churchName} — ${d.title} from ${d.vendorName}` +
         (both ? " (introduced)" : " (introduce them)")
       : `None of the quotes work: ${d.churchName} — ${d.title}`,
     text: [
@@ -757,13 +788,13 @@ export function needDecisionNotice(
         : `${d.churchName} said none of the quotes for "${d.title}" work. The need is closed.`,
       chose
         ? both
-          ? "We emailed the church and the supplier each other's contact details. Nothing more is needed unless one of them asks."
+          ? `We emailed the ${who.noun} and the supplier each other's contact details. Nothing more is needed unless one of them asks.`
           : !introduced.church
-            ? "The introduction email to the church did not send. Please introduce them by hand."
-            : "The supplier has no email on its quote, so it was not introduced. Please call the supplier and pass on the church's details below."
+            ? `The introduction email to the ${who.noun} did not send. Please introduce them by hand.`
+            : `The supplier has no email on its quote, so it was not introduced. Please call the supplier and pass on the ${who.noun}'s details below.`
         : "",
       "",
-      `Church: ${d.churchName}`,
+      `${who.label}: ${d.churchName}`,
       `Contact: ${d.contactName}`,
       `Email: ${d.email}`,
       d.phone ? `Phone: ${d.phone}` : "",
@@ -776,7 +807,7 @@ export function needDecisionNotice(
       chose && d.supplierEmail ? `Supplier email: ${d.supplierEmail}` : "",
       chose && d.supplierPhone ? `Supplier phone: ${d.supplierPhone}` : "",
       "",
-      "Church needs on the desk: https://www.unitedundergod.org/buying/desk",
+      "Needs on the desk: https://www.unitedundergod.org/buying/desk",
     ]
       .filter((line, index, all) => line !== "" || all[index - 1] !== "")
       .join("\n"),
@@ -811,15 +842,16 @@ export function needIntroToChurch(d: NeedDecision) {
 
 /** The introduction to the supplier: the church that chose its quote, now that the church has said yes. */
 export function needIntroToSupplier(d: NeedDecision) {
+  const who = ORG_KINDS[d.orgKind ?? "church"];
   return {
     to: d.supplierEmail,
-    subject: `A church chose your quote: ${d.title} (United Under God)`,
+    subject: `A ${who.noun} chose your quote: ${d.title} (United Under God)`,
     text: [
       `Hello${d.supplierContact ? ` ${d.supplierContact.split(",")[0]}` : ""},`,
       "",
       `${d.churchName} chose your quote of ${d.unitPrice} each for "${d.title}" through United Under God.`,
       "",
-      `Church: ${d.churchName}`,
+      `${who.label}: ${d.churchName}`,
       `Contact: ${d.contactName}`,
       `Email: ${d.email}`,
       d.phone ? `Phone: ${d.phone}` : "",

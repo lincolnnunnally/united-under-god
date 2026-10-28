@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { NEED_STATUS_LABELS, needCategoryName } from "@/lib/church-needs";
+import { NEED_STATUS_LABELS, ORG_KINDS, needCategoryName } from "@/lib/church-needs";
 import {
   addNeedToBidFn,
   closeNeedFn,
@@ -36,7 +36,7 @@ export function NeedsSection({
   useEffect(() => {
     readNeedsDeskFn()
       .then(setDesk)
-      .catch((err) => setError(err instanceof Error ? err.message : "Church needs did not load."));
+      .catch((err) => setError(err instanceof Error ? err.message : "Needs did not load."));
   }, [bids]);
 
   async function run(work: () => Promise<NeedsDeskView>, done = "", bidsChanged = false) {
@@ -82,11 +82,12 @@ export function NeedsSection({
       className="mt-8 scroll-mt-24 rounded-xl bg-cream p-5 shadow-[var(--shadow-border)]"
       data-church-needs=""
     >
-      <h2 className="font-display text-xl">Church needs</h2>
+      <h2 className="font-display text-xl">Needs to bid out</h2>
       <p className="mt-2 max-w-2xl text-sm text-muted">
-        Posted on /buying/need. Start a bid from a need, or add it to an open bid in the same
-        category so several churches share one bid. A bid carries what the church needs and its
-        details, never its name. Check the details before you invite vendors.
+        Posted on /buying/need by churches, ministries, and Christian-owned businesses. Start a bid
+        from a need, or add it to an open bid in the same category so several members share one
+        bid. A bid carries what they need and its details, never their name. Check the details
+        before you invite vendors.
       </p>
       {error ? (
         <p className="mt-2 text-sm text-ink" role="alert">
@@ -102,11 +103,11 @@ export function NeedsSection({
         <p className="mt-2 text-sm text-muted">Loading…</p>
       ) : !desk.ready ? (
         <p className="mt-2 text-sm text-muted">
-          The church needs table is not in the database yet. Apply
+          The needs table is not in the database yet. Apply
           migrations/0013_source_church_needs.sql, then reload.
         </p>
       ) : desk.needs.length === 0 ? (
-        <p className="mt-4 text-sm text-muted">No church has posted a need yet.</p>
+        <p className="mt-4 text-sm text-muted">No one has posted a need yet.</p>
       ) : (
         <div className="mt-4 grid gap-6">
           {open.length ? (
@@ -198,7 +199,7 @@ function NeedCard({
       </div>
       {need.details ? <p className="mt-2 text-sm whitespace-pre-line text-muted">{need.details}</p> : null}
       <p className="mt-2 text-sm text-muted">
-        {need.churchName} · {need.contactName} · {need.email}
+        {ORG_KINDS[need.orgKind].label}: {need.churchName} · {need.contactName} · {need.email}
         {need.phone ? ` · ${need.phone}` : ""} · {need.city}, {need.state} {need.zip} · posted{" "}
         {need.createdAt.slice(0, 10)}
       </p>
@@ -256,7 +257,7 @@ function NeedCard({
             onClick={onSend}
             title={need.pricedQuotes === 0 ? "Record a quote with a price on this need's line first." : undefined}
           >
-            {need.status === "quotes_sent" ? "Send the quotes again" : "Send quotes to the church"}
+            {need.status === "quotes_sent" ? "Send the quotes again" : `Send quotes to the ${ORG_KINDS[need.orgKind].noun}`}
           </Button>
         ) : null}
         <Button type="button" variant="ghost" disabled={busy} onClick={onClose}>

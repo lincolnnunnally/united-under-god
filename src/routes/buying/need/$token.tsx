@@ -4,7 +4,7 @@ import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { NEED_STATUS_LABELS } from "@/lib/church-needs";
+import { NEED_STATUS_LABELS, ORG_KINDS } from "@/lib/church-needs";
 import { chooseNeedQuoteFn, declineNeedQuotesFn, readNeedFn, type NeedView } from "@/lib/need-actions";
 import { pageHead } from "@/lib/seo";
 
@@ -30,7 +30,7 @@ function NeedTokenPage() {
     <SiteShell>
       <section className="mx-auto max-w-4xl px-5 py-16 md:px-8">
         <p className="text-xs font-semibold tracking-[0.18em] text-forest uppercase">
-          Your church’s need
+          Your {view.state === "open" ? ORG_KINDS[view.orgKind].noun : "organization"}’s need
         </p>
         <NeedBody view={view} token={token} />
         <p className="mt-12 border-t border-rule pt-6 text-sm text-muted">
