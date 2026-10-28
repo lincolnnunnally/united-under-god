@@ -13,6 +13,7 @@ import {
   needIntroToChurch,
   needIntroToSupplier,
   needLinkPath,
+  needNotice,
   readNeedByToken,
   readNeedsDesk,
   sendNeedQuotes,
@@ -26,7 +27,7 @@ import { addQuote, readDesk } from "./source-store.ts";
 const SITE = "https://www.unitedundergod.org";
 
 async function fresh() {
-  return freshProgramDb([...PROGRAM_MIGRATIONS, "0013_source_church_needs.sql"]);
+  return freshProgramDb([...PROGRAM_MIGRATIONS, "0013_source_church_needs.sql", "0014_need_org_kind.sql"]);
 }
 
 function posted(overrides: Partial<NeedInput> = {}): NeedInput {
@@ -259,4 +260,55 @@ test("the desk can close a need, and a closed need takes no bid", async () => {
   await closeNeed(sql, saved.id);
   assert.equal((await needOf(sql, saved.id)).status, "closed");
   await assert.rejects(() => startNeedBid(sql, saved.id, "operator-1"), /closed/);
+});
+
+test("ministries and Christian-owned businesses post needs too, and every message names them right", async () => {
+  // Blank is a church (the form before this, and every row before org_kind).
+  assert.equal(cleanNeed(posted()).orgKind, "church");
+  assert.throws(() => cleanNeed(posted({ orgKind: "club" })), /who the need is for/);
+  assert.throws(() => cleanNeed(posted({ orgKind: "business", churchName: " " })), /your business’s name/);
+  assert.throws(() => cleanNeed(posted({ churchName: "" })), /your church’s name/);
+
+  const sql = await fresh();
+  const shop = await post(sql, { orgKind: "business", churchName: "Hale Hardware" });
+  const pantry = await post(sql, { orgKind: "ministry", churchName: "Open Door Pantry" });
+  const church = await post(sql);
+
+  assert.equal((await needOf(sql, shop.id)).orgKind, "business");
+  assert.equal((await needOf(sql, pantry.id)).orgKind, "ministry");
+  assert.equal((await needOf(sql, church.id)).orgKind, "church");
+  const view = await readNeedByToken(sql, shop.token);
+  assert.equal(view.state === "open" && view.orgKind, "business");
+
+  const notice = needNotice(cleanNeed(posted({ orgKind: "business", churchName: "Hale Hardware" })), {
+    id: shop.id,
+    saved: true,
+  });
+  assert.match(notice.subject, /^Christian-owned business need: /);
+  assert.ok(notice.text.includes("A business posted a need"));
+  assert.ok(notice.text.includes("Christian-owned business: Hale Hardware"));
+
+  const decision = {
+    orgKind: "ministry" as const,
+    churchName: "Open Door Pantry",
+    contactName: "Ruth Hale",
+    email: "ruth@opendoor.example",
+    phone: "",
+    place: "Vidalia, GA",
+    title: "Chest freezer",
+    quantity: "2",
+    vendorName: "Coastal Supply",
+    unitPrice: "$600",
+    bidId: "b1",
+    supplierContact: "Dana Price",
+    supplierEmail: "dana@coastal.example",
+    supplierPhone: "",
+  };
+  const intro = needIntroToSupplier(decision);
+  assert.match(intro.subject, /^A ministry chose your quote/);
+  assert.ok(intro.text.includes("Charity or ministry: Open Door Pantry"));
+  assert.ok(!/church/i.test(`${intro.subject}\n${intro.text}`));
+  const owner = needDecisionNotice(decision, true, { church: true, supplier: true });
+  assert.match(owner.subject, /^Charity or ministry chose a quote/);
+  assert.ok(owner.text.includes("We emailed the ministry and the supplier"));
 });
