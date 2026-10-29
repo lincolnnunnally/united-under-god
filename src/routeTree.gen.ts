@@ -32,6 +32,7 @@ import { Route as SitemapVerseDotxmlRouteImport } from './routes/sitemap-verse[.
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnderstandingTheBibleRouteImport } from './routes/understanding-the-bible'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminCampaignsRouteImport } from './routes/admin/campaigns'
 import { Route as AdminChurchesRouteImport } from './routes/admin/churches'
 import { Route as AdminFellowshipRouteImport } from './routes/admin/fellowship'
 import { Route as AdminMembersRouteImport } from './routes/admin/members'
@@ -52,6 +53,7 @@ import { Route as BuyingVendorsRouteImport } from './routes/buying/vendors'
 import { Route as ChurchAvIndexRouteImport } from './routes/church-av/index'
 import { Route as ChurchAvBlendedRouteImport } from './routes/church-av/blended'
 import { Route as ChurchAvHearingHelpRouteImport } from './routes/church-av/hearing-help'
+import { Route as ChurchAvLedWallRouteImport } from './routes/church-av/led-wall'
 import { Route as ChurchAvLightingRouteImport } from './routes/church-av/lighting'
 import { Route as ChurchAvLivestreamMinistryRouteImport } from './routes/church-av/livestream-ministry'
 import { Route as ChurchAvModernRouteImport } from './routes/church-av/modern'
@@ -199,6 +201,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminChurchesRoute = AdminChurchesRouteImport.update({
   id: '/churches',
   path: '/churches',
@@ -298,6 +305,11 @@ const ChurchAvBlendedRoute = ChurchAvBlendedRouteImport.update({
 const ChurchAvHearingHelpRoute = ChurchAvHearingHelpRouteImport.update({
   id: '/church-av/hearing-help',
   path: '/church-av/hearing-help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChurchAvLedWallRoute = ChurchAvLedWallRouteImport.update({
+  id: '/church-av/led-wall',
+  path: '/church-av/led-wall',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChurchAvLightingRoute = ChurchAvLightingRouteImport.update({
@@ -480,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/churches': typeof AdminChurchesRoute
   '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
@@ -497,6 +510,7 @@ export interface FileRoutesByFullPath {
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/led-wall': typeof ChurchAvLedWallRoute
   '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
@@ -553,6 +567,7 @@ export interface FileRoutesByTo {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/churches': typeof AdminChurchesRoute
   '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
@@ -570,6 +585,7 @@ export interface FileRoutesByTo {
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/led-wall': typeof ChurchAvLedWallRoute
   '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
@@ -630,6 +646,7 @@ export interface FileRoutesById {
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/churches': typeof AdminChurchesRoute
   '/admin/fellowship': typeof AdminFellowshipRoute
   '/admin/members': typeof AdminMembersRoute
@@ -647,6 +664,7 @@ export interface FileRoutesById {
   '/buying/vendors': typeof BuyingVendorsRoute
   '/church-av/blended': typeof ChurchAvBlendedRoute
   '/church-av/hearing-help': typeof ChurchAvHearingHelpRoute
+  '/church-av/led-wall': typeof ChurchAvLedWallRoute
   '/church-av/lighting': typeof ChurchAvLightingRoute
   '/church-av/livestream-ministry': typeof ChurchAvLivestreamMinistryRoute
   '/church-av/modern': typeof ChurchAvModernRoute
@@ -708,6 +726,7 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/campaigns'
     | '/admin/churches'
     | '/admin/fellowship'
     | '/admin/members'
@@ -725,6 +744,7 @@ export interface FileRouteTypes {
     | '/buying/vendors'
     | '/church-av/blended'
     | '/church-av/hearing-help'
+    | '/church-av/led-wall'
     | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
@@ -781,6 +801,7 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/campaigns'
     | '/admin/churches'
     | '/admin/fellowship'
     | '/admin/members'
@@ -798,6 +819,7 @@ export interface FileRouteTypes {
     | '/buying/vendors'
     | '/church-av/blended'
     | '/church-av/hearing-help'
+    | '/church-av/led-wall'
     | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
@@ -857,6 +879,7 @@ export interface FileRouteTypes {
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
+    | '/admin/campaigns'
     | '/admin/churches'
     | '/admin/fellowship'
     | '/admin/members'
@@ -874,6 +897,7 @@ export interface FileRouteTypes {
     | '/buying/vendors'
     | '/church-av/blended'
     | '/church-av/hearing-help'
+    | '/church-av/led-wall'
     | '/church-av/lighting'
     | '/church-av/livestream-ministry'
     | '/church-av/modern'
@@ -936,6 +960,7 @@ export interface RootRouteChildren {
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
   ChurchAvBlendedRoute: typeof ChurchAvBlendedRoute
   ChurchAvHearingHelpRoute: typeof ChurchAvHearingHelpRoute
+  ChurchAvLedWallRoute: typeof ChurchAvLedWallRoute
   ChurchAvLightingRoute: typeof ChurchAvLightingRoute
   ChurchAvLivestreamMinistryRoute: typeof ChurchAvLivestreamMinistryRoute
   ChurchAvModernRoute: typeof ChurchAvModernRoute
@@ -1125,6 +1150,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/churches': {
       id: '/admin/churches'
       path: '/churches'
@@ -1263,6 +1295,13 @@ declare module '@tanstack/react-router' {
       path: '/church-av/hearing-help'
       fullPath: '/church-av/hearing-help'
       preLoaderRoute: typeof ChurchAvHearingHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/church-av/led-wall': {
+      id: '/church-av/led-wall'
+      path: '/church-av/led-wall'
+      fullPath: '/church-av/led-wall'
+      preLoaderRoute: typeof ChurchAvLedWallRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/church-av/lighting': {
@@ -1486,6 +1525,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteRouteChildren {
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminChurchesRoute: typeof AdminChurchesRoute
   AdminFellowshipRoute: typeof AdminFellowshipRoute
   AdminMembersRoute: typeof AdminMembersRoute
@@ -1495,6 +1535,7 @@ interface AdminRouteRouteChildren {
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminChurchesRoute: AdminChurchesRoute,
   AdminFellowshipRoute: AdminFellowshipRoute,
   AdminMembersRoute: AdminMembersRoute,
@@ -1600,6 +1641,7 @@ const rootRouteChildren: RootRouteChildren = {
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,
   ChurchAvBlendedRoute: ChurchAvBlendedRoute,
   ChurchAvHearingHelpRoute: ChurchAvHearingHelpRoute,
+  ChurchAvLedWallRoute: ChurchAvLedWallRoute,
   ChurchAvLightingRoute: ChurchAvLightingRoute,
   ChurchAvLivestreamMinistryRoute: ChurchAvLivestreamMinistryRoute,
   ChurchAvModernRoute: ChurchAvModernRoute,

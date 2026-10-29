@@ -11,6 +11,7 @@ const ADMIN_NAV = [
   { to: "/admin/members", label: "Members" },
   { to: "/admin/churches", label: "Member churches" },
   { to: "/admin/fellowship", label: "Fellowship" },
+  { to: "/admin/campaigns", label: "Campaigns" },
   { to: "/admin/staff", label: "People" },
   { to: "/admin/notify", label: "Email routes" },
   { to: "/buying/desk", label: "SOURCE" },
