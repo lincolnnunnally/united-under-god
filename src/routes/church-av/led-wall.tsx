@@ -21,7 +21,7 @@ function LedWallPage() {
     <SiteShell>
       <LandingLook page={PAGE}>
         <header className="av-part-hero">
-          <div className="mx-auto grid max-w-6xl gap-10 px-5 pt-10 pb-16 md:grid-cols-[1.2fr_1fr] md:items-center md:px-8 md:pb-20">
+          <div className="mx-auto grid max-w-6xl gap-10 px-5 pt-10 pb-16 md:grid-cols-[1fr_1.15fr] md:items-center md:px-8 md:pb-20">
             <div>
               <LandingCrumbs page={PAGE} />
               <p className="av-l-eyebrow mt-8">{PAGE.eyebrow}</p>
