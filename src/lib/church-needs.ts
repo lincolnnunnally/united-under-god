@@ -3,6 +3,7 @@ import { SPEND_CATEGORIES, getSpendCategory, isLicensed } from "./church-spend.t
 import { DEFAULT_TERM_MONTHS } from "./price-term.ts";
 import { cleanArea, createBid } from "./source-store.ts";
 import { TOKEN_SHAPE, newInviteToken, type SendMail } from "./vendor-store.ts";
+import { campaignOf, getCampaign } from "./campaigns.ts";
 
 /**
  * Church needs: a church tells us what it needs, United Under God bids it out,
@@ -95,6 +96,8 @@ export type NeedInput = {
   details?: string;
   quantity?: string;
   neededBy?: string;
+  /** The campaign page it came from (src/lib/campaigns.ts); anything unknown reads as none. */
+  campaign?: string;
   /** Honeypot: people never see this field; a bot fills it. */
   hp?: string;
 };
@@ -142,6 +145,7 @@ export function cleanNeed(input: NeedInput): CleanNeed {
   const details = optional(input.details, 4000);
   const quantity = optional(input.quantity, 120);
   const neededBy = optional(input.neededBy, 40);
+  const campaign = campaignOf(input.campaign);
   return {
     orgKind,
     churchName,
@@ -156,6 +160,7 @@ export function cleanNeed(input: NeedInput): CleanNeed {
     details,
     quantity,
     neededBy,
+    campaign,
   };
 }
 
@@ -193,12 +198,12 @@ export async function createNeed(
   await sql`
     insert into source_church_needs (
       id, token, org_kind, church_name, contact_name, email, phone, city, state, zip,
-      category, title, details, quantity, needed_by, status, ip, created_at, updated_at
+      category, title, details, quantity, needed_by, status, campaign, ip, created_at, updated_at
     ) values (
       ${id}, ${token}, ${clean.orgKind}, ${clean.churchName}, ${clean.contactName}, ${clean.email},
       ${clean.phone}, ${clean.city}, ${clean.state}, ${clean.zip}, ${clean.category},
       ${clean.title}, ${clean.details}, ${clean.quantity}, ${clean.neededBy}, ${"new"},
-      ${ip}, ${stamp}, ${stamp}
+      ${clean.campaign}, ${ip}, ${stamp}, ${stamp}
     )
   `;
   return { id, token };
@@ -216,14 +221,20 @@ function needLines(clean: Pick<CleanNeed, "title" | "category" | "quantity" | "n
 
 /** The church's confirmation, with its private link. */
 export function needConfirmationEmail(clean: CleanNeed, token: string, siteUrl: string) {
+  const campaign = getCampaign(clean.campaign);
+  const opening = campaign
+    ? [`Thank you for telling us about ${clean.churchName}’s room.`, "", ...campaign.confirmation.flatMap((line) => [line, ""]).slice(0, -1)]
+    : [
+        `Thank you for telling us what ${clean.churchName} needs. United Under God will ask suppliers to quote on it. They never see your name or your contact information.`,
+        "",
+        "When the quotes are in, we will email you again, and you will see them side by side on your private page:",
+      ];
   return {
-    subject: `We have your need: ${clean.title}`,
+    subject: campaign ? campaign.confirmationSubject : `We have your need: ${clean.title}`,
     text: [
       `Hello ${clean.contactName},`,
       "",
-      `Thank you for telling us what ${clean.churchName} needs. United Under God will ask suppliers to quote on it. They never see your name or your contact information.`,
-      "",
-      "When the quotes are in, we will email you again, and you will see them side by side on your private page:",
+      ...opening,
       `${siteUrl}${needLinkPath(token)}`,
       "",
       "Keep this link to yourself. You choose a quote, or choose none. There is no obligation.",
@@ -251,6 +262,7 @@ export function needNotice(clean: CleanNeed, meta: { id: string; saved: boolean 
       `Email: ${clean.email}`,
       clean.phone ? `Phone: ${clean.phone}` : "",
       `Place: ${clean.city}, ${clean.state}${clean.zip ? ` ${clean.zip}` : ""}`,
+      clean.campaign ? `Campaign: ${getCampaign(clean.campaign)?.name ?? clean.campaign} (/admin/campaigns)` : "",
       "",
       ...needLines(clean),
       "",
@@ -299,6 +311,8 @@ export type NeedRow = {
   details: string;
   quantity: string;
   neededBy: string;
+  /** The campaign that brought it in ("" = none). */
+  campaign: string;
   bidId: string;
   bidTitle: string;
   itemId: string;
@@ -381,6 +395,7 @@ export async function readNeedsDesk(sql: Sql): Promise<NeedsDesk> {
         details: text(row.details),
         quantity: text(row.quantity),
         neededBy: text(row.needed_by),
+        campaign: text(row.campaign),
         bidId: text(row.bid_id),
         bidTitle: text(row.bid_title),
         itemId: text(row.item_id),

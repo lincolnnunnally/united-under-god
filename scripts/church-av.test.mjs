@@ -354,6 +354,7 @@ const LANDING = {
   video: "livestream",
   lighting: "modern",
   "hearing-help": "traditional",
+  "led-wall": "modern",
 };
 
 test("every landing page has a route, a sitemap entry, and is checked", () => {

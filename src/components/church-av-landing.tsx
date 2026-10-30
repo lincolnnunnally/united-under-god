@@ -8,12 +8,14 @@ import {
   RequestSection,
   TestimonialQuote,
 } from "@/components/church-av";
+import { BidPictures, BidRequest, BidSteps } from "@/components/church-av-bids";
 import { StageIllustration } from "@/components/church-av-stage";
 import { Button } from "@/components/ui/button";
 import { AV_PROCESS, INSTALLER_LINE } from "@/lib/church-av";
 import { churchConnectLinks, LANDING_CHURCHCONNECT } from "@/lib/church-av-churchconnect";
 import {
   getLanding,
+  LANDING_CAMPAIGNS,
   LANDING_COMPONENTS,
   LANDING_OUTCOMES,
   LANDING_STYLES,
@@ -56,6 +58,24 @@ export function LandingCrumbs({ page }: { page: LandingPage }) {
 
 /** "Plan your room" with the page's planner preset, plus the request anchor. */
 export function LandingActions({ page, className }: { page: LandingPage; className?: string }) {
+  if (page.campaign) {
+    // A campaign page asks for the bids first; the planner is the second step.
+    return (
+      <div className={cn("av-l-actions flex flex-col gap-3 sm:flex-row", className)}>
+        <Button asChild size="lg" className="av-l-cta">
+          <a href="#talk">
+            Ask for three bids
+            <ArrowRight className="size-4" />
+          </a>
+        </Button>
+        <Button asChild size="lg" variant="secondary" className="av-l-cta-alt">
+          <Link to="/church-av/planner" search={page.planner}>
+            {page.plannerLabel}
+          </Link>
+        </Button>
+      </div>
+    );
+  }
   return (
     <div className={cn("av-l-actions flex flex-col gap-3 sm:flex-row", className)}>
       <Button asChild size="lg" className="av-l-cta">
@@ -223,7 +243,12 @@ export function LandingRequest({ page }: { page: LandingPage }) {
 
 /** Links to the other directions, at the foot of each landing page. */
 export function LandingOthers({ page }: { page: LandingPage }) {
-  const others = [...LANDING_STYLES, ...LANDING_OUTCOMES, ...LANDING_COMPONENTS].filter(
+  const others = [
+    ...LANDING_STYLES,
+    ...LANDING_OUTCOMES,
+    ...LANDING_COMPONENTS,
+    ...LANDING_CAMPAIGNS,
+  ].filter(
     (s) => s !== page.slug,
   );
   return (
@@ -275,14 +300,16 @@ export function LandingBody({ page }: { page: LandingPage }) {
   return (
     <>
       <LandingBenefits page={page} />
+      {page.campaign ? <BidPictures /> : null}
       <LandingStage page={page} />
+      {page.campaign ? <BidSteps /> : null}
       <LandingProof page={page} />
-      <LandingProcess />
+      {page.campaign ? null : <LandingProcess />}
       <LandingPlanBand page={page} />
       <LandingFaq page={page} />
       <LandingOthers page={page} />
       <ChurchConnectLinks links={churchConnectLinks(LANDING_CHURCHCONNECT[page.slug] ?? [])} />
-      <LandingRequest page={page} />
+      {page.campaign ? <BidRequest page={page} /> : <LandingRequest page={page} />}
     </>
   );
 }
@@ -342,6 +369,8 @@ export function DirectionCards() {
         <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {LANDING_COMPONENTS.map((slug) => card(slug, false))}
         </ul>
+        <h3 className="mt-12 text-2xl">Ready for bids?</h3>
+        <ul className="mt-6 grid gap-6">{LANDING_CAMPAIGNS.map((slug) => card(slug, false))}</ul>
       </div>
     </section>
   );

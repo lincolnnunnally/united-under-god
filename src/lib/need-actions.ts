@@ -89,6 +89,7 @@ const needInput = z.object({
   details: z.string().max(8000).optional().default(""),
   quantity: z.string().max(400).optional().default(""),
   neededBy: z.string().max(80).optional().default(""),
+  campaign: z.string().max(80).optional().default(""),
   /** Honeypot: people never see this field; a bot fills it. */
   hp: z.string().optional().default(""),
 });

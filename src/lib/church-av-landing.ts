@@ -28,7 +28,8 @@ export type LandingSlug =
   | "sound"
   | "video"
   | "lighting"
-  | "hearing-help";
+  | "hearing-help"
+  | "led-wall";
 
 export type Benefit = { title: string; body: string };
 
@@ -56,6 +57,12 @@ export type LandingPage = {
   faq: Faq[];
   /** Component pages (sound, video, lighting, hearing help): the problems it ends, shown in the hero. */
   pains?: string[];
+  /**
+   * Campaign pages (src/lib/campaigns.ts): the church asks for bids instead of
+   * a call. The page's form posts a need tagged with this campaign, and the
+   * process section shows how the bidding works instead of one team's process.
+   */
+  campaign?: string;
 };
 
 const WARRANTY_FAQ: Faq = {
@@ -624,12 +631,97 @@ export const LANDING_PAGES: LandingPage[] = [
       PRICE_FAQ,
     ],
   },
+  {
+    slug: "led-wall",
+    look: "modern",
+    label: "LED walls, lighting & sound",
+    title: "LED Walls, Stage Lighting & Sound for Churches, and a Better Deal | United Under God",
+    description:
+      "An LED wall, stage lighting and sound for your church, and a better deal on them. Describe your room once; companies compete for the work; you choose.",
+    serviceName: "LED walls, stage lighting, and sound for churches, competitively bid",
+    eyebrow: "LED walls · Stage lighting · Sound",
+    h1: "An LED wall, lights and sound for your church, and a better deal on them.",
+    lead: "We are United Under God. An LED wall is one of the biggest purchases a church makes, so we help you make it well: tell us about your room once, three companies ready to bid compete for the same work, and you choose the bid that fits, or none.",
+    cardTitle: "LED walls, lighting & sound, and a better deal",
+    cardBody: "Describe your room once. Companies compete for the work, and you choose.",
+    benefitsTitle: "What a wall, the right light, and clear sound change on Sunday",
+    benefits: [
+      {
+        title: "Words every seat can read.",
+        body: "An LED wall stays bright in a sunlit room, so the lyrics and the Scripture are clear from the back row, not washed out the way projection fades.",
+      },
+      {
+        title: "A backdrop that serves the worship.",
+        body: "Song words, sermon points, and a still or moving backdrop that sets the tone of the service, placed so the cross stays at the center.",
+      },
+      {
+        title: "Light that helps people lift their eyes.",
+        body: "Warm light on faces, so the preacher and the worship team are seen in the room and on the livestream, without turning Sunday into a concert.",
+      },
+      {
+        title: "Sound the room can sing with.",
+        body: "The band and the voices in one clear mix, and a board with saved settings your volunteers can run with confidence.",
+      },
+    ],
+    pains: [
+      "Projection that washes out in daylight",
+      "Lyrics the back rows cannot read",
+      "A dark stage and faces lost on the livestream",
+      "A mix that buries the singers",
+      "No way to tell whether a price is fair",
+    ],
+    stages: ["modern"],
+    stageTitle: "A wall behind the stage, the cross still at the center",
+    stageBody:
+      "A video wall across the back of the platform, lights on a frame above the band, and speakers aimed at the seats. Each bid sizes the wall from your room: how far back the last row sits, how wide the stage is, and how much daylight comes in.",
+    caseStudies: ["rock-springs", "word-of-faith", "mountain-view-baptist", "level-grove"],
+    testimonial: "tony-yang",
+    planner: { style: "modern" },
+    plannerLabel: "Plan your room first",
+    campaign: "led-wall",
+    faq: [
+      {
+        q: "How does this get our church a better deal?",
+        a: "Competition and one clear scope. We write down your room and what you want once, and the companies compete for the same work, so the bids are easy to compare and nobody can pad a price you cannot check. Churches standing together also make the work worth bidding sharply.",
+      },
+      {
+        q: "Who bids on the work?",
+        a: "Church audio, video and lighting companies that serve churches in your area and have agreed to United Under God’s Vendor Terms. Each bid shows the company that wrote it. Until you choose, none of them sees your church’s name or how to reach you.",
+      },
+      {
+        q: "What does it cost to ask for bids?",
+        a: "Nothing, and there is no obligation. You see the bids side by side on your own private page and choose one, or tell us none of them fit.",
+      },
+      {
+        q: "Why one scope for all three?",
+        a: "So you compare like with like. We write down your room and what you asked for once, and every company bids on that same work. A bid that leaves something out is easy to spot.",
+      },
+      {
+        q: "Projection or an LED wall?",
+        a: "Projection suits many sanctuaries and fellowship halls. An LED wall suits bright rooms, wide rooms, and stages where the words have to read from far back. If projection fits your room better, the companies will say so.",
+      },
+      {
+        q: "Will the wall cover the cross?",
+        a: "Not unless you want it to. Many churches frame the cross with the wall, keep it in front of the wall, or place the wall to one side. Tell us what matters in your room and it goes into the scope.",
+      },
+      {
+        q: "Can a volunteer team run an LED wall and lights?",
+        a: "Yes, when the system is set up for them. Ask for saved settings, labeled controls, and on-site training in the scope, and every bid includes them.",
+      },
+      {
+        q: "Is there a price on this page?",
+        a: "No. The bids are the prices, written for your room, and you see all three at once.",
+      },
+    ],
+  },
 ];
 
 export const LANDING_STYLES: LandingSlug[] = ["traditional", "blended", "modern"];
 export const LANDING_OUTCOMES: LandingSlug[] = ["livestream-ministry", "new-building"];
 /** One page per part of the work, and hearing help (owner, 2026-10-28). */
 export const LANDING_COMPONENTS: LandingSlug[] = ["sound", "video", "lighting", "hearing-help"];
+/** Campaign pages: ask three companies to bid (src/lib/campaigns.ts). */
+export const LANDING_CAMPAIGNS: LandingSlug[] = ["led-wall"];
 
 export function getLanding(slug: LandingSlug) {
   return LANDING_PAGES.find((p) => p.slug === slug)!;

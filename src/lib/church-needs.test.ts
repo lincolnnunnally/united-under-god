@@ -27,7 +27,7 @@ import { addQuote, readDesk } from "./source-store.ts";
 const SITE = "https://www.unitedundergod.org";
 
 async function fresh() {
-  return freshProgramDb([...PROGRAM_MIGRATIONS, "0013_source_church_needs.sql", "0014_need_org_kind.sql"]);
+  return freshProgramDb([...PROGRAM_MIGRATIONS, "0013_source_church_needs.sql", "0014_need_org_kind.sql", "0015_need_campaign.sql"]);
 }
 
 function posted(overrides: Partial<NeedInput> = {}): NeedInput {
