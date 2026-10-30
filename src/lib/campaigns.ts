@@ -62,7 +62,7 @@ export const LED_WALL: Campaign = {
     {
       when: "Weekdays, 10 a.m. to 4 p.m. Eastern, at most one email a church a month",
       sentBy: "ChurchConnect outreach (led_wall), from Lincoln Nunnally, United Under God",
-      subject: "An LED wall, lights and sound for your church, at a better price",
+      subject: "An LED wall, lights and sound for your church, and a better deal on them",
       subjectB: "Three companies are ready to bid on your church’s LED wall",
       purpose:
         "First touch to churches most likely to want an LED wall: growing, building or renovating, praise music. Leads with what the wall, lights and sound do and the better deal; opens with “We are United Under God”.",

@@ -635,14 +635,14 @@ export const LANDING_PAGES: LandingPage[] = [
     slug: "led-wall",
     look: "modern",
     label: "LED walls, lighting & sound",
-    title: "LED Walls, Stage Lighting & Sound for Churches, at a Better Price | United Under God",
+    title: "LED Walls, Stage Lighting & Sound for Churches, and a Better Deal | United Under God",
     description:
-      "An LED wall, stage lighting and sound for your church at a better price. Describe your room once; companies compete for the work; you choose one, or none.",
+      "An LED wall, stage lighting and sound for your church, and a better deal on them. Describe your room once; companies compete for the work; you choose.",
     serviceName: "LED walls, stage lighting, and sound for churches, competitively bid",
     eyebrow: "LED walls · Stage lighting · Sound",
-    h1: "An LED wall, lights and sound for your church, at a better price.",
+    h1: "An LED wall, lights and sound for your church, and a better deal on them.",
     lead: "We are United Under God. An LED wall is one of the biggest purchases a church makes, so we help you make it well: tell us about your room once, three companies ready to bid compete for the same work, and you choose the bid that fits, or none.",
-    cardTitle: "LED walls, lighting & sound, at a better price",
+    cardTitle: "LED walls, lighting & sound, and a better deal",
     cardBody: "Describe your room once. Companies compete for the work, and you choose.",
     benefitsTitle: "What a wall, the right light, and clear sound change on Sunday",
     benefits: [
@@ -681,7 +681,7 @@ export const LANDING_PAGES: LandingPage[] = [
     campaign: "led-wall",
     faq: [
       {
-        q: "How does this get our church a better price?",
+        q: "How does this get our church a better deal?",
         a: "Competition and one clear scope. We write down your room and what you want once, and the companies compete for the same work, so the bids are easy to compare and nobody can pad a price you cannot check. Churches standing together also make the work worth bidding sharply.",
       },
       {
