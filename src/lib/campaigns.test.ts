@@ -120,12 +120,13 @@ test("the campaigns desk counts its own requests and checks the three bidders", 
   assert.equal(view.total, 2, "only the campaign's own requests");
   assert.equal(view.counts.new, 2);
   assert.equal(view.last7Days, 2);
-  assert.deepEqual(view.bidders.map((b) => b.id).sort(), ["a", "b"]);
-  assert.equal(view.biddersReady, false, "two approved bidders is not three");
+  // Owner (2026-10-30): the companies cover the whole country, so a company anywhere counts.
+  assert.deepEqual(view.bidders.map((b) => b.id).sort(), ["a", "b", "d"]);
+  assert.equal(view.biddersReady, true, "three approved AV companies, wherever they are");
   assert.ok(!("confirmation" in view));
 
-  await sql`update source_vendors set status = 'approved' where id = 'c'`;
+  await sql`update source_vendors set status = 'paused' where id = 'd'`;
   [view] = await readCampaignDesk(sql);
-  assert.equal(view.bidders.length, 3);
-  assert.equal(view.biddersReady, true);
+  assert.equal(view.bidders.length, 2);
+  assert.equal(view.biddersReady, false, "two approved bidders is not three");
 });

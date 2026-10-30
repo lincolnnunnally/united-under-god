@@ -118,7 +118,7 @@ function CampaignCard({ campaign }: { campaign: CampaignView }) {
         <p className="mt-2 max-w-2xl text-sm text-mission-ink" role="alert">
           The page promises {campaign.biddersWanted} companies. Only {campaign.bidders.length}{" "}
           approved {campaign.bidders.length === 1 ? "company serves" : "companies serve"} this
-          work in {campaign.states.join(", ")}. Approve or add them on SOURCE → Vendors (category
+          work{campaign.states.length ? ` in ${campaign.states.join(", ")}` : ""}. Approve or add them on SOURCE → Vendors (category
           Audio-visual: systems) so the requests that come in can be bid out.
         </p>
       ) : null}

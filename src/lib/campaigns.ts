@@ -32,7 +32,7 @@ export type Campaign = {
   short: string;
   landingPath: string;
   startedOn: string;
-  /** Where the email goes, in words, and as the states the bidders must serve. */
+  /** Where the email goes, in words, and the states the bidders must serve ([] = anywhere). */
   region: string;
   states: string[];
   /** The church-spend category and subcategory the suppliers must serve. */
@@ -53,8 +53,9 @@ export const LED_WALL: Campaign = {
   short: "A better deal on a big purchase: churches describe their room once, and companies compete for the work.",
   landingPath: "/church-av/led-wall",
   startedOn: "2026-10-29",
-  region: "South Georgia (Macon and below), Florida and South Carolina",
-  states: ["GA", "FL", "SC"],
+  // Owner (2026-10-30): "the AVL companies cover the entire country".
+  region: "Every state in the church directory (GA, FL, SC, NC, TN and AL today)",
+  states: [],
   bid: { category: "audio-visual", subcategory: "av-systems" },
   biddersWanted: 3,
   outreach: { kind: "led_wall_outreach", key: "led_wall", startDaily: 10 },

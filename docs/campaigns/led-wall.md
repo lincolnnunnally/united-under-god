@@ -31,7 +31,8 @@ three; a request can wait on the desk until then.
 
 1. **First touch** — ChurchConnect outreach, weekdays 10 a.m.–4 p.m. Eastern,
    at most one email a church a month, from Lincoln Nunnally, United Under God.
-   Goes to churches in South Georgia, Florida and South Carolina most likely to
+   Goes to churches in every state in the directory (GA, FL, SC, NC, TN, AL today;
+   owner: the companies cover the whole country) most likely to
    want an LED wall (owner, 2026-10-30: a livestream alone is not a sign). Points:
    a building or renovation campaign 3, modern praise music on the church's own
    website 3, a media director or several campuses 2, and 1 each for blended
