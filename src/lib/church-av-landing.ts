@@ -635,15 +635,15 @@ export const LANDING_PAGES: LandingPage[] = [
     slug: "led-wall",
     look: "modern",
     label: "LED walls, lighting & sound",
-    title: "LED Walls, Stage Lighting & Sound: Three Bids for Your Church | United Under God",
+    title: "LED Walls, Stage Lighting & Sound for Churches, at a Better Price | United Under God",
     description:
-      "An LED wall behind the stage, lighting and sound for your church. Describe your room once and three church AV companies bid on it. You choose one, or none.",
-    serviceName: "LED wall, stage lighting, and sound for churches, bid by three church AV companies",
-    eyebrow: "LED walls · Stage lighting · Sound · Three companies ready to bid",
-    h1: "An LED wall for your sanctuary, with three companies ready to bid.",
-    lead: "We are United Under God. Tell us about your room once, and three church audio, video and lighting companies bid on the same work: the LED wall behind the stage, the lights, and the sound. You see the bids side by side and choose one, or none.",
-    cardTitle: "LED walls, lighting & sound: three bids",
-    cardBody: "Describe your room once. Three church AV companies bid on the same work, and you choose.",
+      "An LED wall, stage lighting and sound for your church at a better price. Describe your room once; companies compete for the work; you choose one, or none.",
+    serviceName: "LED walls, stage lighting, and sound for churches, competitively bid",
+    eyebrow: "LED walls · Stage lighting · Sound",
+    h1: "An LED wall, lights and sound for your church, at a better price.",
+    lead: "We are United Under God. An LED wall is one of the biggest purchases a church makes, so we help you make it well: tell us about your room once, three companies ready to bid compete for the same work, and you choose the bid that fits, or none.",
+    cardTitle: "LED walls, lighting & sound, at a better price",
+    cardBody: "Describe your room once. Companies compete for the work, and you choose.",
     benefitsTitle: "What a wall, the right light, and clear sound change on Sunday",
     benefits: [
       {
@@ -673,7 +673,7 @@ export const LANDING_PAGES: LandingPage[] = [
     stages: ["modern"],
     stageTitle: "A wall behind the stage, the cross still at the center",
     stageBody:
-      "A video wall across the back of the platform, lights on a frame above the band, and speakers aimed at the seats. Each company sizes the wall from your room: how far back the last row sits, how wide the stage is, and how much daylight comes in.",
+      "A video wall across the back of the platform, lights on a frame above the band, and speakers aimed at the seats. Each bid sizes the wall from your room: how far back the last row sits, how wide the stage is, and how much daylight comes in.",
     caseStudies: ["rock-springs", "word-of-faith", "mountain-view-baptist", "level-grove"],
     testimonial: "tony-yang",
     planner: { style: "modern" },
@@ -681,7 +681,11 @@ export const LANDING_PAGES: LandingPage[] = [
     campaign: "led-wall",
     faq: [
       {
-        q: "Who are the three companies?",
+        q: "How does this get our church a better price?",
+        a: "Competition and one clear scope. We write down your room and what you want once, and the companies compete for the same work, so the bids are easy to compare and nobody can pad a price you cannot check. Churches standing together also make the work worth bidding sharply.",
+      },
+      {
+        q: "Who bids on the work?",
         a: "Church audio, video and lighting companies that serve churches in your area and have agreed to United Under God’s Vendor Terms. Each bid shows the company that wrote it. Until you choose, none of them sees your church’s name or how to reach you.",
       },
       {

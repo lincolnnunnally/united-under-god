@@ -8,7 +8,7 @@ import {
   RequestSection,
   TestimonialQuote,
 } from "@/components/church-av";
-import { BidRequest, BidSteps } from "@/components/church-av-bids";
+import { BidPictures, BidRequest, BidSteps } from "@/components/church-av-bids";
 import { StageIllustration } from "@/components/church-av-stage";
 import { Button } from "@/components/ui/button";
 import { AV_PROCESS, INSTALLER_LINE } from "@/lib/church-av";
@@ -300,6 +300,7 @@ export function LandingBody({ page }: { page: LandingPage }) {
   return (
     <>
       <LandingBenefits page={page} />
+      {page.campaign ? <BidPictures /> : null}
       <LandingStage page={page} />
       {page.campaign ? <BidSteps /> : null}
       <LandingProof page={page} />

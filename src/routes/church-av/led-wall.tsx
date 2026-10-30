@@ -4,8 +4,8 @@ import {
   LandingBody,
   LandingCrumbs,
   LandingLook,
-  LandingPains,
 } from "@/components/church-av-landing";
+import { BidHeroPicture, BidPains } from "@/components/church-av-bids";
 import { SiteShell } from "@/components/site-shell";
 import { getLanding, landingHead } from "@/lib/church-av-landing";
 
@@ -29,8 +29,9 @@ function LedWallPage() {
               <p className="av-part-lead">{PAGE.lead}</p>
               <LandingActions page={PAGE} className="mt-8" />
             </div>
-            <LandingPains page={PAGE} />
+            <BidHeroPicture />
           </div>
+          <BidPains page={PAGE} />
         </header>
         <LandingBody page={PAGE} />
       </LandingLook>

@@ -26,14 +26,128 @@ const STEPS = [
     body: "United Under God turns what you sent into one written scope, so every company bids on the same work and nothing is left out.",
   },
   {
-    title: "Three companies bid on it.",
-    body: "Three church audio, video and lighting companies that serve your area bid on that scope. They never see your church’s name or how to reach you.",
+    title: "Companies compete for it.",
+    body: "Church audio, video and lighting companies that serve your area bid on that same scope. They never see your church’s name or how to reach you.",
   },
   {
     title: "You choose, or choose none.",
     body: "You see the bids side by side on your private page. Choose one and we introduce you to that company. If none fit, say so. No obligation.",
   },
 ];
+
+/**
+ * Photos for the LED wall page and its email, from Unsplash (used under the Unsplash License;
+ * credited anyway). None of them is a project of a company that bids here.
+ */
+const PICTURES = [
+  {
+    src: "/images/led-wall/lyrics",
+    alt: "Song words on a big screen above the stage while the congregation sings with hands raised",
+    title: "Words every seat can read",
+  },
+  {
+    src: "/images/led-wall/sanctuary",
+    alt: "A sanctuary with screens on both sides of the stage and colored stage lights",
+    title: "Screens sized for your room",
+  },
+  {
+    src: "/images/led-wall/hall",
+    alt: "A worship band on a small stage in a church hall, with a screen behind them",
+    title: "For a fellowship hall or a new worship center",
+  },
+  {
+    src: "/images/led-wall/lights",
+    alt: "Stage lights on a rig above a wall of song lyrics",
+    title: "Light that lifts the room",
+  },
+];
+export const PHOTO_CREDIT = "Photos: Keagan Henman, Brad, and Rod Long on Unsplash.";
+
+function Picture({ src, alt, className, eager }: { src: string; alt: string; className?: string; eager?: boolean }) {
+  return (
+    <picture>
+      <source type="image/webp" srcSet={`${src}.webp`} />
+      <img
+        src={`${src}.jpg`}
+        alt={alt}
+        loading={eager ? "eager" : "lazy"}
+        decoding="async"
+        className={className}
+      />
+    </picture>
+  );
+}
+
+/** The LED wall page's hero picture: a band in front of a wall of song words, hands raised. */
+export function BidHeroPicture() {
+  return (
+    <figure className="min-w-0">
+      <picture>
+        <source
+          type="image/webp"
+          srcSet="/images/led-wall/hero-960.webp 960w, /images/led-wall/hero.webp 1800w"
+          sizes="(min-width: 768px) 45vw, 100vw"
+        />
+        <img
+          src="/images/led-wall/hero-960.jpg"
+          srcSet="/images/led-wall/hero-960.jpg 960w, /images/led-wall/hero.jpg 1800w"
+          sizes="(min-width: 768px) 45vw, 100vw"
+          width={1800}
+          height={1200}
+          alt="A worship band in front of a wall of song words, the congregation singing with hands raised"
+          className="aspect-[3/2] w-full rounded-xl object-cover shadow-[var(--shadow-border)]"
+          fetchPriority="high"
+        />
+      </picture>
+    </figure>
+  );
+}
+
+/** What it looks like: four pictures, two by two, each with the benefit it shows. */
+export function BidPictures() {
+  return (
+    <section className="av-l-section">
+      <div className="mx-auto max-w-6xl px-5 md:px-8">
+        <div className="max-w-2xl">
+          <p className="av-l-eyebrow">What it looks like</p>
+          <h2 className="av-l-h2">The room, on a Sunday</h2>
+        </div>
+        <ul className="mt-10 grid gap-6 sm:grid-cols-2">
+          {PICTURES.map((p) => (
+            <li key={p.src}>
+              <figure>
+                <Picture
+                  src={p.src}
+                  alt={p.alt}
+                  className="aspect-[3/2] w-full rounded-xl object-cover shadow-[var(--shadow-border)]"
+                />
+                <figcaption className="mt-3 font-display text-lg">{p.title}</figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+        <p className="mt-6 text-sm text-muted">{PHOTO_CREDIT}</p>
+      </div>
+    </section>
+  );
+}
+
+/** The problems it ends, as a strip under the hero. */
+export function BidPains({ page }: { page: LandingPage }) {
+  if (!page.pains?.length) return null;
+  return (
+    <div className="mx-auto max-w-6xl px-5 pb-12 md:px-8">
+      <p className="av-l-eyebrow">Problems this ends</p>
+      <ul className="mt-4 flex flex-wrap gap-2">
+        {page.pains.map((pain) => (
+          <li key={pain} className="rounded-full bg-cream px-4 py-2 text-sm shadow-[var(--shadow-border)]">
+            {pain}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 const SELECT_CLASS =
   "min-h-11 w-full rounded-md bg-paper px-3.5 text-base text-ink shadow-[var(--shadow-border)] outline-none focus-visible:shadow-[0_0_0_2px_var(--color-forest)] disabled:opacity-50 md:text-sm";
@@ -44,11 +158,11 @@ export function BidSteps() {
       <div className="mx-auto max-w-6xl px-5 md:px-8">
         <div className="max-w-2xl">
           <p className="av-l-eyebrow">We are United Under God</p>
-          <h2 className="av-l-h2">Three companies ready to bid on your work</h2>
+          <h2 className="av-l-h2">A better deal on one of your biggest purchases</h2>
           <p className="av-l-body mt-4">
-            Churches stand stronger together. We gather the requests, write them up the same way,
-            and ask the companies to compete for the work, so your church sees fair bids without
-            calling around.
+            An LED wall, lights and sound are a major investment. Churches stand stronger together:
+            we write your project up once, three companies ready to bid compete for it, and you see
+            fair, comparable bids without calling around or learning the jargon.
           </p>
         </div>
         <ol className="av-l-process-grid">

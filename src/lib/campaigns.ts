@@ -50,7 +50,7 @@ export type Campaign = {
 export const LED_WALL: Campaign = {
   slug: "led-wall",
   name: "LED walls, stage lighting and sound",
-  short: "Churches describe their room once; three church AV companies bid on it.",
+  short: "A better deal on a big purchase: churches describe their room once, and companies compete for the work.",
   landingPath: "/church-av/led-wall",
   startedOn: "2026-10-29",
   region: "South Georgia (Macon and below), Florida and South Carolina",
@@ -62,10 +62,10 @@ export const LED_WALL: Campaign = {
     {
       when: "Weekdays, 10 a.m. to 4 p.m. Eastern, at most one email a church a month",
       sentBy: "ChurchConnect outreach (led_wall), from Lincoln Nunnally, United Under God",
-      subject: "An LED wall for your church, with three companies bidding",
-      subjectB: "Three church AV companies are ready to bid on your LED wall",
+      subject: "An LED wall, lights and sound for your church, at a better price",
+      subjectB: "Three companies are ready to bid on your church’s LED wall",
       purpose:
-        "First touch to churches most likely to want an LED wall. Opens with “We are United Under God,” names the three bids, and links to the page.",
+        "First touch to churches most likely to want an LED wall: growing, building or renovating, praise music. Leads with what the wall, lights and sound do and the better deal; opens with “We are United Under God”.",
     },
     {
       when: "The moment a church sends the form",
