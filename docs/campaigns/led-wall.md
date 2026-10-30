@@ -28,8 +28,14 @@ Under God**, and that **we have three companies ready to bid for your work**.
 
 1. **First touch** — ChurchConnect outreach, weekdays 10 a.m.–4 p.m. Eastern,
    at most one email a church a month, from Lincoln Nunnally, United Under God.
-   Goes to churches in South Georgia, Florida and South Carolina that livestream,
-   hold two or more services, or score 40+ (about 3,500 churches).
+   Goes to churches in South Georgia, Florida and South Carolina most likely to
+   want an LED wall (owner, 2026-10-30: a livestream alone is not a sign). Points:
+   a building or renovation campaign 3, modern praise music on the church's own
+   website 3, a media director or several campuses 2, and 1 each for blended
+   worship, a younger crowd, several services, five or more staff, or a large
+   online audience; 3 points needed. Churches whose website reads traditional, or
+   a liturgical or a cappella tradition, are left out. About 840 churches fit
+   before the nightly worship scan reads their websites; best fit goes first.
    - Subject A: *An LED wall for your church, with three companies bidding*
    - Subject B: *Three church AV companies are ready to bid on your LED wall*
 
