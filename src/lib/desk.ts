@@ -34,10 +34,10 @@ export const INQUIRY_STATUSES = [
   { id: "no_show", label: "Did not show" },
 ] as const;
 
-export const SUPER_EMAILS = [
-  "lincoln@unitedundergod.org",
-  "lincoln.nunnally@gmail.com",
-];
+// Owner (2026-10-30): lincoln@unitedundergod.org is the admin; the Gmail
+// account is an ordinary member account. Staff rows (the staff table) still
+// grant the desk to anyone else added there.
+export const SUPER_EMAILS = ["lincoln@unitedundergod.org"];
 
 /** Owner inbox. A literal address, never an environment variable. */
 export const OWNER_EMAIL = "lincoln@unitedundergod.org";
