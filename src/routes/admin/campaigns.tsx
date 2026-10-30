@@ -119,7 +119,7 @@ function CampaignCard({ campaign }: { campaign: CampaignView }) {
           The page promises {campaign.biddersWanted} companies. Only {campaign.bidders.length}{" "}
           approved {campaign.bidders.length === 1 ? "company serves" : "companies serve"} this
           work in {campaign.states.join(", ")}. Approve or add them on SOURCE → Vendors (category
-          Audio-visual: systems) before the email goes out.
+          Audio-visual: systems) so the requests that come in can be bid out.
         </p>
       ) : null}
       {campaign.bidders.length ? (

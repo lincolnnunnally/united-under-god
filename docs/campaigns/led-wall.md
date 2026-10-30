@@ -14,15 +14,18 @@ Under God**, and that **we have three companies ready to bid for your work**.
 | Campaign definition | `src/lib/campaigns.ts` (`LED_WALL`) |
 | The same kit for any idea | AppEngine → Campaigns (`/campaigns`) |
 
-## Before the first email goes out
+## Status
 
-1. **Three companies on SOURCE.** Each one signs up at
-   `/buying/sell-to-churches` (or is added on SOURCE → Vendors), accepts the
-   Vendor Terms, lists Audio-visual: systems and the states it serves (GA, FL,
-   SC), and is approved. The Campaigns desk shows "Ready to bid: N of 3" and
-   warns until there are three.
-2. **The page is live** (united-under-god PR merged), then the ChurchConnect
-   outreach PR is merged; its settings change turns the email on at 10 a weekday.
+Live since 2026-10-30 (owner: "we're not gonna wait for those three AV companies";
+churches don't need to know the companies, we promote the products and the better
+deal). The page and desk shipped in united-under-god #44; the email in ChurchConnect
+#624, starting at 10 a weekday.
+
+**Bidders:** add the companies on SOURCE as the first requests come in. Each signs
+up at `/buying/sell-to-churches` (or is added on SOURCE → Vendors), accepts the
+Vendor Terms, lists Audio-visual: systems and the states it serves (GA, FL, SC),
+and is approved. The Campaigns desk shows "Ready to bid: N of 3" until there are
+three; a request can wait on the desk until then.
 
 ## The emails
 
@@ -36,32 +39,33 @@ Under God**, and that **we have three companies ready to bid for your work**.
    online audience; 3 points needed. Churches whose website reads traditional, or
    a liturgical or a cappella tradition, are left out. About 840 churches fit
    before the nightly worship scan reads their websites; best fit goes first.
-   - Subject A: *An LED wall for your church, with three companies bidding*
-   - Subject B: *Three church AV companies are ready to bid on your LED wall*
+   - Subject A: *An LED wall, lights and sound for your church, and a better deal on them*
+   - Subject B: *Three companies are ready to bid on your church’s LED wall*
+   - Picture: a band in front of a wall of song words, hands raised
+     (`/images/led-wall/email.jpg`, Unsplash).
 
-   > Hello friends at {church},
+   > Hello to the media and tech team at {church},
    >
-   > We are United Under God. Three church AV companies are ready to bid on an
-   > LED wall for your church, the big video screen behind the stage, along with
-   > stage lighting and sound.
+   > We are United Under God. We help churches get **a better deal** on one of the
+   > biggest purchases they make: an LED wall behind the stage, stage lighting and sound.
    >
-   > What it can do for your church:
-   > - Song lyrics and Scripture every seat can read, even from the back row
+   > What it does for your church on Sunday:
+   > - Song lyrics and Scripture every seat can read, even in a bright room and from the back row
    > - A backdrop that sets the tone of worship, Sunday to Sunday and season to season
-   > - Lighting that helps people lift their eyes, with faces seen clearly on camera
-   > - Sound the whole room can sing with
-   > - One scope, three bids: you choose one, or choose none
+   > - Warm light on faces, so the preacher and the worship team are seen in the room and on the livestream
+   > - Sound the whole room can sing with, on a board your volunteers can run
    >
-   > You describe your room once. We write one scope from it, and all three
-   > companies bid on that same scope, so you compare like with like. You see the
-   > bids side by side on a private page and choose one, or none. There's no
-   > obligation, and no company gets your contact details unless you choose it.
+   > How we help you get a better deal: you tell us about your room once, we write it
+   > up as one clear project, and three companies ready to bid compete for that same
+   > work. You compare the bids side by side on a private page and choose one, or none.
+   > There's no obligation, and no company gets your contact details unless you choose it.
    >
-   > **See LED walls, lighting and sound** → unitedundergod.org/church-av/led-wall
+   > **See what an LED wall could do for your church** → unitedundergod.org/church-av/led-wall
    >
-   > P.S. Questions? Reply to this email or call me at (770) 317-7402. Even if
-   > you're only wondering how an LED wall would look in your room, it's a good
-   > time to ask.
+   > P.S. Planning a building or renovation? Now is the best time to plan the wall, the
+   > lights and the sound. Reply to this email or call me at (770) 317-7402.
+
+   The email says "deal", never "price" (the church sound copy rules).
 
 2. **Confirmation** — the moment a church sends the form, from this site.
    Subject: *We have your room: LED wall, lighting and sound*. Says we are United
