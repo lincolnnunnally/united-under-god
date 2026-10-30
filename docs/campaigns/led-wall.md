@@ -41,7 +41,7 @@ three; a request can wait on the desk until then.
    before the nightly worship scan reads their websites; best fit goes first.
    - Subject A: *An LED wall, lights and sound for your church, and a better deal on them*
    - Subject B: *Three companies are ready to bid on your church’s LED wall*
-   - Picture: a band in front of a wall of song words, hands raised
+   - Picture: song words on an LED wall between LED panels, the band lit on stage
      (`/images/led-wall/email.jpg`, Unsplash).
 
    > Hello to the media and tech team at {church},

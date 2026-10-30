@@ -42,26 +42,26 @@ const STEPS = [
 const PICTURES = [
   {
     src: "/images/led-wall/lyrics",
-    alt: "Song words on a big screen above the stage while the congregation sings with hands raised",
+    alt: "“Jesus Be Praised” on an LED wall behind the worship team, stage lights above",
     title: "Words every seat can read",
   },
   {
     src: "/images/led-wall/sanctuary",
-    alt: "A sanctuary with screens on both sides of the stage and colored stage lights",
-    title: "Screens sized for your room",
+    alt: "A wide LED wall across the stage, with side screens and beams of light over a full room",
+    title: "A wall sized for your room",
   },
   {
     src: "/images/led-wall/hall",
-    alt: "A worship band on a small stage in a church hall, with a screen behind them",
-    title: "For a fellowship hall or a new worship center",
+    alt: "A worship band in a smaller room, song words on a bright LED wall behind them",
+    title: "Right for a smaller room, too",
   },
   {
     src: "/images/led-wall/lights",
-    alt: "Stage lights on a rig above a wall of song lyrics",
+    alt: "A stage framed by LED panels and lights, with a screen beside it for the back rows",
     title: "Light that lifts the room",
   },
 ];
-export const PHOTO_CREDIT = "Photos: Keagan Henman, Brad, and Rod Long on Unsplash.";
+export const PHOTO_CREDIT = "Photos: Daniel, Keagan Henman, Duane Loux, and Aaron James on Unsplash.";
 
 function Picture({ src, alt, className, eager }: { src: string; alt: string; className?: string; eager?: boolean }) {
   return (
@@ -85,16 +85,16 @@ export function BidHeroPicture() {
       <picture>
         <source
           type="image/webp"
-          srcSet="/images/led-wall/hero-960.webp 960w, /images/led-wall/hero.webp 1800w"
+          srcSet="/images/led-wall/hero-960.webp 960w, /images/led-wall/hero.webp 1100w"
           sizes="(min-width: 768px) 45vw, 100vw"
         />
         <img
           src="/images/led-wall/hero-960.jpg"
-          srcSet="/images/led-wall/hero-960.jpg 960w, /images/led-wall/hero.jpg 1800w"
+          srcSet="/images/led-wall/hero-960.jpg 960w, /images/led-wall/hero.jpg 1100w"
           sizes="(min-width: 768px) 45vw, 100vw"
-          width={1800}
-          height={1200}
-          alt="A worship band in front of a wall of song words, the congregation singing with hands raised"
+          width={1100}
+          height={733}
+          alt="Song words on an LED wall between LED panels, the worship team lit on stage and the room standing to sing"
           className="aspect-[3/2] w-full rounded-xl object-cover shadow-[var(--shadow-border)]"
           fetchPriority="high"
         />
