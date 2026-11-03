@@ -333,9 +333,23 @@ export const APPS: {
     {
       slug: "laser-engrave-market",
       name: "Laser Engrave Market",
-      href: "https://laser.unitedundergod.org",
+      href: "https://laser.engrave.market",
       who: "Anyone who needs a custom gift, product, or branded piece.",
       blurb: "Custom engraving for gifts, products, and business branding.",
+    },
+    {
+      slug: "partnerly",
+      name: "Partnerly",
+      href: "https://partnerly.unitedundergod.org",
+      who: "Local businesses that serve the same customers.",
+      blurb: "Give your customers a keepsake gift with your logo, shared with a neighboring business.",
+    },
+    {
+      slug: "remembered",
+      name: "Remembered",
+      href: "https://remembered.unitedundergod.org",
+      who: "Sellers who want to be remembered by the people they serve.",
+      blurb: "Engraved keepsake packs: their mark and a short message on the front, your contact on the back.",
     },
     {
       slug: "ideas",
