@@ -4,3 +4,33 @@ Disallow: /api/
 
 Sitemap: https://www.unitedundergod.org/sitemap.xml
 Sitemap: https://www.unitedundergod.org/sitemap-verse.xml
+
+# Every app on a unitedundergod.org subdomain. All are covered by the verified
+# sc-domain:unitedundergod.org Search Console property, so Google accepts these
+# cross-host sitemaps from here and reads them each time it fetches this file.
+Sitemap: https://partnerly.unitedundergod.org/partnerly-sitemap.xml
+Sitemap: https://remembered.unitedundergod.org/sitemap.xml
+Sitemap: https://childfirst.unitedundergod.org/sitemap.xml
+Sitemap: https://dreamstand.unitedundergod.org/sitemap.xml
+Sitemap: https://ideas.unitedundergod.org/sitemap.xml
+Sitemap: https://sandlot.unitedundergod.org/sitemap.xml
+Sitemap: https://immerse.unitedundergod.org/sitemap.xml
+Sitemap: https://alignedsouls.unitedundergod.org/sitemap.xml
+Sitemap: https://bestlife.unitedundergod.org/sitemap.xml
+Sitemap: https://kindred.unitedundergod.org/sitemap.xml
+Sitemap: https://presence.unitedundergod.org/sitemap.xml
+Sitemap: https://speak-to-me.unitedundergod.org/sitemap.xml
+Sitemap: https://porchlight.unitedundergod.org/sitemap.xml
+Sitemap: https://neighborly.unitedundergod.org/sitemap.xml
+Sitemap: https://succeed.unitedundergod.org/sitemap.xml
+Sitemap: https://opportunity.unitedundergod.org/sitemap.xml
+Sitemap: https://barefoot.unitedundergod.org/sitemap.xml
+Sitemap: https://jeepfix.unitedundergod.org/sitemap.xml
+Sitemap: https://racketpro.unitedundergod.org/sitemap.xml
+Sitemap: https://resume.unitedundergod.org/sitemap.xml
+Sitemap: https://singtrue.unitedundergod.org/sitemap.xml
+Sitemap: https://selah.unitedundergod.org/sitemap.xml
+Sitemap: https://rally.unitedundergod.org/sitemap.xml
+Sitemap: https://plenty.unitedundergod.org/sitemap.xml
+Sitemap: https://pulse.unitedundergod.org/sitemap.xml
+Sitemap: https://operate.unitedundergod.org/sitemap.xml
