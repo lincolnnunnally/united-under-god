@@ -21,13 +21,13 @@ export const Route = createRootRoute({
       ldJsonMeta(ORGANIZATION_JSON_LD),
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=standard1" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png?v=standard1" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=standard1" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg?v=standard2" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png?v=standard2" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=standard2" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/__grok/icon-180.png?v=standard1" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/seal-180.png?v=standard1" },
+      { rel: "apple-touch-icon", href: "/__grok/icon-180.png?v=standard2" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/seal-180.png?v=standard2" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
