@@ -108,14 +108,4 @@ export const ARTICLE_CACHE_HEADERS = {
   "Cache-Control": "public, max-age=0, s-maxage=600, stale-while-revalidate=86400",
 };
 
-/** "November 5, 2026" from an ISO timestamp, in UTC so server and browser agree. */
-export function formatArticleDate(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    timeZone: "UTC",
-  });
-}
+export { formatArticleDate } from "@/lib/articles";
