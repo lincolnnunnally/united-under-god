@@ -4,6 +4,7 @@ Disallow: /api/
 
 Sitemap: https://www.unitedundergod.org/sitemap.xml
 Sitemap: https://www.unitedundergod.org/sitemap-verse.xml
+Sitemap: https://www.unitedundergod.org/sitemap-articles.xml
 
 # Every app on a unitedundergod.org subdomain. All are covered by the verified
 # sc-domain:unitedundergod.org Search Console property, so Google accepts these

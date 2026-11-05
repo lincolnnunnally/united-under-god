@@ -55,6 +55,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/articles" className="text-muted hover:text-ink">
+                Articles
+              </Link>
+            </li>
+            <li>
               <Link to="/join" className="text-muted hover:text-ink">
                 Take the seal
               </Link>
