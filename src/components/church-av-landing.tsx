@@ -63,15 +63,13 @@ export function LandingActions({ page, className }: { page: LandingPage; classNa
     return (
       <div className={cn("av-l-actions flex flex-col gap-3 sm:flex-row", className)}>
         <Button asChild size="lg" className="av-l-cta">
-          <a href="#talk">
-            Ask for three bids
+          <a href="#call">
+            Request a call
             <ArrowRight className="size-4" />
           </a>
         </Button>
         <Button asChild size="lg" variant="secondary" className="av-l-cta-alt">
-          <Link to="/church-av/planner" search={page.planner}>
-            {page.plannerLabel}
-          </Link>
+          <a href="#talk">Ask for three bids</a>
         </Button>
       </div>
     );
@@ -309,7 +307,26 @@ export function LandingBody({ page }: { page: LandingPage }) {
       <LandingFaq page={page} />
       <LandingOthers page={page} />
       <ChurchConnectLinks links={churchConnectLinks(LANDING_CHURCHCONNECT[page.slug] ?? [])} />
-      {page.campaign ? <BidRequest page={page} /> : <LandingRequest page={page} />}
+      {page.campaign ? (
+        <>
+          <RequestSection
+            id="call"
+            heading="Questions first? We'll call you."
+            lead={
+              <p className="mt-4 text-muted">
+                Tell us a little about your room and the best number to reach you. We'll call to answer your
+                questions about an LED wall, lighting and sound: what size fits, what it takes, and what a
+                sensible next step looks like. Nothing here is a price or a quote, and there's no obligation.
+              </p>
+            }
+            submitLabel="Request a call"
+            source={{ path: landingPath(page), label: `Church AV — ${page.label} (call request)` }}
+          />
+          <BidRequest page={page} />
+        </>
+      ) : (
+        <LandingRequest page={page} />
+      )}
     </>
   );
 }
