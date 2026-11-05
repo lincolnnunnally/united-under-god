@@ -26,6 +26,11 @@ test("every sitemap page has a route file", () => {
 test("robots.txt points at the www sitemap and blocks nothing public", () => {
   const robots = readFileSync(join(ROOT, "public/robots.txt"), "utf8");
   assert.match(robots, /Sitemap: https:\/\/www\.unitedundergod\.org\/sitemap\.xml/);
+  // Pages read from the database get their own live sitemaps; robots must name each one.
+  for (const live of ["sitemap-verse.xml", "sitemap-articles.xml"]) {
+    assert.ok(robots.includes(`Sitemap: https://www.unitedundergod.org/${live}\n`), `robots.txt misses ${live}`);
+    assert.ok(existsSync(join(ROOT, `src/routes/${live.replace(".xml", "[.]xml")}.ts`)), `no route for ${live}`);
+  }
   for (const path of STATIC_PATHS) {
     assert.ok(!robots.includes(`Disallow: ${path}\n`), `robots blocks ${path}`);
   }

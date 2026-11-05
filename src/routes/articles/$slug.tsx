@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Markdown } from "@/components/markdown";
 import { SiteShell } from "@/components/site-shell";
 import { absoluteUrl, OG_IMAGE, ORG_ID, pageHead } from "@/lib/seo";
+import { articleTitle } from "@/lib/articles";
 import { ARTICLE_CACHE_HEADERS, formatArticleDate, getArticle } from "@/lib/articles-data";
 
 const eyebrow = "text-xs font-semibold tracking-[0.18em] text-forest uppercase";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/articles/$slug")({
     const path = `/articles/${params.slug}`;
     const description = article.seoDescription || article.excerpt || undefined;
     const head = pageHead({
-      title: `${article.seoTitle || article.title} | United Under God`,
+      title: articleTitle(article.seoTitle || article.title),
       description,
       path,
       type: "article",
