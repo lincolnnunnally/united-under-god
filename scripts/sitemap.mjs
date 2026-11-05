@@ -39,6 +39,7 @@ export const STATIC_PATHS = [
   "/assessment",
   "/bible",
   "/verse",
+  "/articles",
   "/doctrine",
   "/privacy",
   "/terms",
