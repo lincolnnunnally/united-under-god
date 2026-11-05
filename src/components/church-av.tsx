@@ -244,6 +244,7 @@ export function GearList() {
  * "Sent from" line differ per page.
  */
 export function RequestSection({
+  id = "talk",
   heading = "Tell us about your room.",
   place,
   defaultCity,
@@ -254,6 +255,7 @@ export function RequestSection({
   lead,
   children,
 }: {
+  id?: string;
   heading?: string;
   place?: string;
   defaultCity?: string;
@@ -265,7 +267,7 @@ export function RequestSection({
   children?: ReactNode;
 }) {
   return (
-    <section id="talk" className="scroll-mt-24 bg-cream print:hidden">
+    <section id={id} className="scroll-mt-24 bg-cream print:hidden">
       <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 md:grid-cols-2 md:px-8 md:py-20">
         <div>
           <h2 className="text-3xl">{heading}</h2>

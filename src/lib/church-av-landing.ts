@@ -640,8 +640,10 @@ export const LANDING_PAGES: LandingPage[] = [
       "An LED wall, stage lighting and sound for your church, and a better deal on them. Describe your room once; companies compete for the work; you choose.",
     serviceName: "LED walls, stage lighting, and sound for churches, competitively bid",
     eyebrow: "LED walls · Stage lighting · Sound",
-    h1: "An LED wall, lights and sound for your church, and a better deal on them.",
-    lead: "We are United Under God. An LED wall is one of the biggest purchases a church makes, so we help you make it well: tell us about your room once, three companies ready to bid compete for the same work, and you choose the bid that fits, or none.",
+    // Owner (2026-11-05): a church clicked because of the LED wall; the page should open on the LED wall,
+    // not on who we are. The email's promise first, then two ways forward: a call, or three bids.
+    h1: "Song words every seat can read, even in a bright room.",
+    lead: "An LED wall keeps the lyrics and the Scripture bright and clear from the back row, sets the tone of worship behind the stage, and works with the lights and sound you have. Questions first? Ask for a call. Ready to price it? Three companies bid on the same work, and you choose one, or none.",
     cardTitle: "LED walls, lighting & sound, and a better deal",
     cardBody: "Describe your room once. Companies compete for the work, and you choose.",
     benefitsTitle: "What a wall, the right light, and clear sound change on Sunday",
