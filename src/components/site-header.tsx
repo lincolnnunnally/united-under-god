@@ -39,7 +39,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-[4.25rem] max-w-6xl items-center justify-between gap-4 px-5 md:h-[4.75rem] md:px-8">
         <Link
           to="/"
-          className="flex min-h-11 items-center gap-2.5 text-forest"
+          className="flex min-h-11 shrink-0 items-center gap-2.5 text-forest"
           aria-label="United Under God home"
         >
           <SealMark className="size-11 md:size-12" title="United Under God" />
@@ -85,16 +85,22 @@ export function SiteHeader() {
           </Button>
         </nav>
 
-        <button
-          type="button"
-          className="inline-flex size-11 items-center justify-center rounded-md text-ink min-[1440px]:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
+        {/* The seal fits beside the logo from 1024px. At 390 it would crowd the wordmark, so it stays in the menu. */}
+        <div className="flex shrink-0 items-center gap-2 min-[1440px]:hidden">
+          <Button asChild className="hidden whitespace-nowrap lg:inline-flex">
+            <Link to="/join">Take the seal</Link>
+          </Button>
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-md text-heading"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            aria-label={open ? "Close menu" : "Open menu"}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <X className="size-6" /> : <Menu className="size-6" />}
+          </button>
+        </div>
       </div>
 
       {open ? (
