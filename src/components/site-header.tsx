@@ -7,6 +7,9 @@ import { SignedIn, SignedOut } from "@/lib/auth/gates";
 import { NAV } from "@/lib/content";
 import { cn } from "@/lib/utils";
 
+/** Centered 72rem bar stays inside the window, including "My account", from here up. */
+const DESKTOP_NAV_QUERY = "(min-width: 1440px)";
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -14,6 +17,15 @@ export function SiteHeader() {
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    const media = window.matchMedia(DESKTOP_NAV_QUERY);
+    const closeOnDesktop = () => {
+      if (media.matches) setOpen(false);
+    };
+    media.addEventListener("change", closeOnDesktop);
+    return () => media.removeEventListener("change", closeOnDesktop);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -36,7 +48,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary">
+        <nav className="hidden items-center gap-1 min-[1440px]:flex" aria-label="Primary">
           {NAV.map((item) => (
             <Link
               key={item.to}
@@ -75,7 +87,7 @@ export function SiteHeader() {
 
         <button
           type="button"
-          className="inline-flex size-11 items-center justify-center rounded-md text-ink lg:hidden"
+          className="inline-flex size-11 items-center justify-center rounded-md text-ink min-[1440px]:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -88,7 +100,7 @@ export function SiteHeader() {
       {open ? (
         <div
           id="mobile-nav"
-          className="border-t border-rule bg-paper px-5 py-4 lg:hidden"
+          className="border-t border-rule bg-paper px-5 py-4 min-[1440px]:hidden"
         >
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {NAV.map((item) => (
