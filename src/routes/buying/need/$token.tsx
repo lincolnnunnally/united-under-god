@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { FeeDisclosure } from "@/components/fee-disclosure";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { NEED_STATUS_LABELS, ORG_KINDS } from "@/lib/church-needs";
+import { NEED_STATUS_LABELS, ORDER_RESPONSIBILITY, ORG_KINDS } from "@/lib/church-needs";
+import { longDate } from "@/lib/price-term";
 import { chooseNeedQuoteFn, declineNeedQuotesFn, readNeedFn, type NeedView } from "@/lib/need-actions";
 import { pageHead } from "@/lib/seo";
 
@@ -141,7 +143,7 @@ function OpenNeed({ view, token }: { view: Extract<NeedView, { state: "open" }>;
         </div>
         <div>
           <dt className="text-sm font-medium">Needed by</dt>
-          <dd className="text-muted">{view.neededBy || "No date given"}</dd>
+          <dd className="text-muted">{view.neededBy ? longDate(view.neededBy) : "No date given"}</dd>
         </div>
         <div>
           <dt className="text-sm font-medium">Posted</dt>
@@ -154,6 +156,12 @@ function OpenNeed({ view, token }: { view: Extract<NeedView, { state: "open" }>;
           </div>
         ) : null}
       </dl>
+      {view.neededBy ? (
+        <p className="mt-4 max-w-2xl text-sm text-muted">
+          You asked for this by {longDate(view.neededBy)}. We will see that date with your request. A
+          quote or a reply by that date is not promised.
+        </p>
+      ) : null}
 
       {status === "new" || status === "bidding" ? (
         <p className="mt-8 max-w-2xl text-muted">
@@ -190,8 +198,9 @@ function OpenNeed({ view, token }: { view: Extract<NeedView, { state: "open" }>;
           <h2 className="text-2xl">Your quotes, side by side</h2>
           <p className="mt-2 max-w-2xl text-sm text-muted">
             Prices are each, for what you asked for. Choose one and we will introduce you to that
-            supplier. There is no obligation.
+            supplier. There is no obligation. {ORDER_RESPONSIBILITY}
           </p>
+          <FeeDisclosure className="mt-3" />
           <ul
             className={
               view.quotes.length === 3
@@ -213,10 +222,12 @@ function OpenNeed({ view, token }: { view: Extract<NeedView, { state: "open" }>;
                   {money(quote.unitPrice)} <span className="text-sm text-muted">each</span>
                 </p>
                 <p className="mt-1 text-xs text-subtle">
-                  Price held for {quote.termMonths} {quote.termMonths === 1 ? "month" : "months"}
+                  {quote.ended
+                    ? `This price ended ${longDate(quote.expiresOn)}`
+                    : `Good through ${longDate(quote.expiresOn)}`}
                 </p>
                 {quote.notes ? <p className="mt-3 flex-1 text-sm text-muted">{quote.notes}</p> : <span className="flex-1" />}
-                {open ? (
+                {open && !quote.ended ? (
                   <div className="mt-4">
                     <Button type="button" disabled={busy} onClick={() => void choose(quote.id)}>
                       Choose this quote

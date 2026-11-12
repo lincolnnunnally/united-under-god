@@ -8,6 +8,9 @@ import {
   closeNeed,
   createNeed,
   declineNeedQuotes,
+  ORDER_RESPONSIBILITY,
+  SUPPLIER_RESPONSIBILITY,
+  cleanNeededBy,
   needConfirmationEmail,
   needDecisionNotice,
   needIntroToChurch,
@@ -43,7 +46,7 @@ function posted(overrides: Partial<NeedInput> = {}): NeedInput {
     title: "Stackable chairs",
     details: "Padded, for the fellowship hall.",
     quantity: "120",
-    neededBy: "2026-12-01",
+    neededBy: "2099-06-01",
     ...overrides,
   };
 }
@@ -71,7 +74,22 @@ test("a posted need is cleaned, and its confirmation carries the private link", 
 
   const mail = needConfirmationEmail(clean, "x".repeat(43), SITE);
   assert.ok(mail.text.includes(`${SITE}${needLinkPath("x".repeat(43))}`));
+  assert.ok(mail.text.includes("Needed by: 2099-06-01"));
+  assert.ok(mail.text.includes("June 1, 2099"));
+  assert.ok(mail.text.includes("not promised"));
   assert.ok(!/\bfree\b|guarantee|\bAI\b/i.test(`${mail.subject}\n${mail.text}`));
+  const undated = needConfirmationEmail(cleanNeed(posted({ neededBy: "" })), "x".repeat(43), SITE);
+  assert.ok(!undated.text.includes("not promised"));
+});
+
+test("a needed-by date is a real day, today or later", () => {
+  assert.equal(cleanNeededBy("", "2026-11-12"), "");
+  assert.equal(cleanNeededBy("2026-11-12", "2026-11-12"), "2026-11-12");
+  assert.equal(cleanNeededBy("2099-06-01", "2026-11-12"), "2099-06-01");
+  assert.throws(() => cleanNeededBy("2026-11-11", "2026-11-12"), /already passed/);
+  assert.throws(() => cleanNeededBy("next Tuesday", "2026-11-12"), /leave it blank/);
+  assert.throws(() => cleanNeededBy("2026-02-31", "2026-11-12"), /leave it blank/);
+  assert.throws(() => cleanNeed(posted({ neededBy: "2020-01-01" })), /already passed/);
 });
 
 test("the honeypot saves nothing", async () => {
@@ -230,9 +248,11 @@ test("start a bid, group a second church on it, compare, choose", async () => {
   const toChurch = needIntroToChurch(chosen);
   assert.equal(toChurch.to, "ruth@gracechapel.example");
   assert.ok(toChurch.text.includes(chosen.supplierEmail) && toChurch.text.includes("Alpha Seating"));
+  assert.ok(toChurch.text.includes(ORDER_RESPONSIBILITY));
   const toSupplier = needIntroToSupplier(chosen);
   assert.equal(toSupplier.to, chosen.supplierEmail);
   assert.ok(toSupplier.text.includes("Grace Chapel") && toSupplier.text.includes("ruth@gracechapel.example"));
+  assert.ok(toSupplier.text.includes(SUPPLIER_RESPONSIBILITY));
   assert.ok(!toSupplier.text.includes("Hope Fellowship"));
   const told = needDecisionNotice(chosen, true, { church: true, supplier: true });
   assert.match(told.subject, /\(introduced\)$/);
@@ -311,4 +331,61 @@ test("ministries and Christian-owned businesses post needs too, and every messag
   const owner = needDecisionNotice(decision, true, { church: true, supplier: true });
   assert.match(owner.subject, /^Charity or ministry chose a quote/);
   assert.ok(owner.text.includes("We emailed the ministry and the supplier"));
+});
+
+test("an ended quote is shown and cannot be chosen, and is not sent as the only price", async () => {
+  const sql = await fresh();
+  const grace = await post(sql);
+  const bidId = await startNeedBid(sql, grace.id, "operator-1");
+  const chairs = (await needOf(sql, grace.id)).itemId;
+  const alpha = await addQuote(
+    sql,
+    {
+      bidId,
+      vendorName: "Alpha Seating",
+      ...ATTESTED,
+      lines: [{ itemId: chairs, unitPrice: "31.50" }],
+    },
+    "operator-1",
+  );
+  await sql`update source_quotes set created_at = ${"2020-01-15T12:00:00.000Z"} where id = ${alpha}`;
+  const box = mailbox();
+  await assert.rejects(
+    () => sendNeedQuotes(sql, { needId: grace.id, siteUrl: SITE, send: box.send }),
+    /has ended/,
+  );
+  assert.equal(box.sent.length, 0);
+
+  const current = await addQuote(
+    sql,
+    {
+      bidId,
+      vendorName: "Current Seating",
+      ...ATTESTED,
+      lines: [{ itemId: chairs, unitPrice: "40" }],
+    },
+    "operator-1",
+  );
+  const sent = await sendNeedQuotes(sql, { needId: grace.id, siteUrl: SITE, send: box.send });
+  assert.equal(sent.ok, true);
+  const view = await readNeedByToken(sql, grace.token);
+  assert.equal(view.state, "open");
+  if (view.state !== "open") return;
+  const ended = view.quotes.find((quote) => quote.vendorName === "Alpha Seating");
+  const open = view.quotes.find((quote) => quote.vendorName === "Current Seating");
+  assert.equal(ended?.ended, true);
+  assert.equal(ended?.expiresOn, "2021-01-14");
+  assert.equal(open?.ended, false);
+  assert.ok(open?.expiresOn);
+  const page = JSON.stringify(view);
+  assert.ok(!page.includes("gracechapel.example"));
+  assert.ok(!page.includes(ATTESTED.priceContact.email));
+  await assert.rejects(
+    () => chooseNeedQuote(sql, { token: grace.token, quoteId: alpha }),
+    /price has ended/,
+  );
+  const chosen = await chooseNeedQuote(sql, { token: grace.token, quoteId: current });
+  assert.equal(chosen.vendorName, "Current Seating");
+  assert.ok(needIntroToChurch(chosen).text.includes(ORDER_RESPONSIBILITY));
+  assert.ok(!needIntroToSupplier(chosen).text.includes("Hope Fellowship"));
 });

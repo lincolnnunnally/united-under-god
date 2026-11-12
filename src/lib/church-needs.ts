@@ -1,6 +1,6 @@
 import type { Sql } from "./db.ts";
 import { SPEND_CATEGORIES, getSpendCategory, isLicensed } from "./church-spend.ts";
-import { DEFAULT_TERM_MONTHS } from "./price-term.ts";
+import { DEFAULT_TERM_MONTHS, isoDay, longDate, priceEnded, termDates } from "./price-term.ts";
 import { cleanArea, createBid } from "./source-store.ts";
 import { TOKEN_SHAPE, newInviteToken, type SendMail } from "./vendor-store.ts";
 import { campaignOf, getCampaign } from "./campaigns.ts";
@@ -63,6 +63,43 @@ const MAX_LINES = 40;
 
 export function needLinkPath(token: string) {
   return `/buying/need/${token}`;
+}
+
+/**
+ * Who fills the order after a church chooses a quote. The church pays the
+ * supplier. United Under God makes the introduction and does not deliver.
+ */
+export const ORDER_RESPONSIBILITY =
+  "You buy from the supplier and pay them directly. United Under God introduces you. The supplier fills the order.";
+
+/** The same fact, said to the supplier. */
+export const SUPPLIER_RESPONSIBILITY =
+  "They buy from you and pay you directly. United Under God does not take the payment or deliver the order.";
+
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * A needed-by date from the public form: blank, or a real calendar day that
+ * is today or later. The date picker blocks past days; this is the same rule
+ * on the server, so a crafted request cannot store one.
+ */
+export function cleanNeededBy(value: string | undefined, today = isoDay()): string {
+  const trimmed = optional(value, 40);
+  if (!trimmed) return "";
+  if (!ISO_DAY.test(trimmed)) throw new Error("Enter the date you need it by, or leave it blank.");
+  const [year, month, day] = trimmed.split("-").map(Number);
+  const date = new Date(Date.UTC(year!, month! - 1, day!));
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month! - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    throw new Error("Enter the date you need it by, or leave it blank.");
+  }
+  if (trimmed < today) {
+    throw new Error("That date has already passed. Enter today or a later date, or leave it blank.");
+  }
+  return trimmed;
 }
 
 /** Categories a church can post a need in: everything that is bid (not referral only). */
@@ -144,7 +181,7 @@ export function cleanNeed(input: NeedInput): CleanNeed {
   const title = need(input.title, "Tell us what you need.", 160);
   const details = optional(input.details, 4000);
   const quantity = optional(input.quantity, 120);
-  const neededBy = optional(input.neededBy, 40);
+  const neededBy = cleanNeededBy(input.neededBy);
   const campaign = campaignOf(input.campaign);
   return {
     orgKind,
@@ -240,6 +277,12 @@ export function needConfirmationEmail(clean: CleanNeed, token: string, siteUrl: 
       "Keep this link to yourself. You choose a quote, or choose none. There is no obligation.",
       "",
       ...needLines(clean),
+      ...(clean.neededBy
+        ? [
+            "",
+            `You asked for this by ${longDate(clean.neededBy)}. We will see that date with your request. A quote or a reply by that date is not promised.`,
+          ]
+        : []),
       "",
       "Reply to this email with any questions.",
       "",
@@ -571,6 +614,25 @@ export function needQuotesEmail(row: Pick<NeedRecord, "contactName" | "title" | 
   };
 }
 
+function quoteTermMonths(row: Record<string, unknown>) {
+  return Number(row.term_months) || DEFAULT_TERM_MONTHS;
+}
+
+/** The quote's received day, in UTC, matching the awarded-price term calendar. */
+function quoteReceivedOn(value: unknown): string {
+  if (value instanceof Date) return isoDay(value);
+  const raw = text(value);
+  return ISO_DAY.test(raw.slice(0, 10)) ? raw.slice(0, 10) : isoDay();
+}
+
+function quoteExpiresOn(row: Record<string, unknown>) {
+  return termDates(quoteReceivedOn(row.created_at), quoteTermMonths(row)).expiresOn;
+}
+
+function quoteEnded(row: Record<string, unknown>, today = isoDay()) {
+  return priceEnded(quoteExpiresOn(row), today);
+}
+
 /** Priced, received quotes on one line: the only quotes a church ever sees. */
 async function pricedOnLine(sql: Sql, itemId: string) {
   if (!itemId) return [];
@@ -599,8 +661,12 @@ export async function sendNeedQuotes(
   if (row.status === "closed") throw new Error("That need is closed.");
   if (row.status === "chosen") throw new Error("The church already chose a quote.");
   if (!row.bidId) throw new Error("Put the need on a bid first.");
-  if ((await pricedOnLine(sql, row.itemId)).length === 0) {
+  const lines = await pricedOnLine(sql, row.itemId);
+  if (lines.length === 0) {
     throw new Error("No quote has a price on this church’s line yet.");
+  }
+  if (!lines.some((line) => !quoteEnded(line))) {
+    throw new Error("Every price on this line has ended. Ask the supplier for a new quote.");
   }
   const mail = needQuotesEmail(row, args.siteUrl);
   const sent = await args.send({ to: row.email, subject: mail.subject, text: mail.text });
@@ -632,6 +698,10 @@ export type NeedQuote = {
   notes: string;
   /** How long the supplier holds the price, in months. */
   termMonths: number;
+  /** Last day the quoted price is good, counted from the day the quote was received. */
+  expiresOn: string;
+  /** True once expiresOn has passed. An ended price is shown and cannot be chosen. */
+  ended: boolean;
 };
 
 export type NeedView =
@@ -688,7 +758,9 @@ export async function readNeedByToken(sql: Sql, token: string): Promise<NeedView
       vendorName: text(line.vendor_name),
       unitPrice: text(line.unit_price),
       notes: [text(line.line_notes).trim(), text(line.quote_notes).trim()].filter(Boolean).join(" "),
-      termMonths: Number(line.term_months) || DEFAULT_TERM_MONTHS,
+      termMonths: quoteTermMonths(line),
+      expiresOn: quoteExpiresOn(line),
+      ended: quoteEnded(line),
     })),
     chosenQuoteId: text(row.chosen_quote_id),
   };
@@ -757,6 +829,9 @@ export async function chooseNeedQuote(
     (line) => text(line.id) === input.quoteId,
   );
   if (!quote) throw new Error("That quote is not one of yours to choose.");
+  if (quoteEnded(quote, isoDay(input.now))) {
+    throw new Error("That price has ended. Choose another, or tell us none of them work.");
+  }
   await sql`
     update source_church_needs
     set chosen_quote_id = ${text(quote.id)}, chosen_at = ${(input.now ?? new Date()).toISOString()},
@@ -846,6 +921,8 @@ export function needIntroToChurch(d: NeedDecision) {
       "",
       "We have sent them your name and contact details, so they will be in touch to arrange the order. Mention United Under God so they hold the quoted price.",
       "",
+      ORDER_RESPONSIBILITY,
+      "",
       "If anything does not go as quoted, reply to this email and we will help.",
       "",
       "United Under God",
@@ -874,6 +951,8 @@ export function needIntroToSupplier(d: NeedDecision) {
       d.quantity ? `Quantity: ${d.quantity}` : "",
       "",
       "Please contact them to arrange the order at the quoted price. They chose you; please treat them well.",
+      "",
+      SUPPLIER_RESPONSIBILITY,
       "",
       "United Under God",
     ]
