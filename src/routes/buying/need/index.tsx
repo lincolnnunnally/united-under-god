@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
+import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InquiryDone } from "@/components/inquiry-done";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
@@ -36,7 +37,7 @@ const PROMISES = [
   },
   {
     title: "You choose, or choose none",
-    body: "Pick the quote that fits and we introduce you to that supplier. If none fit, say so. No obligation.",
+    body: "Pick the quote that fits and we introduce you to that supplier. You buy from them and pay them directly. If none fit, say so. No obligation.",
   },
   {
     title: "Stronger together",
@@ -269,8 +270,10 @@ function NeedForm() {
 
       <p className="text-sm text-muted">
         Only United Under God sees your name and contact. We use them to send you your quotes and,
-        if you choose one, to introduce you to that supplier.
+        if you choose one, to introduce you to that supplier. You buy from that supplier and pay
+        them directly. We do not sell or deliver the order.
       </p>
+      <FeeDisclosure />
 
       {error ? (
         <p className="text-sm text-ink" role="alert">

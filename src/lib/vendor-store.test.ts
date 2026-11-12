@@ -233,6 +233,24 @@ test("matching: approved only, by category/subcategory and by state", () => {
   assert.deepEqual(ids({ category: "", subcategory: "", area: "" }), []);
 });
 
+test("cities and ZIP codes are notes, not a harder geographic gate", () => {
+  const bid = { category: "printing-copiers", subcategory: "toner-ink", area: "GA" };
+  const base = {
+    status: "approved" as const,
+    categories: ["printing-copiers/toner-ink"],
+    states: ["GA"],
+    nationwide: false,
+  };
+  const matched = matchVendors(
+    [
+      { ...base, id: "savannah", places: ["Savannah"] },
+      { ...base, id: "vidalia", places: ["30474"] },
+    ],
+    bid,
+  ).map((row) => row.id);
+  assert.deepEqual(matched.sort(), ["savannah", "vidalia"]);
+});
+
 // --- invitations -------------------------------------------------------------
 
 test("an invitation sends once per vendor per bid, only to matching approved vendors", async () => {
