@@ -618,15 +618,32 @@ function quoteTermMonths(row: Record<string, unknown>) {
   return Number(row.term_months) || DEFAULT_TERM_MONTHS;
 }
 
-/** The quote's received day, in UTC, matching the awarded-price term calendar. */
-function quoteReceivedOn(value: unknown): string {
-  if (value instanceof Date) return isoDay(value);
-  const raw = text(value);
-  return ISO_DAY.test(raw.slice(0, 10)) ? raw.slice(0, 10) : isoDay();
+/** A timestamp's UTC day, or "" when it is missing or not a date. */
+function quoteDay(value: unknown): string {
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return "";
+    return isoDay(value);
+  }
+  const raw = text(value).trim();
+  if (!raw) return "";
+  return ISO_DAY.test(raw.slice(0, 10)) ? raw.slice(0, 10) : "";
+}
+
+/**
+ * The day the price term starts. A supplier who revises a quote updates
+ * price_attested_at and leaves created_at alone (submitOnlineQuote), so the
+ * term follows the later of the two. A quote with no attestation yet starts
+ * on the day it was received.
+ */
+function quoteReceivedOn(row: Record<string, unknown>): string {
+  const created = quoteDay(row.created_at);
+  const attested = quoteDay(row.price_attested_at);
+  if (created && attested) return created > attested ? created : attested;
+  return attested || created || isoDay();
 }
 
 function quoteExpiresOn(row: Record<string, unknown>) {
-  return termDates(quoteReceivedOn(row.created_at), quoteTermMonths(row)).expiresOn;
+  return termDates(quoteReceivedOn(row), quoteTermMonths(row)).expiresOn;
 }
 
 function quoteEnded(row: Record<string, unknown>, today = isoDay()) {
@@ -643,7 +660,8 @@ async function pricedOnLine(sql: Sql, itemId: string) {
       coalesce(to_jsonb(q) ->> 'price_contact_email', '') as pc_email,
       coalesce(to_jsonb(q) ->> 'price_contact_phone', '') as pc_phone,
       coalesce((to_jsonb(r) ->> 'price_term_months')::int, ${DEFAULT_TERM_MONTHS}) as term_months,
-      q.created_at
+      q.created_at,
+      coalesce(to_jsonb(q) ->> 'price_attested_at', '') as price_attested_at
     from source_quote_lines l
     join source_quotes q on q.id = l.quote_id
     join source_bid_requests r on r.id = q.bid_id

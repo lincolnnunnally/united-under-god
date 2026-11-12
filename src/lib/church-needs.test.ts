@@ -26,6 +26,8 @@ import {
 } from "./church-needs.ts";
 import { ATTESTED, PROGRAM_MIGRATIONS, freshProgramDb, mailbox } from "./program-test-db.ts";
 import { addQuote, readDesk } from "./source-store.ts";
+import { cleanVendorSignup, createVendor, sendInvites, submitOnlineQuote, updateVendor } from "./vendor-store.ts";
+import { VENDOR_TERMS_VERSION } from "./vendor-terms.ts";
 
 const SITE = "https://www.unitedundergod.org";
 
@@ -348,7 +350,12 @@ test("an ended quote is shown and cannot be chosen, and is not sent as the only 
     },
     "operator-1",
   );
-  await sql`update source_quotes set created_at = ${"2020-01-15T12:00:00.000Z"} where id = ${alpha}`;
+  await sql`
+    update source_quotes
+    set created_at = ${"2020-01-15T12:00:00.000Z"},
+        price_attested_at = ${"2020-01-15T12:00:00.000Z"}
+    where id = ${alpha}
+  `;
   const box = mailbox();
   await assert.rejects(
     () => sendNeedQuotes(sql, { needId: grace.id, siteUrl: SITE, send: box.send }),
@@ -388,4 +395,91 @@ test("an ended quote is shown and cannot be chosen, and is not sent as the only 
   assert.equal(chosen.vendorName, "Current Seating");
   assert.ok(needIntroToChurch(chosen).text.includes(ORDER_RESPONSIBILITY));
   assert.ok(!needIntroToSupplier(chosen).text.includes("Hope Fellowship"));
+});
+
+test("a revised quote starts its term from the new attestation, not the original created_at", async () => {
+  const sql = await fresh();
+  const grace = await post(sql);
+  const bidId = await startNeedBid(sql, grace.id, "operator-1");
+  const chairs = (await needOf(sql, grace.id)).itemId;
+
+  const { id: vendorId } = await createVendor(
+    sql,
+    cleanVendorSignup({
+      company: "Alpha Seating",
+      contactName: "Pat Owner",
+      email: "pat@vendor.example",
+      phone: "(404) 555-0199",
+      website: "alpha.example",
+      categories: ["furniture/chairs-tables"],
+      states: ["GA"],
+      places: "",
+      nationwide: false,
+      insured: "yes",
+      notes: "",
+      agreed: true,
+      termsVersion: VENDOR_TERMS_VERSION,
+    }),
+    { ip: "203.0.113.9" },
+  );
+  await updateVendor(sql, vendorId, { status: "approved" }, "operator-1");
+  const invites = mailbox();
+  const sentInvites = await sendInvites(sql, {
+    bidId,
+    vendorIds: [vendorId],
+    userId: "operator-1",
+    siteUrl: SITE,
+    send: invites.send,
+  });
+  assert.deepEqual(sentInvites.skipped, []);
+  assert.equal(sentInvites.sent.length, 1);
+  const token = invites.sent[0]!.text.match(/\?t=([A-Za-z0-9_-]+)/)![1]!;
+
+  const first = await submitOnlineQuote(sql, {
+    bidId,
+    token,
+    ...ATTESTED,
+    lines: [{ itemId: chairs, unitPrice: "31.50" }],
+  });
+  assert.equal(first.revised, false);
+  await sql`
+    update source_quotes
+    set created_at = ${"2020-01-15T12:00:00.000Z"},
+        price_attested_at = ${"2020-01-15T12:00:00.000Z"}
+    where id = ${first.quoteId}
+  `;
+
+  const church = mailbox();
+  await assert.rejects(
+    () => sendNeedQuotes(sql, { needId: grace.id, siteUrl: SITE, send: church.send }),
+    /has ended/,
+  );
+
+  const revised = await submitOnlineQuote(sql, {
+    bidId,
+    token,
+    ...ATTESTED,
+    lines: [{ itemId: chairs, unitPrice: "29.00" }],
+  });
+  assert.equal(revised.revised, true);
+  assert.equal(revised.quoteId, first.quoteId);
+  const stored = await sql<{ created_at: Date | string }>`
+    select created_at from source_quotes where id = ${revised.quoteId}
+  `;
+  const created = stored[0]!.created_at;
+  const createdDay = created instanceof Date ? created.toISOString().slice(0, 10) : String(created).slice(0, 10);
+  assert.equal(createdDay, "2020-01-15", "a revision does not move created_at");
+
+  const sent = await sendNeedQuotes(sql, { needId: grace.id, siteUrl: SITE, send: church.send });
+  assert.equal(sent.ok, true);
+  const view = await readNeedByToken(sql, grace.token);
+  assert.equal(view.state, "open");
+  if (view.state !== "open") return;
+  const quote = view.quotes.find((row) => row.id === revised.quoteId);
+  assert.equal(quote?.unitPrice, "29.00");
+  assert.equal(quote?.ended, false);
+  assert.ok(quote && quote.expiresOn > "2021-01-14", "the new attestation is not the 2020 term");
+  const chosen = await chooseNeedQuote(sql, { token: grace.token, quoteId: revised.quoteId });
+  assert.equal(chosen.unitPrice, "29.00");
+  assert.equal(chosen.vendorName, "Alpha Seating");
 });

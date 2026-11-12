@@ -37,6 +37,7 @@ test("server deadline checks and quote expiry live with the need, not a second w
   assert.match(needs, /const neededBy = cleanNeededBy\(input\.neededBy\)/);
   assert.match(needs, /Every price on this line has ended/);
   assert.match(needs, /That price has ended/);
+  assert.match(needs, /price_attested_at/);
   assert.match(needs, /ORDER_RESPONSIBILITY/);
   assert.match(needs, /SUPPLIER_RESPONSIBILITY/);
   assert.ok(!needs.includes("group-buy"), "custom needs stay off the group-buy spine");
