@@ -198,9 +198,12 @@ function NeedForm() {
             <Input id="need-quantity" name="quantity" placeholder="120 chairs" maxLength={120} />
           </Field>
           <Field label="Needed by (optional)" htmlFor="need-by">
-            <Input id="need-by" name="neededBy" type="date" />
+            <Input id="need-by" name="neededBy" type="date" min={new Date().toISOString().slice(0, 10)} />
           </Field>
         </div>
+        <p className="text-sm text-muted">
+          Have a deadline, such as an insurance renewal or an event? Enter the date above and mention the deadline in the details. We’ll see the timing with your request; a quote or response by that date is not guaranteed.
+        </p>
         <p className="text-sm text-muted">
           Please leave your {noun}’s name out of the details. We share what you need with suppliers,
           never who you are.
