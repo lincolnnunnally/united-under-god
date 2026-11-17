@@ -35,3 +35,6 @@ Sitemap: https://rally.unitedundergod.org/sitemap.xml
 Sitemap: https://plenty.unitedundergod.org/sitemap.xml
 Sitemap: https://pulse.unitedundergod.org/sitemap.xml
 Sitemap: https://operate.unitedundergod.org/sitemap.xml
+Sitemap: https://groundwork.unitedundergod.org/sitemap.xml
+Sitemap: https://commons.unitedundergod.org/sitemap.xml
+Sitemap: https://iconium.unitedundergod.org/sitemap.xml
