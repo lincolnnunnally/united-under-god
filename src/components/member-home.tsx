@@ -43,7 +43,7 @@ export function MemberHome({ church, open }: { church: MemberChurch; open: boole
         <NextStep to="/buying/report" title="Report a problem" body="If a program vendor doesn’t make it right, we will see it through." />
         <NextStep to="/account" title="Your account" body="Your details, the seal, and what you stand in." />
       </ul>
-      {open ? (
+      {open && church.stripeCustomerId ? (
         <div className="mt-6">
           <Button variant="secondary" disabled={busy} onClick={() => void billing()}>
             {busy ? "Opening…" : "Manage billing"}

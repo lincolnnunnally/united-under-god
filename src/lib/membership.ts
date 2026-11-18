@@ -6,9 +6,16 @@
  * no `@/` imports here.
  */
 
-/** The price, stated once. Pages print MEMBER_PRICE_LABEL; Stripe gets the cents. */
+/**
+ * Owner, 2026-11-18: membership is free until there are real visitors and real members. United Under God
+ * earns from what it provides (the buying program's vendor rebates and partner commissions), not dues.
+ * While this is true, becoming a member church is a form, not a payment: no Stripe checkout opens. The
+ * Stripe pieces below stay in place, unused, for the day the owner turns dues back on.
+ */
+export const MEMBERSHIP_FREE = true;
+/** The price, stated once. Pages print MEMBER_PRICE_LABEL; Stripe gets the cents (only when dues are on). */
 export const MEMBER_PRICE_CENTS = 2000;
-export const MEMBER_PRICE_LABEL = "$20 a month, per church";
+export const MEMBER_PRICE_LABEL = MEMBERSHIP_FREE ? "Free" : "$20 a month, per church";
 /** Stripe price lookup key used when STRIPE_MEMBER_PRICE_ID is not set. */
 export const MEMBER_PRICE_LOOKUP_KEY = "uug_member_church_monthly";
 export const MEMBER_PRODUCT_NAME = "United Under God member church";

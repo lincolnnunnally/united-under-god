@@ -2,8 +2,9 @@ import { createMiddleware, createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { authMiddleware } from "@/lib/auth/middleware";
 import { getSql } from "@/lib/db";
-import { stripeConfig, entriesForViewer } from "@/lib/membership";
+import { MEMBERSHIP_FREE, stripeConfig, entriesForViewer } from "@/lib/membership";
 import {
+  activateFreeMember,
   applyStripeEvent,
   cleanChurchDetails,
   isMissingTable,
@@ -99,7 +100,7 @@ export const readMembership = createServerFn({ method: "GET" })
   .middleware([viewerMiddleware])
   .handler(async ({ context }): Promise<MembershipView> => {
     const { access } = context;
-    const open = stripeConfig().ready;
+    const open = MEMBERSHIP_FREE || stripeConfig().ready;
     const base = { open, signedIn: Boolean(access.userId), member: access.member, staff: access.staff };
     if (!access.userId) return { ...base, church: null, notReady: false };
     try {
@@ -133,10 +134,21 @@ export const saveMyChurch = createServerFn({ method: "POST" })
     return { ok: true as const, church };
   });
 
-/** Signed in, details saved, keys set: a Stripe Checkout URL to send the church to. */
+/**
+ * Signed in, details saved: the church becomes a member. While membership is free (MEMBERSHIP_FREE) that
+ * happens here, with no payment, and the page reloads as a member's. Otherwise, with the keys set, a Stripe
+ * Checkout URL to send the church to.
+ */
 export const startMemberCheckout = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
+    if (MEMBERSHIP_FREE) {
+      const sql = await getSql();
+      const church = await readMemberChurch(sql, context.userId);
+      if (!church) return { ok: false as const, error: "Add your church’s details first." };
+      await activateFreeMember(sql, context.userId);
+      return { ok: true as const, url: "/membership?welcome=1#become" };
+    }
     const config = stripeConfig();
     if (!config.ready) {
       return { ok: false as const, error: "Membership opens soon. Tell us you’re interested and we will write." };
