@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { PGlite } from "@electric-sql/pglite";
 import type { Sql } from "./db.ts";
 import {
+  activateFreeMember,
   applyStripeEvent,
   cleanChurchDetails,
   isMemberUser,
@@ -222,4 +223,27 @@ test("church details are required before checkout", () => {
   assert.deepEqual(cleanChurchDetails({ ...DETAILS, churchName: " " }), { error: "Please give the church’s name." });
   assert.deepEqual(cleanChurchDetails({ ...DETAILS, email: "nope" }), { error: "Please give an email we can reach." });
   assert.deepEqual(cleanChurchDetails({ ...DETAILS, city: "" }), { error: "Please give the church’s city and state." });
+});
+
+
+test("free membership (owner, 2026-11-18): a church becomes a member when it asks, and a payer is left alone", async () => {
+  const sql = await fresh();
+  // nothing to activate before the church's details are saved
+  assert.equal(await activateFreeMember(sql, "user-1"), null);
+  assert.equal(await isMemberUser(sql, "user-1"), false);
+  await church(sql);
+  assert.equal(await isMemberUser(sql, "user-1"), false);
+  const member = await activateFreeMember(sql, "user-1");
+  assert.equal(member?.status, "active");
+  assert.equal(await isMemberUser(sql, "user-1"), true);
+  // a church whose membership ended is welcomed back
+  await sql`update uug_member_churches set status = 'canceled' where user_id = ${"user-1"}`;
+  assert.equal((await activateFreeMember(sql, "user-1"))?.status, "active");
+  // a paying member still retrying a card keeps its status
+  await church(sql, "user-2");
+  await sql`update uug_member_churches set status = 'past_due' where user_id = ${"user-2"}`;
+  assert.equal((await activateFreeMember(sql, "user-2"))?.status, "past_due");
+  // another account's church is never touched
+  await church(sql, "user-3");
+  assert.equal((await readMemberChurch(sql, "user-3"))?.status, "pending");
 });

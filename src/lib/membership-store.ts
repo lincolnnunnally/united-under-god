@@ -131,6 +131,16 @@ export async function saveChurchDetails(
   return (await readMemberChurch(sql, userId)) as MemberChurch;
 }
 
+/** Free membership (MEMBERSHIP_FREE): the church becomes a member when it asks. A paying member's status is
+ * left alone; a church whose membership ended is welcomed back. */
+export async function activateFreeMember(sql: Sql, userId: string): Promise<MemberChurch | null> {
+  await sql`
+    update uug_member_churches set status = 'active', updated_at = now()
+    where user_id = ${userId} and coalesce(status, 'pending') not in ('active', 'past_due')
+  `;
+  return readMemberChurch(sql, userId);
+}
+
 export async function setStripeCustomer(sql: Sql, userId: string, customerId: string) {
   await sql`
     update uug_member_churches set stripe_customer_id = ${customerId}, updated_at = now()

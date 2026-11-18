@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { MEMBER_PRICE_LABEL } from "@/lib/membership";
+import { MEMBER_PRICE_LABEL, MEMBERSHIP_FREE } from "@/lib/membership";
 import {
   readMembership,
   saveMyChurch,
@@ -23,12 +23,12 @@ import { cn } from "@/lib/utils";
 
 const TITLE = "Church Buying Program & Purchasing Group | United Under God";
 const DESCRIPTION =
-  "Become a member church for $20 a month: a nonprofit church buying program and purchasing group with vendor contacts, awarded prices, a church website, and pastor fellowship.";
+  "Become a member church, free: a nonprofit church buying program and purchasing group with vendor contacts, awarded prices, a church website, and pastor fellowship.";
 
 const FAQ = [
   {
     q: "What is a member church?",
-    a: "A church that belongs to the United Under God buying program and its member services for $20 a month, per church. Members see every vendor contact, awarded price, brochure, and review in the buying catalogs, get a church website on a unitedundergod.org address, are invited to pastor fellowship, and can use the problem resolution process.",
+    a: "A church that belongs to the United Under God buying program and its member services. Membership is free. Members see every vendor contact, awarded price, brochure, and review in the buying catalogs, get a church website on a unitedundergod.org address, are invited to pastor fellowship, and can use the problem resolution process.",
   },
   {
     q: "Is this a church discount program?",
@@ -36,15 +36,15 @@ const FAQ = [
   },
   {
     q: "Who runs it, and where does the money go?",
-    a: "United Under God, Inc., a 501(c)(3) nonprofit association of churches working together. Member dues and the rebates program vendors pay us fund the work: running bids, checking vendors, building church websites, and seeing problems through.",
+    a: "United Under God, Inc., a 501(c)(3) nonprofit association of churches working together. Membership costs a church nothing. The rebates program vendors pay us, and what our partners pay us when a church signs up for a service through us, fund the work: running bids, checking vendors, building church websites, and seeing problems through.",
   },
   {
     q: "Is the seal part of membership?",
-    a: "No. The seal stays free and never requires membership. Membership is the paid program for the buying catalogs and member services.",
+    a: "No. The seal stays free and never requires membership. Membership is the program for the buying catalogs and member services, and it is free too.",
   },
   {
-    q: "Can we cancel?",
-    a: "Yes. Manage or cancel billing any time from this page once you are a member. Access continues to the end of the month you paid for.",
+    q: "Does it cost anything, or commit us to anything?",
+    a: "No. There is nothing to pay and no contract. A member church buys only what it chooses, when it chooses, at the awarded price. To stop, tell us and we take your church off the list.",
   },
 ];
 
@@ -63,7 +63,7 @@ export const Route = createFileRoute("/membership/")({
           path: "/membership",
           serviceType: "Church group purchasing",
           audience: "Churches",
-          offers: { price: "20", description: "$20 a month, per church" },
+          offers: { price: "0", description: "Free for member churches" },
         }),
         {
           "@context": "https://schema.org",
@@ -101,7 +101,7 @@ function MembershipPage() {
             church sees the vendors and awarded prices in the buying catalogs, gets a church website,
             and has pastors and a problem resolution process standing with it.
           </p>
-          <p className="mt-6 font-display text-2xl text-paper">{MEMBER_PRICE_LABEL}.</p>
+          <p className="mt-6 font-display text-2xl text-paper">{MEMBER_PRICE_LABEL} for every church.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button asChild variant="invert">
               <a href="#become">Become a member church</a>
@@ -138,14 +138,14 @@ function MembershipPage() {
             <ul className="mt-5 space-y-3 text-muted">
               <Fact>{MEMBER_PRICE_LABEL}. One church, one membership.</Fact>
               <Fact>
-                United Under God, Inc. is a 501(c)(3) nonprofit. Member dues and the rebates program
-                vendors pay us fund the service.
+                United Under God, Inc. is a 501(c)(3) nonprofit. The rebates program vendors pay us,
+                and what partners pay us when a church signs up through us, fund the service.
               </Fact>
               <Fact>
                 We ask vendors to bid for the group and show members what was awarded. We do not
                 promise a discount or an amount.
               </Fact>
-              <Fact>Cancel any time from this page.</Fact>
+              <Fact>No contract. Tell us any time and we take your church off the list.</Fact>
             </ul>
             <FeeDisclosure className="mt-6" />
           </div>
@@ -194,7 +194,7 @@ function Fact({ children }: { children: ReactNode }) {
   );
 }
 
-const STEPS = ["Sign in or create an account", "Your church’s details", "Pay"] as const;
+const STEPS = ["Sign in or create an account", "Your church’s details", MEMBERSHIP_FREE ? "Confirm" : "Pay"] as const;
 
 function Steps({ at }: { at: 0 | 1 | 2 }) {
   return (
@@ -215,7 +215,7 @@ function Steps({ at }: { at: 0 | 1 | 2 }) {
   );
 }
 
-/** Sign in or create an account, enter the church's details, then pay. */
+/** Sign in or create an account, enter the church's details, then confirm (or pay, when dues are on). */
 function JoinFlow() {
   const { user, isPending } = useCurrentUserState();
   const [view, setView] = useState<MembershipView | null>(null);
@@ -387,7 +387,9 @@ function ChurchStep({
           </p>
         ) : null}
         <p className="mt-6 text-muted">
-          {MEMBER_PRICE_LABEL}. Payment is handled by Stripe; we never see your card.
+          {MEMBERSHIP_FREE
+            ? "Membership is free. There is nothing to pay and no contract."
+            : "$20 a month, per church. Payment is handled by Stripe; we never see your card."}
         </p>
         {error ? (
           <p className="mt-4 text-sm text-ink" role="alert">
@@ -395,7 +397,9 @@ function ChurchStep({
           </p>
         ) : null}
         <Button className="mt-6" disabled={busy} onClick={() => void pay()}>
-          {busy ? "Opening payment…" : "Continue to payment"}
+          {MEMBERSHIP_FREE
+            ? busy ? "Saving…" : "Become a member church"
+            : busy ? "Opening payment…" : "Continue to payment"}
         </Button>
       </div>
     );
