@@ -51,6 +51,7 @@ test("vendor pages keep the owner's copy rules", () => {
     "src/routes/buying/vendor-terms.tsx",
     "src/routes/buying/bids/$id.tsx",
     "src/components/fee-disclosure.tsx",
+    "src/components/vendor-promise.tsx",
     "src/lib/vendor-terms.ts",
     "src/lib/vendor-store.ts",
   ];

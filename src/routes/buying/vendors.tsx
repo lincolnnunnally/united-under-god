@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InquiryDone } from "@/components/inquiry-done";
 import { SiteShell } from "@/components/site-shell";
+import { VendorPromise } from "@/components/vendor-promise";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -93,6 +94,7 @@ function VendorSignupPage() {
           </Button>
         </div>
       </section>
+      <VendorPromise />
       <section className="mx-auto max-w-3xl px-5 py-12 md:px-8">
         <VendorSignupForm />
       </section>
