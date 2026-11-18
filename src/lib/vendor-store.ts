@@ -174,9 +174,27 @@ export type VendorSignupInput = {
   /** "yes" or "no": carries general liability insurance. */
   insured: string;
   notes?: string;
+  /** One of HEARD_FROM_OPTIONS; optional. */
+  heardFrom?: string;
+  /** Their own words when heardFrom is "Other" (or anything they add). */
+  heardDetail?: string;
+  /** Where their browser first came to the site from (src/lib/first-visit.ts); optional. */
+  cameFrom?: string;
   agreed: boolean;
   termsVersion: string;
 };
+
+/** "How did you hear about us?" on the vendor sign-up (owner, 2026-11-18). */
+export const HEARD_FROM_OPTIONS = [
+  "Google or another search engine",
+  "ChatGPT, Gemini or another assistant",
+  "A church told me",
+  "Another vendor told me",
+  "Someone at United Under God",
+  "Social media",
+  "An email from us",
+  "Other",
+] as const;
 
 export type CleanVendor = {
   company: string;
@@ -190,6 +208,9 @@ export type CleanVendor = {
   nationwide: boolean;
   insured: boolean;
   notes: string;
+  /** "How did you hear about us?" as one line, "" when not given. */
+  heardFrom: string;
+  cameFrom: string;
   termsVersion: string;
 };
 
@@ -244,6 +265,16 @@ export function cleanVendorSignup(input: VendorSignupInput): CleanVendor {
     throw new Error("Tell us whether you carry general liability insurance.");
   }
   const notes = (input.notes ?? "").trim().slice(0, 2000);
+  const oneLine = (value: string | undefined, max: number) =>
+    Array.from(value ?? "", (ch) => (ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127 ? " " : ch))
+      .join("")
+      .trim()
+      .slice(0, max);
+  const picked = (HEARD_FROM_OPTIONS as readonly string[]).includes(input.heardFrom ?? "")
+    ? (input.heardFrom as string)
+    : "";
+  const detail = oneLine(input.heardDetail, 200);
+  const heardFrom = picked && detail ? `${picked}: ${detail}` : picked || detail;
   return {
     company,
     contactName,
@@ -256,6 +287,8 @@ export function cleanVendorSignup(input: VendorSignupInput): CleanVendor {
     nationwide,
     insured: input.insured === "yes",
     notes,
+    heardFrom,
+    cameFrom: oneLine(input.cameFrom, 300),
     termsVersion: VENDOR_TERMS_VERSION,
   };
 }
@@ -366,13 +399,15 @@ export async function createVendor(
   await sql`
     insert into source_vendors (
       id, company, contact_name, email, phone, website, categories, states, places,
-      nationwide, liability_insured, notes, status, terms_version, terms_accepted_at, terms_ip
+      nationwide, liability_insured, notes, status, terms_version, terms_accepted_at, terms_ip,
+      heard_from, came_from
     ) values (
       ${id}, ${vendor.company}, ${vendor.contactName}, ${vendor.email}, ${vendor.phone},
       ${vendor.website}, ${JSON.stringify(vendor.categories)}::jsonb,
       ${JSON.stringify(vendor.states)}::jsonb, ${JSON.stringify(vendor.places)}::jsonb,
       ${vendor.nationwide}, ${vendor.insured}, ${vendor.notes}, ${"pending"},
-      ${vendor.termsVersion}, ${acceptedAt}, ${meta.ip.slice(0, 80)}
+      ${vendor.termsVersion}, ${acceptedAt}, ${meta.ip.slice(0, 80)},
+      ${vendor.heardFrom ?? ""}, ${vendor.cameFrom ?? ""}
     )
   `;
   return { id, duplicate: false };
@@ -416,6 +451,8 @@ export function vendorSignupNotice(
       "Categories:",
       ...describeCategories(vendor.categories).map((name) => `  - ${name}`),
       vendor.notes ? `Notes: ${vendor.notes}` : "",
+      `How they heard about us: ${vendor.heardFrom || "(not given)"}`,
+      `Where their browser first came from: ${vendor.cameFrom || "(not known)"}`,
       "",
       `Agreed to Vendor Terms version ${vendor.termsVersion} at ${meta.acceptedAt} from ${meta.ip || "unknown IP"}.`,
       `Vendor id: ${meta.id}`,

@@ -15,6 +15,7 @@ import {
 import { useMemo, useState } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { SiteShell } from "@/components/site-shell";
+import { VendorPromise } from "@/components/vendor-promise";
 import { Button } from "@/components/ui/button";
 import { faqJsonLd } from "@/lib/church-av";
 import {
@@ -97,6 +98,7 @@ function SellToChurchesPage() {
       <Fees />
       {TESTIMONIALS.length ? <Testimonials /> : null}
       <FaqSection faq={faq} />
+      <VendorPromise />
       <ClosingCta />
     </SiteShell>
   );

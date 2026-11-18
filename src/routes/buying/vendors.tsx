@@ -3,6 +3,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InquiryDone } from "@/components/inquiry-done";
 import { SiteShell } from "@/components/site-shell";
+import { VendorPromise } from "@/components/vendor-promise";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { INQUIRY_UNREACHABLE } from "@/lib/desk";
 import { pageHead } from "@/lib/seo";
 import { submitVendorSignup } from "@/lib/vendor-actions";
-import { LICENSED_VENDOR_NOTE, US_STATES, vendorCategoryOptions } from "@/lib/vendor-store";
+import { readFirstVisit } from "@/lib/first-visit";
+import { HEARD_FROM_OPTIONS, LICENSED_VENDOR_NOTE, US_STATES, vendorCategoryOptions } from "@/lib/vendor-store";
 import { AGREE_LABEL, VENDOR_TERMS_VERSION } from "@/lib/vendor-terms";
 
 export const Route = createFileRoute("/buying/vendors")({
@@ -92,6 +94,7 @@ function VendorSignupPage() {
           </Button>
         </div>
       </section>
+      <VendorPromise />
       <section className="mx-auto max-w-3xl px-5 py-12 md:px-8">
         <VendorSignupForm />
       </section>
@@ -158,6 +161,9 @@ function VendorSignupForm() {
           nationwide,
           insured: value("insured"),
           notes: value("notes"),
+          heardFrom: value("heardFrom"),
+          heardDetail: value("heardDetail"),
+          cameFrom: readFirstVisit(),
           agreed: Boolean(data.get("agreed")),
           termsVersion: VENDOR_TERMS_VERSION,
           hp: value("fax"),
@@ -344,6 +350,25 @@ function VendorSignupForm() {
 
       <Field label="Notes (optional)" htmlFor="vendor-notes">
         <Textarea id="vendor-notes" name="notes" rows={4} />
+      </Field>
+
+      <Field label="How did you hear about us? (optional)" htmlFor="vendor-heard">
+        <select
+          id="vendor-heard"
+          name="heardFrom"
+          defaultValue=""
+          className="min-h-11 w-full rounded-md border border-rule bg-paper px-3 text-sm text-ink"
+        >
+          <option value="">Choose one</option>
+          {HEARD_FROM_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Anything more about how you found us? (optional)" htmlFor="vendor-heard-detail">
+        <Input id="vendor-heard-detail" name="heardDetail" maxLength={200} />
       </Field>
 
       <label className="flex items-start gap-3 text-sm text-ink">

@@ -27,6 +27,9 @@ const signupInput = z.object({
   nationwide: z.boolean(),
   insured: z.string(),
   notes: z.string().optional().default(""),
+  heardFrom: z.string().max(200).optional().default(""),
+  heardDetail: z.string().max(400).optional().default(""),
+  cameFrom: z.string().max(600).optional().default(""),
   agreed: z.boolean(),
   termsVersion: z.string(),
   /** Honeypot: people never see this field; a bot fills it. */

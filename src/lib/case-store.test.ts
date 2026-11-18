@@ -78,6 +78,7 @@ const MIGRATIONS = [
   "0007_source_vendors.sql",
   "0008_source_vendor_cases.sql",
   "0012_program_price_honor.sql",
+  "0016_vendor_heard_from.sql",
 ];
 
 async function fresh() {
