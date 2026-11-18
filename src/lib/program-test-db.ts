@@ -16,6 +16,7 @@ export const PROGRAM_MIGRATIONS = [
   "0008_source_vendor_cases.sql",
   "0010_source_vendor_portal.sql",
   "0012_program_price_honor.sql",
+  "0016_vendor_heard_from.sql",
 ];
 
 export function pgliteSql(pg: PGlite): Sql {

@@ -17,10 +17,10 @@ import { FEES, VENDOR_TERMS_PATH, type FeeConfig } from "./vendor-terms.ts";
 export const SELL_PATH = "/buying/sell-to-churches";
 export const SIGNUP_PATH = "/buying/vendors";
 
-export const SELL_TITLE = "Sell to churches: the church vendor program | United Under God";
+export const SELL_TITLE = "Sell to churches: become a church supplier or vendor | United Under God";
 
 export const SELL_DESCRIPTION =
-  "Become a church supplier. Get invited to group bids from churches in your area, quote online in minutes, and pay a small fee only when a church pays you.";
+  `Become a church vendor or supplier. Get invited to group bids from churches, quote online in minutes, and offer churches a program price. Free to join; a ${FEES.rebate.percent}% fee only when a church pays you.`;
 
 export type Reason = { title: string; body: string };
 export type Step = { title: string; body: string };
@@ -52,6 +52,10 @@ export function reasons(config: FeeConfig = FEES): Reason[] {
     {
       title: "Pay only when you are paid",
       body: `There is no sign-up fee and no monthly fee. You pay ${percent(config.rebate.percent)} on catalog and recurring sales and ${percent(config.referral.percent)} on referred projects, due ${config.dueDays} days after the church pays you.`,
+    },
+    {
+      title: "Program prices for churches",
+      body: "Churches come to the program to pay less than they would alone. Quote a group price below what one church would pay you on its own. When your quote is awarded, that program price is the most a church in the program pays you for the term, and in return the program brings you churches you would not reach alone.",
     },
     {
       title: "A mission partner",
@@ -101,6 +105,14 @@ export function sellFaq(
     {
       q: "What does it cost?",
       a: `Signing up is free, and there is no monthly fee. On sales made through the program you pay a ${percent(config.rebate.percent)} rebate on catalog items and recurring service contracts, and a ${percent(config.referral.percent)} referral fee on project and referral jobs from churches introduced to you. The full rules are in the Vendor Terms.`,
+    },
+    {
+      q: "Do I have to offer churches a lower price?",
+      a: "Yes, that is the heart of the program. Churches join to buy together for less than any one of them pays alone, so we expect your bid to be a real program price below your usual price to a single church. Once a quote is awarded, you charge a church in the program no more than that price for the term. The Vendor Terms hold the exact rule.",
+    },
+    {
+      q: "How many churches can I reach?",
+      a: "The program draws on the church directory that United Under God and ChurchConnect keep, which lists hundreds of thousands of churches across the country. The numbers on this page are counted from it. Every church still chooses for itself.",
     },
     {
       q: "When do I pay?",

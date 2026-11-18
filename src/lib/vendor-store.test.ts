@@ -6,6 +6,8 @@ import type { Sql } from "./db.ts";
 import { bidTemplate } from "./church-spend.ts";
 import { createBid, readDesk, setBidStatus } from "./source-store.ts";
 import {
+  HEARD_FROM_OPTIONS,
+  vendorSignupNotice,
   bidLinkPath,
   cleanVendorCategories,
   cleanVendorSignup,
@@ -53,6 +55,7 @@ async function fresh() {
     "0006_source_bid_category.sql",
     "0007_source_vendors.sql",
     "0012_program_price_honor.sql",
+    "0016_vendor_heard_from.sql",
   ]) {
     await pg.exec(readFileSync(new URL(`../../migrations/${file}`, import.meta.url), "utf8"));
   }
@@ -190,6 +193,34 @@ test("terms acceptance is stored with version, time, and IP; no duplicate rows",
   assert.equal(again.duplicate, true);
   assert.equal(again.id, first.id);
   assert.equal((await listVendors(sql)).length, 1);
+});
+
+test("how they heard about us (owner, 2026-11-18): kept with the sign-up and shown in the notice", async () => {
+  const sql = await fresh();
+  const vendor = cleanVendorSignup(
+    signup({
+      heardFrom: "A church told me",
+      heardDetail: " First Baptist \n Vidalia ",
+      cameFrom: "from google.com, landed on /buying/sell-to-churches, 2026-11-18",
+    }),
+  );
+  assert.equal(vendor.heardFrom, "A church told me: First Baptist   Vidalia");
+  assert.equal(vendor.cameFrom, "from google.com, landed on /buying/sell-to-churches, 2026-11-18");
+  const { id } = await createVendor(sql, vendor, { ip: "198.51.100.7" });
+  const [row] = await sql<{ heard_from: string; came_from: string }>`
+    select heard_from, came_from from source_vendors where id = ${id}`;
+  assert.equal(row?.heard_from, "A church told me: First Baptist   Vidalia");
+  assert.equal(row?.came_from, vendor.cameFrom);
+  const notice = vendorSignupNotice(vendor, { id, duplicate: false, ip: "198.51.100.7", acceptedAt: "x" });
+  assert.match(notice.text, /How they heard about us: A church told me: First Baptist/);
+  assert.match(notice.text, /Where their browser first came from: from google\.com/);
+  // optional: an answer not on the list is not kept as a choice, and nothing given reads as not given
+  assert.equal(cleanVendorSignup(signup({ heardFrom: "<script>" })).heardFrom, "");
+  const none = cleanVendorSignup(signup());
+  assert.equal(none.heardFrom, "");
+  assert.match(vendorSignupNotice(none, { id, duplicate: false, ip: "", acceptedAt: "x" }).text,
+    /How they heard about us: \(not given\)/);
+  assert.ok(HEARD_FROM_OPTIONS.includes("Google or another search engine"));
 });
 
 // --- matching ----------------------------------------------------------------
