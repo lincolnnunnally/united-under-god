@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AssessmentRouteImport } from './routes/assessment'
+import { Route as AvlRouteRouteImport } from './routes/avl/route'
 import { Route as BibleRouteRouteImport } from './routes/bible/route'
 import { Route as BuyingRouteRouteImport } from './routes/buying/route'
 import { Route as DoctrineRouteImport } from './routes/doctrine'
@@ -29,6 +30,7 @@ import { Route as OrganizationsRouteImport } from './routes/organizations'
 import { Route as PantryRouteImport } from './routes/pantry'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SitemapArticlesDotxmlRouteImport } from './routes/sitemap-articles[.]xml'
+import { Route as SitemapAvlDotxmlRouteImport } from './routes/sitemap-avl[.]xml'
 import { Route as SitemapVerseDotxmlRouteImport } from './routes/sitemap-verse[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UnderstandingTheBibleRouteImport } from './routes/understanding-the-bible'
@@ -41,6 +43,9 @@ import { Route as AdminNotifyRouteImport } from './routes/admin/notify'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as ArticlesIndexRouteImport } from './routes/articles/index'
 import { Route as ArticlesSlugRouteImport } from './routes/articles/$slug'
+import { Route as AvlIndexRouteImport } from './routes/avl/index'
+import { Route as AvlHowItWorksRouteImport } from './routes/avl/how-it-works'
+import { Route as AvlRequestRouteImport } from './routes/avl/request'
 import { Route as BibleIndexRouteImport } from './routes/bible/index'
 import { Route as BibleSlugRouteImport } from './routes/bible/$slug'
 import { Route as BuyingIndexRouteImport } from './routes/buying/index'
@@ -75,6 +80,10 @@ import { Route as ApiCronPriceReviewRouteImport } from './routes/api/cron/price-
 import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiVendorFilesIndexRouteImport } from './routes/api/vendor-files/index'
 import { Route as ApiVendorFilesIdRouteImport } from './routes/api/vendor-files/$id'
+import { Route as AvlGuidesIndexRouteImport } from './routes/avl/guides/index'
+import { Route as AvlGuidesSlugRouteImport } from './routes/avl/guides/$slug'
+import { Route as AvlHelpSlugRouteImport } from './routes/avl/help/$slug'
+import { Route as AvlSizesSlugRouteImport } from './routes/avl/sizes/$slug'
 import { Route as BuyingBidsIdRouteImport } from './routes/buying/bids/$id'
 import { Route as BuyingCasesIdRouteImport } from './routes/buying/cases/$id'
 import { Route as BuyingMediateIdRouteImport } from './routes/buying/mediate/$id'
@@ -112,6 +121,11 @@ const AppsRoute = AppsRouteImport.update({
 const AssessmentRoute = AssessmentRouteImport.update({
   id: '/assessment',
   path: '/assessment',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AvlRouteRoute = AvlRouteRouteImport.update({
+  id: '/avl',
+  path: '/avl',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BibleRouteRoute = BibleRouteRouteImport.update({
@@ -189,6 +203,11 @@ const SitemapArticlesDotxmlRoute = SitemapArticlesDotxmlRouteImport.update({
   path: '/sitemap-articles.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SitemapAvlDotxmlRoute = SitemapAvlDotxmlRouteImport.update({
+  id: '/sitemap-avl.xml',
+  path: '/sitemap-avl.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapVerseDotxmlRoute = SitemapVerseDotxmlRouteImport.update({
   id: '/sitemap-verse.xml',
   path: '/sitemap-verse.xml',
@@ -248,6 +267,21 @@ const ArticlesSlugRoute = ArticlesSlugRouteImport.update({
   id: '/articles/$slug',
   path: '/articles/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AvlIndexRoute = AvlIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
+const AvlHowItWorksRoute = AvlHowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
+const AvlRequestRoute = AvlRequestRouteImport.update({
+  id: '/request',
+  path: '/request',
+  getParentRoute: () => AvlRouteRoute,
 } as any)
 const BibleIndexRoute = BibleIndexRouteImport.update({
   id: '/',
@@ -421,6 +455,26 @@ const ApiVendorFilesIdRoute = ApiVendorFilesIdRouteImport.update({
   path: '/api/vendor-files/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AvlGuidesIndexRoute = AvlGuidesIndexRouteImport.update({
+  id: '/guides/',
+  path: '/guides/',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
+const AvlGuidesSlugRoute = AvlGuidesSlugRouteImport.update({
+  id: '/guides/$slug',
+  path: '/guides/$slug',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
+const AvlHelpSlugRoute = AvlHelpSlugRouteImport.update({
+  id: '/help/$slug',
+  path: '/help/$slug',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
+const AvlSizesSlugRoute = AvlSizesSlugRouteImport.update({
+  id: '/sizes/$slug',
+  path: '/sizes/$slug',
+  getParentRoute: () => AvlRouteRoute,
+} as any)
 const BuyingBidsIdRoute = BuyingBidsIdRouteImport.update({
   id: '/bids/$id',
   path: '/bids/$id',
@@ -490,6 +544,7 @@ const ChurchAvPlannerSummaryRoute = ChurchAvPlannerSummaryRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/avl': typeof AvlRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
   '/buying': typeof BuyingRouteRouteWithChildren
   '/account': typeof AccountRoute
@@ -508,6 +563,7 @@ export interface FileRoutesByFullPath {
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap-articles.xml': typeof SitemapArticlesDotxmlRoute
+  '/sitemap-avl.xml': typeof SitemapAvlDotxmlRoute
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
@@ -518,6 +574,8 @@ export interface FileRoutesByFullPath {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/avl/how-it-works': typeof AvlHowItWorksRoute
+  '/avl/request': typeof AvlRequestRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/covenant': typeof BuyingCovenantRoute
@@ -543,6 +601,7 @@ export interface FileRoutesByFullPath {
   '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/articles/': typeof ArticlesIndexRoute
+  '/avl/': typeof AvlIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
@@ -553,6 +612,9 @@ export interface FileRoutesByFullPath {
   '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
+  '/avl/guides/$slug': typeof AvlGuidesSlugRoute
+  '/avl/help/$slug': typeof AvlHelpSlugRoute
+  '/avl/sizes/$slug': typeof AvlSizesSlugRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
@@ -563,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files/': typeof ApiVendorFilesIndexRoute
+  '/avl/guides/': typeof AvlGuidesIndexRoute
   '/buying/need/': typeof BuyingNeedIndexRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
   '/church-av/help/': typeof ChurchAvHelpIndexRoute
@@ -586,6 +649,7 @@ export interface FileRoutesByTo {
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap-articles.xml': typeof SitemapArticlesDotxmlRoute
+  '/sitemap-avl.xml': typeof SitemapAvlDotxmlRoute
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
@@ -596,6 +660,8 @@ export interface FileRoutesByTo {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/avl/how-it-works': typeof AvlHowItWorksRoute
+  '/avl/request': typeof AvlRequestRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/covenant': typeof BuyingCovenantRoute
@@ -621,6 +687,7 @@ export interface FileRoutesByTo {
   '/verse/$slug': typeof VerseSlugRoute
   '/admin': typeof AdminIndexRoute
   '/articles': typeof ArticlesIndexRoute
+  '/avl': typeof AvlIndexRoute
   '/bible': typeof BibleIndexRoute
   '/buying': typeof BuyingIndexRoute
   '/church-av': typeof ChurchAvIndexRoute
@@ -631,6 +698,9 @@ export interface FileRoutesByTo {
   '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
+  '/avl/guides/$slug': typeof AvlGuidesSlugRoute
+  '/avl/help/$slug': typeof AvlHelpSlugRoute
+  '/avl/sizes/$slug': typeof AvlSizesSlugRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
@@ -641,6 +711,7 @@ export interface FileRoutesByTo {
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files': typeof ApiVendorFilesIndexRoute
+  '/avl/guides': typeof AvlGuidesIndexRoute
   '/buying/need': typeof BuyingNeedIndexRoute
   '/church-av/$state': typeof ChurchAvStateIndexRoute
   '/church-av/help': typeof ChurchAvHelpIndexRoute
@@ -650,6 +721,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
+  '/avl': typeof AvlRouteRouteWithChildren
   '/bible': typeof BibleRouteRouteWithChildren
   '/buying': typeof BuyingRouteRouteWithChildren
   '/account': typeof AccountRoute
@@ -668,6 +740,7 @@ export interface FileRoutesById {
   '/pantry': typeof PantryRoute
   '/privacy': typeof PrivacyRoute
   '/sitemap-articles.xml': typeof SitemapArticlesDotxmlRoute
+  '/sitemap-avl.xml': typeof SitemapAvlDotxmlRoute
   '/sitemap-verse.xml': typeof SitemapVerseDotxmlRoute
   '/terms': typeof TermsRoute
   '/understanding-the-bible': typeof UnderstandingTheBibleRoute
@@ -678,6 +751,8 @@ export interface FileRoutesById {
   '/admin/notify': typeof AdminNotifyRoute
   '/admin/staff': typeof AdminStaffRoute
   '/articles/$slug': typeof ArticlesSlugRoute
+  '/avl/how-it-works': typeof AvlHowItWorksRoute
+  '/avl/request': typeof AvlRequestRoute
   '/bible/$slug': typeof BibleSlugRoute
   '/buying/$category': typeof BuyingCategoryRoute
   '/buying/covenant': typeof BuyingCovenantRoute
@@ -703,6 +778,7 @@ export interface FileRoutesById {
   '/verse/$slug': typeof VerseSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/articles/': typeof ArticlesIndexRoute
+  '/avl/': typeof AvlIndexRoute
   '/bible/': typeof BibleIndexRoute
   '/buying/': typeof BuyingIndexRoute
   '/church-av/': typeof ChurchAvIndexRoute
@@ -713,6 +789,9 @@ export interface FileRoutesById {
   '/api/cron/price-review': typeof ApiCronPriceReviewRoute
   '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/vendor-files/$id': typeof ApiVendorFilesIdRoute
+  '/avl/guides/$slug': typeof AvlGuidesSlugRoute
+  '/avl/help/$slug': typeof AvlHelpSlugRoute
+  '/avl/sizes/$slug': typeof AvlSizesSlugRoute
   '/buying/bids/$id': typeof BuyingBidsIdRoute
   '/buying/cases/$id': typeof BuyingCasesIdRoute
   '/buying/mediate/$id': typeof BuyingMediateIdRoute
@@ -723,6 +802,7 @@ export interface FileRoutesById {
   '/church-av/help/$slug': typeof ChurchAvHelpSlugRoute
   '/church-av/planner/summary': typeof ChurchAvPlannerSummaryRoute
   '/api/vendor-files/': typeof ApiVendorFilesIndexRoute
+  '/avl/guides/': typeof AvlGuidesIndexRoute
   '/buying/need/': typeof BuyingNeedIndexRoute
   '/church-av/$state/': typeof ChurchAvStateIndexRoute
   '/church-av/help/': typeof ChurchAvHelpIndexRoute
@@ -733,6 +813,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/avl'
     | '/bible'
     | '/buying'
     | '/account'
@@ -751,6 +832,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/privacy'
     | '/sitemap-articles.xml'
+    | '/sitemap-avl.xml'
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
@@ -761,6 +843,8 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/articles/$slug'
+    | '/avl/how-it-works'
+    | '/avl/request'
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/covenant'
@@ -786,6 +870,7 @@ export interface FileRouteTypes {
     | '/verse/$slug'
     | '/admin/'
     | '/articles/'
+    | '/avl/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
@@ -796,6 +881,9 @@ export interface FileRouteTypes {
     | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
+    | '/avl/guides/$slug'
+    | '/avl/help/$slug'
+    | '/avl/sizes/$slug'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
@@ -806,6 +894,7 @@ export interface FileRouteTypes {
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files/'
+    | '/avl/guides/'
     | '/buying/need/'
     | '/church-av/$state/'
     | '/church-av/help/'
@@ -829,6 +918,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/privacy'
     | '/sitemap-articles.xml'
+    | '/sitemap-avl.xml'
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
@@ -839,6 +929,8 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/articles/$slug'
+    | '/avl/how-it-works'
+    | '/avl/request'
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/covenant'
@@ -864,6 +956,7 @@ export interface FileRouteTypes {
     | '/verse/$slug'
     | '/admin'
     | '/articles'
+    | '/avl'
     | '/bible'
     | '/buying'
     | '/church-av'
@@ -874,6 +967,9 @@ export interface FileRouteTypes {
     | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
+    | '/avl/guides/$slug'
+    | '/avl/help/$slug'
+    | '/avl/sizes/$slug'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
@@ -884,6 +980,7 @@ export interface FileRouteTypes {
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files'
+    | '/avl/guides'
     | '/buying/need'
     | '/church-av/$state'
     | '/church-av/help'
@@ -892,6 +989,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/avl'
     | '/bible'
     | '/buying'
     | '/account'
@@ -910,6 +1008,7 @@ export interface FileRouteTypes {
     | '/pantry'
     | '/privacy'
     | '/sitemap-articles.xml'
+    | '/sitemap-avl.xml'
     | '/sitemap-verse.xml'
     | '/terms'
     | '/understanding-the-bible'
@@ -920,6 +1019,8 @@ export interface FileRouteTypes {
     | '/admin/notify'
     | '/admin/staff'
     | '/articles/$slug'
+    | '/avl/how-it-works'
+    | '/avl/request'
     | '/bible/$slug'
     | '/buying/$category'
     | '/buying/covenant'
@@ -945,6 +1046,7 @@ export interface FileRouteTypes {
     | '/verse/$slug'
     | '/admin/'
     | '/articles/'
+    | '/avl/'
     | '/bible/'
     | '/buying/'
     | '/church-av/'
@@ -955,6 +1057,9 @@ export interface FileRouteTypes {
     | '/api/cron/price-review'
     | '/api/stripe/webhook'
     | '/api/vendor-files/$id'
+    | '/avl/guides/$slug'
+    | '/avl/help/$slug'
+    | '/avl/sizes/$slug'
     | '/buying/bids/$id'
     | '/buying/cases/$id'
     | '/buying/mediate/$id'
@@ -965,6 +1070,7 @@ export interface FileRouteTypes {
     | '/church-av/help/$slug'
     | '/church-av/planner/summary'
     | '/api/vendor-files/'
+    | '/avl/guides/'
     | '/buying/need/'
     | '/church-av/$state/'
     | '/church-av/help/'
@@ -974,6 +1080,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  AvlRouteRoute: typeof AvlRouteRouteWithChildren
   BibleRouteRoute: typeof BibleRouteRouteWithChildren
   BuyingRouteRoute: typeof BuyingRouteRouteWithChildren
   AccountRoute: typeof AccountRoute
@@ -992,6 +1099,7 @@ export interface RootRouteChildren {
   PantryRoute: typeof PantryRoute
   PrivacyRoute: typeof PrivacyRoute
   SitemapArticlesDotxmlRoute: typeof SitemapArticlesDotxmlRoute
+  SitemapAvlDotxmlRoute: typeof SitemapAvlDotxmlRoute
   SitemapVerseDotxmlRoute: typeof SitemapVerseDotxmlRoute
   TermsRoute: typeof TermsRoute
   UnderstandingTheBibleRoute: typeof UnderstandingTheBibleRoute
@@ -1061,6 +1169,13 @@ declare module '@tanstack/react-router' {
       path: '/assessment'
       fullPath: '/assessment'
       preLoaderRoute: typeof AssessmentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/avl': {
+      id: '/avl'
+      path: '/avl'
+      fullPath: '/avl'
+      preLoaderRoute: typeof AvlRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/bible': {
@@ -1168,6 +1283,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapArticlesDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sitemap-avl.xml': {
+      id: '/sitemap-avl.xml'
+      path: '/sitemap-avl.xml'
+      fullPath: '/sitemap-avl.xml'
+      preLoaderRoute: typeof SitemapAvlDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap-verse.xml': {
       id: '/sitemap-verse.xml'
       path: '/sitemap-verse.xml'
@@ -1251,6 +1373,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/articles/$slug'
       preLoaderRoute: typeof ArticlesSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/avl/': {
+      id: '/avl/'
+      path: '/'
+      fullPath: '/avl/'
+      preLoaderRoute: typeof AvlIndexRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
+    '/avl/how-it-works': {
+      id: '/avl/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/avl/how-it-works'
+      preLoaderRoute: typeof AvlHowItWorksRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
+    '/avl/request': {
+      id: '/avl/request'
+      path: '/request'
+      fullPath: '/avl/request'
+      preLoaderRoute: typeof AvlRequestRouteImport
+      parentRoute: typeof AvlRouteRoute
     }
     '/bible/': {
       id: '/bible/'
@@ -1490,6 +1633,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVendorFilesIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/avl/guides/': {
+      id: '/avl/guides/'
+      path: '/guides'
+      fullPath: '/avl/guides/'
+      preLoaderRoute: typeof AvlGuidesIndexRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
+    '/avl/guides/$slug': {
+      id: '/avl/guides/$slug'
+      path: '/guides/$slug'
+      fullPath: '/avl/guides/$slug'
+      preLoaderRoute: typeof AvlGuidesSlugRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
+    '/avl/help/$slug': {
+      id: '/avl/help/$slug'
+      path: '/help/$slug'
+      fullPath: '/avl/help/$slug'
+      preLoaderRoute: typeof AvlHelpSlugRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
+    '/avl/sizes/$slug': {
+      id: '/avl/sizes/$slug'
+      path: '/sizes/$slug'
+      fullPath: '/avl/sizes/$slug'
+      preLoaderRoute: typeof AvlSizesSlugRouteImport
+      parentRoute: typeof AvlRouteRoute
+    }
     '/buying/bids/$id': {
       id: '/buying/bids/$id'
       path: '/bids/$id'
@@ -1608,6 +1779,30 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface AvlRouteRouteChildren {
+  AvlHowItWorksRoute: typeof AvlHowItWorksRoute
+  AvlRequestRoute: typeof AvlRequestRoute
+  AvlIndexRoute: typeof AvlIndexRoute
+  AvlGuidesSlugRoute: typeof AvlGuidesSlugRoute
+  AvlHelpSlugRoute: typeof AvlHelpSlugRoute
+  AvlSizesSlugRoute: typeof AvlSizesSlugRoute
+  AvlGuidesIndexRoute: typeof AvlGuidesIndexRoute
+}
+
+const AvlRouteRouteChildren: AvlRouteRouteChildren = {
+  AvlHowItWorksRoute: AvlHowItWorksRoute,
+  AvlRequestRoute: AvlRequestRoute,
+  AvlIndexRoute: AvlIndexRoute,
+  AvlGuidesSlugRoute: AvlGuidesSlugRoute,
+  AvlHelpSlugRoute: AvlHelpSlugRoute,
+  AvlSizesSlugRoute: AvlSizesSlugRoute,
+  AvlGuidesIndexRoute: AvlGuidesIndexRoute,
+}
+
+const AvlRouteRouteWithChildren = AvlRouteRoute._addFileChildren(
+  AvlRouteRouteChildren,
+)
+
 interface BibleRouteRouteChildren {
   BibleSlugRoute: typeof BibleSlugRoute
   BibleIndexRoute: typeof BibleIndexRoute
@@ -1679,6 +1874,7 @@ const GiveRouteWithChildren = GiveRoute._addFileChildren(GiveRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
+  AvlRouteRoute: AvlRouteRouteWithChildren,
   BibleRouteRoute: BibleRouteRouteWithChildren,
   BuyingRouteRoute: BuyingRouteRouteWithChildren,
   AccountRoute: AccountRoute,
@@ -1697,6 +1893,7 @@ const rootRouteChildren: RootRouteChildren = {
   PantryRoute: PantryRoute,
   PrivacyRoute: PrivacyRoute,
   SitemapArticlesDotxmlRoute: SitemapArticlesDotxmlRoute,
+  SitemapAvlDotxmlRoute: SitemapAvlDotxmlRoute,
   SitemapVerseDotxmlRoute: SitemapVerseDotxmlRoute,
   TermsRoute: TermsRoute,
   UnderstandingTheBibleRoute: UnderstandingTheBibleRoute,

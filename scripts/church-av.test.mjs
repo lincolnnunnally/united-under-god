@@ -331,7 +331,11 @@ test("the av confirmation email links only real planner problems, by their real 
   }
   // Only our own pages; never the installer's site, phone, or email.
   for (const url of confirm.match(/https?:\/\/[^\s"`]+/g) ?? []) {
-    assert.ok(url.startsWith("https://www.unitedundergod.org"), `outside link ${url}`);
+    assert.ok(
+      url.startsWith("https://www.unitedundergod.org") ||
+        url.startsWith("https://sanctuaryavl.unitedundergod.org"),
+      `outside link ${url}`,
+    );
   }
   assert.ok(!/[^\s@"`]+@[^\s@"`]+\.[a-z]{2,}/i.test(confirm), "no email address printed");
   assert.ok(!/\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}/.test(confirm), "no phone number printed");
