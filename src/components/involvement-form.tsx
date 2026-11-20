@@ -31,7 +31,7 @@ type Props = {
    * Where the request came from. Added as a last line of the message so the
    * owner sees which page sent it (the inquiry has no separate field for it).
    */
-  source?: { path: string; label: string };
+  source?: { path: string; label: string; origin?: string };
   /**
    * Extra text added to the message after what the person typed, e.g. the
    * Church Room Planner's answers, so the owner's email shows everything.
@@ -41,6 +41,8 @@ type Props = {
   messageLabel?: string;
   /** Overrides the submit button's label. */
   submitLabel?: string;
+  /** Overrides the intent's heading, lead and thank-you text (e.g. Sanctuary AVL's own words). */
+  copy?: { title?: string; lead?: string; done?: string };
 };
 
 export function InvolvementForm({
@@ -51,8 +53,9 @@ export function InvolvementForm({
   attachment,
   messageLabel,
   submitLabel,
+  copy: copyOverride,
 }: Props) {
-  const copy = INTENT_COPY[intent];
+  const copy = { ...INTENT_COPY[intent], ...copyOverride };
   const needsOrg =
     intent === "seal" ||
     intent === "grocery" ||

@@ -1,4 +1,4 @@
-import { sendResendText } from "./desk-mail.ts";
+import { DEFAULT_DESK_FROM, sendResendText } from "./desk-mail.ts";
 
 /**
  * The instant reply to a church that just sent the sound and video request
@@ -31,6 +31,19 @@ export const AV_CONFIRM_HELP = [
 ];
 
 export const AV_CONFIRM_SUBJECT = "We received your church sound and video request";
+
+/**
+ * Sanctuary AVL (owner, 2026-11-20) uses this same request and reply under its
+ * own name: a request sent from its pages is signed by it, links to its own help
+ * pages, and leaves out the planner (a United Under God page).
+ */
+const AVL_ORIGIN = "https://sanctuaryavl.unitedundergod.org";
+/** The desk's verified sender, under the Sanctuary AVL name. */
+export const AVL_CONFIRM_FROM = DEFAULT_DESK_FROM.replace(/^[^<]*</, "Sanctuary AVL <");
+
+export function fromSanctuaryAvl(message: string) {
+  return /^Sent from: Sanctuary AVL\b/m.test(message);
+}
 
 /** At most this many help pages, so the email stays short. */
 const HELP_LIMIT = 2;
@@ -84,7 +97,9 @@ export function buildAvConfirmation(inquiry: {
   const message = inquiry.message ?? "";
   const name = cleanName(inquiry.name) || "friend";
   const summary = committeeSummaryUrl(message);
-  const planner = usedPlanner(message);
+  const avl = fromSanctuaryAvl(message);
+  const planner = avl || usedPlanner(message);
+  const helpBase = avl ? `${AVL_ORIGIN}/help` : `${SITE}/church-av/help`;
   const help = checkedProblems(message, summary)
     .slice(0, HELP_LIMIT)
     .map((slug) => AV_CONFIRM_HELP.find((h) => h.slug === slug)!);
@@ -109,7 +124,7 @@ export function buildAvConfirmation(inquiry: {
   }
   if (help.length) {
     lines.push("", "These pages speak to what you told us:");
-    for (const h of help) lines.push(`- ${h.label}: ${SITE}/church-av/help/${h.slug}`);
+    for (const h of help) lines.push(`- ${h.label}: ${helpBase}/${h.slug}`);
   }
   if (!planner) {
     lines.push(
@@ -123,7 +138,7 @@ export function buildAvConfirmation(inquiry: {
     "If anything changes or you think of something, just reply to this email.",
     "",
     "Grace and peace,",
-    "United Under God",
+    avl ? "Sanctuary AVL" : "United Under God",
   );
   return { subject: AV_CONFIRM_SUBJECT, text: lines.join("\n") };
 }
@@ -147,6 +162,7 @@ export async function sendAvConfirmation(args: {
       to,
       subject: mail.subject,
       text: mail.text,
+      from: fromSanctuaryAvl(args.inquiry.message ?? "") ? AVL_CONFIRM_FROM : undefined,
       apiKey: args.apiKey,
       fetchImpl: args.fetchImpl,
     });

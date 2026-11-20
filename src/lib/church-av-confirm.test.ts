@@ -29,7 +29,11 @@ const BANNED: [string, RegExp][] = [
 function assertClean(text: string) {
   for (const [what, re] of BANNED) assert.ok(!re.test(text), `email contains ${what}`);
   for (const url of text.match(/https?:\/\/\S+/g) ?? []) {
-    assert.ok(url.startsWith("https://www.unitedundergod.org/"), `outside link ${url}`);
+    assert.ok(
+      url.startsWith("https://www.unitedundergod.org/") ||
+        url.startsWith("https://sanctuaryavl.unitedundergod.org/"),
+      `outside link ${url}`,
+    );
   }
 }
 
@@ -157,5 +161,37 @@ describe("sendAvConfirmation", () => {
     });
     assert.deepEqual(result, { sent: false });
     assert.equal(called, false);
+  });
+});
+
+describe("Sanctuary AVL requests", () => {
+  const message = [
+    "Our sound cuts out.",
+    "What is not working: People can’t hear in the back",
+    "Sent from: Sanctuary AVL home page (https://sanctuaryavl.unitedundergod.org/)",
+  ].join("\n\n");
+
+  it("are signed by Sanctuary AVL, link its help pages and leave out the planner", () => {
+    const mail = buildAvConfirmation({ name: "Pat", phone: "", message });
+    assertClean(mail.text);
+    assert.match(mail.text, /\nSanctuary AVL$/);
+    assert.ok(!mail.text.includes("United Under God"));
+    assert.ok(mail.text.includes("https://sanctuaryavl.unitedundergod.org/help/cant-hear-in-the-back"));
+    assert.ok(!mail.text.includes(AV_PLANNER_URL));
+  });
+
+  it("are sent under the Sanctuary AVL name", async () => {
+    let body: { from?: string } = {};
+    const fetchImpl = (async (_url: string, init: { body: string }) => {
+      body = JSON.parse(init.body);
+      return new Response("{}", { status: 200 });
+    }) as unknown as typeof fetch;
+    const out = await sendAvConfirmation({
+      inquiry: { id: "i1", name: "Pat", email: "pat@church.example", message },
+      apiKey: "k",
+      fetchImpl,
+    });
+    assert.equal(out.sent, true);
+    assert.match(body.from ?? "", /^Sanctuary AVL </);
   });
 });
