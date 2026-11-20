@@ -3,8 +3,12 @@
  * Its pages are this app's /avl routes, so www.unitedundergod.org/avl/... would
  * show them too; send those visitors (and search engines) to the subdomain so
  * the brand has one address. Previews and local hosts are left alone.
+ *
+ * The /church-av pages that Sanctuary AVL now covers (src/data/church-av-moved.json) go there
+ * too, each to the page that does the same job (owner, 2026-11-20: Sanctuary AVL is the main site).
  */
-import { avlUrl, isAvlPath } from "../../src/lib/sanctuary-avl-host";
+import moved from "../../src/data/church-av-moved.json";
+import { avlUrl, isAvlPath, movedChurchAvUrl } from "../../src/lib/sanctuary-avl-host";
 
 const MAIN_HOSTS = new Set(["www.unitedundergod.org", "unitedundergod.org"]);
 
@@ -28,9 +32,13 @@ export default function sanctuaryAvlMiddleware(
     .split(":")[0]
     .trim()
     .toLowerCase();
-  if (!MAIN_HOSTS.has(host) || !isAvlPath(event.url.pathname)) return next();
+  if (!MAIN_HOSTS.has(host)) return next();
+  const location = isAvlPath(event.url.pathname)
+    ? avlUrl(event.url.pathname)
+    : movedChurchAvUrl(event.url.pathname, moved);
+  if (!location) return next();
   return new Response(null, {
     status: 308,
-    headers: { location: avlUrl(event.url.pathname) + event.url.search },
+    headers: { location: location + event.url.search },
   });
 }

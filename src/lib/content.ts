@@ -261,9 +261,9 @@ export const APPS: {
     {
       slug: "church-sound-video",
       name: "Church sound, livestream & lighting",
-      href: "/church-av",
-      who: "Churches in Georgia, Florida, and South Carolina whose sound, stream, or lighting fights them every Sunday.",
-      blurb: "Sound, streaming, lighting, LED, and projection planned and installed for your sanctuary, with your volunteers trained. See past projects by state and city.",
+      href: "https://sanctuaryavl.unitedundergod.org/",
+      who: "Churches whose sound, stream, or lighting fights them every Sunday.",
+      blurb: "Sanctuary AVL: sound, streaming, lighting, LED, and projection planned and installed for your sanctuary, with your volunteers trained.",
     },
     {
       slug: "neighborly",

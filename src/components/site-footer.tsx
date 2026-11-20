@@ -115,9 +115,9 @@ export function SiteFooter() {
               Sell to churches
             </Link>
             {" · "}
-            <Link to="/church-av" className="text-forest underline-offset-4 hover:underline">
+            <a href="https://sanctuaryavl.unitedundergod.org/" className="text-forest underline-offset-4 hover:underline">
               Church sound & video
-            </Link>
+            </a>
             {" · "}
             <Link to="/apps" className="text-forest underline-offset-4 hover:underline">
               All apps & services

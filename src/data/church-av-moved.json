@@ -1,0 +1,25 @@
+{
+  "_note": "Owner (2026-11-20): Sanctuary AVL is the main site for church sound, lighting and video. Each /church-av page listed here has a Sanctuary AVL page that does the same job, so www.unitedundergod.org sends visitors and search engines there with a permanent redirect (server/middleware/sanctuary-avl.ts) and the main sitemap leaves it out (scripts/sitemap.mjs). Paths are relative to the Sanctuary AVL origin. Not listed, and so unchanged: the planner (a tool the church AV emails link to), the state and city pages (Sanctuary AVL has no town pages yet), and /church-av/led-wall (a different offer: suppliers bid on the church's job, with its own email campaign in src/lib/campaigns.ts). Requests from both sites go to the same inquiry pipeline.",
+  "origin": "https://sanctuaryavl.unitedundergod.org",
+  "moved": {
+    "/church-av": "/",
+    "/church-av/help": "/",
+    "/church-av/help/cant-hear-in-the-back": "/help/cant-hear-in-the-back",
+    "/church-av/help/hearing-aids-squeal-or-echo": "/help/hearing-aids-squeal-or-echo",
+    "/church-av/help/livestream-keeps-dropping": "/help/livestream-keeps-dropping",
+    "/church-av/help/feedback-during-the-sermon": "/help/feedback-during-the-sermon",
+    "/church-av/help/volunteers-cant-run-the-board": "/help/volunteers-cant-run-the-board",
+    "/church-av/help/traditional-sanctuary-without-a-big-screen": "/help/traditional-sanctuary-without-a-big-screen",
+    "/church-av/help/older-members-staying-home": "/help/older-members-staying-home",
+    "/church-av/help/planning-a-new-building": "/help/planning-a-new-building",
+    "/church-av/traditional": "/help/traditional-sanctuary-without-a-big-screen",
+    "/church-av/modern": "/",
+    "/church-av/blended": "/",
+    "/church-av/livestream-ministry": "/help/livestream-keeps-dropping",
+    "/church-av/new-building": "/help/planning-a-new-building",
+    "/church-av/sound": "/help/cant-hear-in-the-back",
+    "/church-av/video": "/",
+    "/church-av/lighting": "/",
+    "/church-av/hearing-help": "/help/hearing-aids-squeal-or-echo"
+  }
+}

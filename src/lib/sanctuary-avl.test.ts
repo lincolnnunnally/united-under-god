@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
-import { avlInputPath, avlOutputPath, avlUrl, isAvlHost, isAvlPath } from "./sanctuary-avl-host.ts";
+import {
+  AVL_ORIGIN,
+  avlInputPath,
+  avlOutputPath,
+  avlUrl,
+  isAvlHost,
+  isAvlPath,
+  movedChurchAvUrl,
+} from "./sanctuary-avl-host.ts";
 import { GUIDES, ROOM_SIZES, avlPaths, rangeText } from "./sanctuary-avl.ts";
 
 test("only the Sanctuary AVL host is rewritten", () => {
@@ -38,4 +47,37 @@ test("room sizes and guides are complete and ranges read low to high", () => {
   assert.ok(paths.includes("/avl/guides/church-av-cost"));
   assert.ok(paths.includes("/avl/sizes/300-to-800-seats"));
   assert.ok(paths.includes("/avl/help/cant-hear-in-the-back"));
+});
+
+// Owner (2026-11-20): Sanctuary AVL is the main site; /church-av pages it covers redirect there.
+const MOVED = JSON.parse(
+  readFileSync(new URL("../data/church-av-moved.json", import.meta.url), "utf8"),
+) as { origin: string; moved: Record<string, string> };
+const HELP_SLUGS = [
+  ...readFileSync(new URL("./church-av-help.ts", import.meta.url), "utf8").matchAll(/slug: "([^"]+)"/g),
+].map((m) => m[1]);
+
+test("every moved /church-av page lands on a real Sanctuary AVL page", () => {
+  assert.equal(MOVED.origin, AVL_ORIGIN);
+  const live = new Set(avlPaths(HELP_SLUGS).map((p) => avlOutputPath(p)));
+  for (const [from, to] of Object.entries(MOVED.moved)) {
+    assert.ok(from === "/church-av" || from.startsWith("/church-av/"), from);
+    assert.ok(live.has(to), `${from} -> ${to} is not a Sanctuary AVL page`);
+  }
+  for (const slug of HELP_SLUGS) assert.ok(MOVED.moved[`/church-av/help/${slug}`], `help page ${slug} did not move`);
+});
+
+test("the planner, the LED wall bids page and the town pages stay on www", () => {
+  for (const path of ["/church-av/planner", "/church-av/planner/summary", "/church-av/led-wall", "/church-av/georgia", "/church-av/florida/tampa"])
+    assert.equal(movedChurchAvUrl(path, MOVED), "", path);
+});
+
+test("a moved page maps with or without a trailing slash", () => {
+  assert.equal(movedChurchAvUrl("/church-av", MOVED), "https://sanctuaryavl.unitedundergod.org/");
+  assert.equal(movedChurchAvUrl("/church-av/", MOVED), "https://sanctuaryavl.unitedundergod.org/");
+  assert.equal(
+    movedChurchAvUrl("/church-av/help/cant-hear-in-the-back/", MOVED),
+    "https://sanctuaryavl.unitedundergod.org/help/cant-hear-in-the-back",
+  );
+  assert.equal(movedChurchAvUrl("/", MOVED), "");
 });

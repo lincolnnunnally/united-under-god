@@ -50,9 +50,9 @@ const CATALOGS = [
   {
     title: "Sound, livestream & lighting",
     body: "Clear sound, a steady livestream, and lighting that works — planned and installed for your sanctuary, with your volunteers trained.",
-    href: "/church-av",
+    href: "https://sanctuaryavl.unitedundergod.org/",
     cta: "Talk with us",
-    internal: true,
+    internal: false,
   },
 ];
 
