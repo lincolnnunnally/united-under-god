@@ -1,4 +1,4 @@
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   AvHero,
   CaseStudyCard,
@@ -34,11 +34,6 @@ const DESCRIPTION =
   "Church sound systems, livestream setup, stage lighting, LED walls, projectors, and sound panels for churches in Georgia, Florida, and South Carolina.";
 
 export const Route = createFileRoute("/church-av/")({
-  // Owner (2026-11-20): Sanctuary AVL is the main site. The server redirects a direct visit
-  // (server/middleware/sanctuary-avl.ts); this covers a click from inside the site.
-  beforeLoad: () => {
-    throw redirect({ href: "https://sanctuaryavl.unitedundergod.org/", statusCode: 308 });
-  },
   component: ChurchAvPage,
   head: () =>
     pageHead({

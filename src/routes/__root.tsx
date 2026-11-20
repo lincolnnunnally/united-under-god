@@ -1,4 +1,6 @@
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/react-router";
+import { createRootRoute, HeadContent, Outlet, redirect, Scripts } from "@tanstack/react-router";
+import moved from "@/data/church-av-moved.json";
+import { movedChurchAvUrl } from "@/lib/sanctuary-avl-host";
 import { AuthProvider } from "@/lib/auth/provider";
 import { FirstVisitNote } from "@/components/first-visit-note";
 import { PreviewHostBridge } from "@/components/preview-host-bridge";
@@ -8,6 +10,12 @@ import appCss from "../styles.css?url";
 const APP_NAME = "United Under God";
 
 export const Route = createRootRoute({
+  // Owner (2026-11-20): Sanctuary AVL is the main site. A /church-av page it covers goes there
+  // however the visitor arrives; server/middleware/sanctuary-avl.ts answers a direct visit first.
+  beforeLoad: ({ location }) => {
+    const href = movedChurchAvUrl(location.pathname, moved);
+    if (href) throw redirect({ href: href + (location.searchStr ?? ""), statusCode: 308 });
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
