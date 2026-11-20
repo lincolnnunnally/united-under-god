@@ -44,3 +44,16 @@ export function avlUrl(path: string) {
   const out = avlOutputPath(path.startsWith("/") ? path : `/${path}`);
   return `${AVL_ORIGIN}${out === "/" ? "/" : out.replace(/\/+$/, "")}`;
 }
+
+/**
+ * The Sanctuary AVL address for a /church-av page that moved there (owner, 2026-11-20), or "" if
+ * the page did not move. `moved` is src/data/church-av-moved.json; a trailing slash is ignored.
+ */
+export function movedChurchAvUrl(
+  path: string,
+  moved: { origin: string; moved: Record<string, string> },
+) {
+  const bare = path.length > 1 ? path.replace(/\/+$/, "") : path;
+  const target = moved.moved[bare];
+  return target ? `${moved.origin}${target}` : "";
+}

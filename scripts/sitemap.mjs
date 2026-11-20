@@ -5,6 +5,7 @@
  * changed. Private pages (/login, /account, /admin, /membership/welcome,
  * /buying/desk, /buying/bids/<id>, /buying/need/<token>, /buying/cases/<id>, /buying/mediate/<id>,
  * /buying/covenant, /buying/portal, /buying/review/<id>, /give/thanks) and redirects (/donate) stay out on purpose.
+ * So do the /church-av pages that moved to Sanctuary AVL (src/data/church-av-moved.json): they redirect.
  *
  *   node scripts/sitemap.mjs          # rewrite public/sitemap.xml
  *   node scripts/sitemap.mjs --check  # exit 1 if it is out of date
@@ -191,10 +192,18 @@ export function renderSitemap(paths, lastmodFor = () => null) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
 
+/** /church-av paths that redirect to Sanctuary AVL (owner, 2026-11-20). */
+export function movedChurchAvPaths(root = ROOT) {
+  return Object.keys(JSON.parse(readFileSync(join(root, "src/data/church-av-moved.json"), "utf8")).moved);
+}
+
 export function buildSitemap(root = ROOT) {
   const committed = committedLastmods(root);
+  const moved = new Set(movedChurchAvPaths(root));
   return renderSitemap(
-    [...STATIC_PATHS, ...buyingPaths(root), ...churchAvPaths(root), ...biblePaths(root)],
+    [...STATIC_PATHS, ...buyingPaths(root), ...churchAvPaths(root), ...biblePaths(root)].filter(
+      (path) => !moved.has(path),
+    ),
     (path, loc) => gitLastmod(sourcesFor(path, root), root) ?? committed.get(loc) ?? null,
   );
 }

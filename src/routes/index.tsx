@@ -346,10 +346,10 @@ function Home() {
             and installed for your sanctuary — with your volunteers trained.
           </p>
           <Button asChild variant="invert" className="mt-8">
-            <Link to="/church-av">
+            <a href="https://sanctuaryavl.unitedundergod.org/">
               Talk with us about your sanctuary
               <ArrowRight className="size-4" />
-            </Link>
+            </a>
           </Button>
         </div>
       </section>
