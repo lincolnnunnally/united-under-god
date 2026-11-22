@@ -178,7 +178,7 @@ export function GiveForm() {
         </p>
       ) : null}
       <p className="mt-4 text-xs text-subtle">
-        Payment is handled by Stripe. We never see or store your card. Nothing
+        Card payments are processed securely. We never see or store your card. Nothing
         on this site is gated behind a gift.
       </p>
     </form>
