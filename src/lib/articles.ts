@@ -28,3 +28,31 @@ export function formatArticleDate(iso: string) {
     timeZone: "UTC",
   });
 }
+
+/**
+ * The public-row rule for one app's writing in the shared lpl_articles table,
+ * with the app key bound as `appParam` (e.g. "$1"). The server connection may
+ * bypass RLS, so the rule is stated in every query, not left to the policy.
+ */
+export function publishedRule(appParam = "$1") {
+  return `app = ${appParam} and status = 'published' and coalesce(published_at, publish_at) <= now()`;
+}
+
+/**
+ * `promise`, or `fallback` if it rejects or takes longer than `ms`. Library
+ * reads on pages that also have hand-written content use this, so a slow or
+ * failing database never takes the hand-written pages down with it.
+ */
+export function withFallback<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise.catch(() => fallback), late]).finally(() => clearTimeout(timer));
+}
+
+/** Library rows whose slug a hand-written page does not already use (hand-written wins). */
+export function withoutSlugs<T extends { slug: string }>(rows: T[], taken: Iterable<string>) {
+  const skip = new Set(taken);
+  return rows.filter((row) => row.slug && !skip.has(row.slug));
+}
