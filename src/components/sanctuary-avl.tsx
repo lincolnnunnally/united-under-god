@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
+import { AvlPageViews, avlRequestSent } from "@/components/avl-telemetry";
 import { InvolvementForm } from "@/components/involvement-form";
 import { Button } from "@/components/ui/button";
 import { AVL_ORIGIN, avlUrl } from "@/lib/sanctuary-avl-host";
@@ -47,6 +48,7 @@ const NAV = [
 export function AvlShell({ children }: { children: ReactNode }) {
   return (
     <div style={AVL_THEME} className="flex min-h-dvh flex-col bg-paper text-ink">
+      <AvlPageViews />
       <header className="sticky top-0 z-40 border-b border-rule bg-paper/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 md:px-8">
           <Link to="/avl" className="flex items-center gap-2" aria-label={`${AVL_NAME} home`}>
@@ -370,6 +372,7 @@ export function AvlRequest({
             origin: AVL_ORIGIN,
           }}
           submitLabel="Plan my room"
+          onSent={avlRequestSent}
           messageLabel="About your room: seats, what is not working, any building plans"
           copy={{
             title: "Sanctuary AVL",
