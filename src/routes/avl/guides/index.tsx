@@ -1,10 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AvlHero, AvlRequest, Section, SizeCards, avlHead } from "@/components/sanctuary-avl";
+import { withoutSlugs } from "@/lib/articles";
+import { ARTICLE_CACHE_HEADERS, getAvlLibraryGuides } from "@/lib/articles-data";
 import { HELP_PAGES } from "@/lib/church-av-help";
 import { GUIDES } from "@/lib/sanctuary-avl";
 
 export const Route = createFileRoute("/avl/guides/")({
   component: GuidesIndex,
+  // Hand-written guides first, then published guides from the shared library
+  // (lpl_articles, app `sanctuary-avl`), newest first. A slow or failing read
+  // shows the hand-written guides alone.
+  loader: async () => ({
+    library: withoutSlugs(
+      await getAvlLibraryGuides(),
+      GUIDES.map((g) => g.slug),
+    ),
+  }),
+  headers: () => ARTICLE_CACHE_HEADERS,
   head: () =>
     avlHead({
       title: "Church Sound, Lighting & Video Guides",
@@ -15,6 +27,7 @@ export const Route = createFileRoute("/avl/guides/")({
 });
 
 function GuidesIndex() {
+  const { library } = Route.useLoaderData();
   return (
     <>
       <AvlHero eyebrow="Guides" title="Guides for pastors and committees" cta={false}>
@@ -31,6 +44,20 @@ function GuidesIndex() {
               >
                 <span className="font-display text-xl text-heading">{guide.label}</span>
                 <span className="mt-2 block text-sm text-muted">{guide.description}</span>
+              </Link>
+            </li>
+          ))}
+          {library.map((guide) => (
+            <li key={guide.slug}>
+              <Link
+                to="/avl/guides/$slug"
+                params={{ slug: guide.slug }}
+                className="block h-full rounded-xl bg-cream p-6 shadow-[var(--shadow-border)] hover:shadow-[var(--shadow-border-hover)]"
+              >
+                <span className="font-display text-xl text-heading">{guide.title}</span>
+                {guide.excerpt ? (
+                  <span className="mt-2 block text-sm text-muted">{guide.excerpt}</span>
+                ) : null}
               </Link>
             </li>
           ))}

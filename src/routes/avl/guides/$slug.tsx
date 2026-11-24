@@ -11,18 +11,31 @@ import {
   avlFaqJsonLd,
   avlHead,
 } from "@/components/sanctuary-avl";
+import { Markdown } from "@/components/markdown";
+import { ARTICLE_CACHE_HEADERS, getAvlLibraryGuide, type Article } from "@/lib/articles-data";
 import { avlUrl } from "@/lib/sanctuary-avl-host";
 import { AVL_NAME, GUIDES, UPGRADE_SIGNS, getGuide, type Guide } from "@/lib/sanctuary-avl";
 
+/**
+ * A hand-written guide (src/lib/sanctuary-avl.ts) or, when no hand-written
+ * guide has the slug, a published guide from the shared library
+ * (lpl_articles, app `sanctuary-avl`). Hand-written always wins a slug clash.
+ */
+type Loaded = { guide: Guide; library: null } | { guide: null; library: Article };
+
 export const Route = createFileRoute("/avl/guides/$slug")({
   component: GuidePage,
-  loader: ({ params }) => {
+  loader: async ({ params }): Promise<Loaded> => {
     const guide = getGuide(params.slug);
-    if (!guide) throw notFound();
-    return { guide };
+    if (guide) return { guide, library: null };
+    const library = await getAvlLibraryGuide({ data: params.slug });
+    if (!library) throw notFound();
+    return { guide: null, library };
   },
+  headers: ({ loaderData }) => (loaderData?.library ? ARTICLE_CACHE_HEADERS : undefined),
   head: ({ loaderData }) => {
     if (!loaderData) return { meta: [{ title: AVL_NAME }] };
+    if (loaderData.library) return libraryHead(loaderData.library);
     const { guide } = loaderData;
     const path = `/avl/guides/${guide.slug}`;
     return avlHead({
@@ -50,8 +63,40 @@ export const Route = createFileRoute("/avl/guides/$slug")({
   },
 });
 
+function libraryHead(article: Article) {
+  const path = `/avl/guides/${article.slug}`;
+  const description = article.seoDescription || article.excerpt;
+  return avlHead({
+    title: article.seoTitle || article.title,
+    description,
+    path,
+    type: "article",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: article.title,
+        ...(description ? { description } : {}),
+        url: avlUrl(path),
+        mainEntityOfPage: avlUrl(path),
+        ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
+        ...(article.updatedAt ? { dateModified: article.updatedAt } : {}),
+        ...(article.tags.length ? { keywords: article.tags.join(", ") } : {}),
+        publisher: { "@type": "Organization", name: AVL_NAME },
+      },
+      avlBreadcrumbs([
+        { name: AVL_NAME, path: "/avl" },
+        { name: "Guides", path: "/avl/guides" },
+        { name: article.title, path },
+      ]),
+    ],
+  });
+}
+
 function GuidePage() {
-  const { guide } = Route.useLoaderData();
+  const loaded = Route.useLoaderData();
+  if (loaded.library) return <LibraryGuidePage article={loaded.library} />;
+  const { guide } = loaded;
   return (
     <>
       <AvlHero eyebrow="Guide" title={guide.h1}>
@@ -103,6 +148,30 @@ function GuidePage() {
   );
 }
 
+function LibraryGuidePage({ article }: { article: Article }) {
+  return (
+    <>
+      <AvlHero eyebrow="Guide" title={article.title}>
+        {article.excerpt ? <p>{article.excerpt}</p> : null}
+      </AvlHero>
+
+      <article className="mx-auto max-w-3xl px-5 py-14 md:px-8 md:py-20">
+        <Markdown source={article.bodyMd} />
+      </article>
+
+      <section className="border-y border-rule bg-cream">
+        <Section title="What your room size needs">
+          <SizeCards />
+        </Section>
+      </section>
+
+      <MoreGuides current={article} />
+
+      <AvlRequest path={`/avl/guides/${article.slug}`} label={`guide: ${article.title}`} />
+    </>
+  );
+}
+
 function Signs() {
   return (
     <Section>
@@ -128,7 +197,7 @@ function Signs() {
   );
 }
 
-function MoreGuides({ current }: { current: Guide }) {
+function MoreGuides({ current }: { current: { slug: string } }) {
   const others = GUIDES.filter((g) => g.slug !== current.slug);
   return (
     <Section title="More guides">
