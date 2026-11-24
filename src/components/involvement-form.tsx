@@ -43,6 +43,8 @@ type Props = {
   submitLabel?: string;
   /** Overrides the intent's heading, lead and thank-you text (e.g. Sanctuary AVL's own words). */
   copy?: { title?: string; lead?: string; done?: string };
+  /** Called once when a real request has been accepted, e.g. to count a lead. */
+  onSent?: () => void;
 };
 
 export function InvolvementForm({
@@ -54,6 +56,7 @@ export function InvolvementForm({
   messageLabel,
   submitLabel,
   copy: copyOverride,
+  onSent,
 }: Props) {
   const copy = { ...INTENT_COPY[intent], ...copyOverride };
   const needsOrg =
@@ -108,6 +111,8 @@ export function InvolvementForm({
       return;
     }
     setDone({ saved: result.saved, emailed: result.emailed });
+    // A filled honeypot is answered "ok" but never saved; it is not a lead.
+    if (result.id !== "ignored") onSent?.();
   }
 
   if (done) {
