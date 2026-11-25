@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { InquiryDone } from "@/components/inquiry-done";
+import { uugLead } from "@/components/uug-telemetry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,7 +113,10 @@ export function InvolvementForm({
     }
     setDone({ saved: result.saved, emailed: result.emailed });
     // A filled honeypot is answered "ok" but never saved; it is not a lead.
-    if (result.id !== "ignored") onSent?.();
+    if (result.id !== "ignored") {
+      uugLead(intent);
+      onSent?.();
+    }
   }
 
   if (done) {

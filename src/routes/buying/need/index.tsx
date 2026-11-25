@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InquiryDone } from "@/components/inquiry-done";
+import { uugLead } from "@/components/uug-telemetry";
 import { SiteShell } from "@/components/site-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,6 +129,8 @@ function NeedForm() {
         return;
       }
       setDone({ saved: result.saved, emailed: result.emailed });
+      // A filled honeypot is answered "saved" but nothing is saved; it is not a lead.
+      if (result.saved && !value("fax")) uugLead("need");
     } catch {
       setError(INQUIRY_UNREACHABLE);
     } finally {

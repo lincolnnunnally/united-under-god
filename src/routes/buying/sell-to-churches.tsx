@@ -243,11 +243,17 @@ function ServiceArea({ market }: { market: ChurchMarket }) {
         </p>
 
         <div className="mt-10 grid gap-8 md:grid-cols-[1.4fr_1fr] md:items-start">
-          <div className="overflow-hidden rounded-xl bg-cream shadow-[var(--shadow-border)]">
+          {/* On a phone the 50 states scroll in their own box, so the count and the sign-up
+              below are a screen away instead of eight. */}
+          <div
+            tabIndex={0}
+            aria-label="Churches by state; scroll for more states"
+            className="max-h-[28rem] overflow-y-auto rounded-xl bg-cream shadow-[var(--shadow-border)] md:max-h-none md:overflow-hidden"
+          >
             <table className="w-full text-left text-sm">
               <caption className="sr-only">Churches in our church directory, by state</caption>
               <thead>
-                <tr className="border-b border-rule text-xs tracking-[0.12em] text-subtle uppercase">
+                <tr className="sticky top-0 z-10 border-b border-rule bg-cream text-xs tracking-[0.12em] text-subtle uppercase md:static">
                   <th scope="col" className="px-4 py-3 font-semibold">
                     State
                   </th>
