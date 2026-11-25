@@ -40,8 +40,16 @@ function JoinPage() {
               <Link to="/membership" className="text-forest underline-offset-4 hover:underline">
                 church membership
               </Link>
-              , the paid program for the buying catalogs and member benefits. Taking the seal never
-              requires it.
+              , the program for the buying catalogs and member benefits. Taking the seal never
+              requires it.{" "}
+              <Link
+                to="/organizations"
+                hash="which"
+                className="text-forest underline-offset-4 hover:underline"
+              >
+                See which sign-up is right for you
+              </Link>
+              .
             </p>
           </div>
         </div>

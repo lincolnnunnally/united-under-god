@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
+import { uugLead } from "@/components/uug-telemetry";
 import { InquiryDone } from "@/components/inquiry-done";
 import { SiteShell } from "@/components/site-shell";
 import { VendorPromise } from "@/components/vendor-promise";
@@ -174,6 +175,7 @@ function VendorSignupForm() {
         return;
       }
       setDone({ saved: result.saved, emailed: result.emailed });
+      if (result.saved) uugLead("vendor");
     } catch {
       setError(INQUIRY_UNREACHABLE);
     } finally {

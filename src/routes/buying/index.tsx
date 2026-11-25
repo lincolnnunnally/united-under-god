@@ -298,31 +298,49 @@ function CatalogDirectory() {
           appear only after a bid is awarded.
         </p>
         <ul className="mt-10 grid gap-4 md:grid-cols-2">
-          {SPEND_CATEGORIES.map((category) => (
+          {SPEND_CATEGORIES.slice(0, FIRST_CATALOGS).map((category) => (
             <li key={category.id}>
-              {category.route ? (
-                <Link
-                  to={category.route as "/church-av"}
-                  className="flex h-full flex-col rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]"
-                >
-                  <h3 className="font-display text-lg">{category.name}</h3>
-                  <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
-                </Link>
-              ) : (
-                <Link
-                  to="/buying/$category"
-                  params={{ category: category.id }}
-                  className="flex h-full flex-col rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]"
-                >
-                  <h3 className="font-display text-lg">{category.name}</h3>
-                  <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
-                </Link>
-              )}
+              <CatalogCard category={category} />
             </li>
           ))}
         </ul>
+        {SPEND_CATEGORIES.length > FIRST_CATALOGS ? (
+          <details className="group mt-4">
+            <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-medium text-forest underline-offset-4 hover:underline">
+              <span className="group-open:hidden">Show all {SPEND_CATEGORIES.length} catalogs</span>
+              <span className="hidden group-open:inline">Show fewer catalogs</span>
+            </summary>
+            <ul className="mt-4 grid gap-4 md:grid-cols-2">
+              {SPEND_CATEGORIES.slice(FIRST_CATALOGS).map((category) => (
+                <li key={category.id}>
+                  <CatalogCard category={category} />
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
       </div>
     </section>
+  );
+}
+
+/** The first catalogs show; the rest open on "Show all" (still in the page for search engines). */
+const FIRST_CATALOGS = 6;
+
+const CATALOG_CARD =
+  "flex h-full flex-col rounded-xl bg-cream p-5 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]";
+
+function CatalogCard({ category }: { category: (typeof SPEND_CATEGORIES)[number] }) {
+  return category.route ? (
+    <Link to={category.route as "/church-av"} className={CATALOG_CARD}>
+      <h3 className="font-display text-lg">{category.name}</h3>
+      <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
+    </Link>
+  ) : (
+    <Link to="/buying/$category" params={{ category: category.id }} className={CATALOG_CARD}>
+      <h3 className="font-display text-lg">{category.name}</h3>
+      <p className="mt-2 flex-1 text-sm text-muted">{category.short}</p>
+    </Link>
   );
 }
 

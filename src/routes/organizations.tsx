@@ -1,10 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { OfferList, WhatItCosts, WhichIsRight } from "@/components/front-door";
 import { SiteShell } from "@/components/site-shell";
 import { SignInNudge } from "@/components/sign-in-nudge";
 import { Button } from "@/components/ui/button";
 import { ORG_TYPES } from "@/lib/content";
-import { MEMBER_PRICE_LABEL } from "@/lib/membership";
 import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/organizations")({
@@ -16,45 +15,6 @@ export const Route = createFileRoute("/organizations")({
       path: "/organizations",
     }),
 });
-
-const HELPS = [
-  {
-    title: "The seal",
-    body: "A free badge for your website, door, or letterhead that tells your community you stand with the wider church — linked to a public page anyone can check.",
-    to: "/join",
-    cta: "Take the seal",
-  },
-  {
-    title: "Group buying",
-    body: "Pool orders for toner, paper, and supplies with other churches and ministries. We bid for the group, and member churches see the awarded prices and vendors.",
-    to: "/buying",
-    cta: "See the catalogs",
-  },
-  {
-    title: "The assessment",
-    body: "A short, friendly walk-through that shows where your organization is losing money and time — toner, internet, office hours — with a clear next step for each.",
-    to: "/assessment",
-    cta: "Find your savings",
-  },
-  {
-    title: "Tools for the work",
-    body: "Church management, websites, food pantry and donation tools, and printer monitoring — built to work together so you enter information once and spend less time on admin.",
-    to: "/apps",
-    cta: "See the tools",
-  },
-  {
-    title: "Sound, livestream & lighting",
-    body: "Every word heard, every Sunday. Sound, streaming, and lighting planned and installed for your sanctuary, with your volunteers trained.",
-    to: "/church-av",
-    cta: "Talk with us",
-  },
-  {
-    title: "Outreach your people will join",
-    body: "Live on Mission gives your congregation simple, real ways to serve neighbors this week — and we help you plan it.",
-    to: "/mission",
-    cta: "Live on Mission",
-  },
-] as const;
 
 function OrganizationsPage() {
   return (
@@ -86,27 +46,15 @@ function OrganizationsPage() {
         <SignInNudge about="group buying, outreach, and the seal" />
       </section>
 
-      <section className="mx-auto max-w-6xl px-5 pt-10 md:px-8">
-        <Link
-          to="/membership"
-          className="group flex flex-col gap-4 rounded-xl bg-forest p-6 text-paper shadow-[var(--shadow-border)] sm:flex-row sm:items-center sm:justify-between sm:p-8"
-        >
-          <span>
-            <span className="block text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
-              For churches
-            </span>
-            <span className="mt-2 block font-display text-2xl text-paper">Become a member church</span>
-            <span className="mt-2 block max-w-2xl text-sm text-paper/85">
-              The full buying catalogs with vendor contacts and awarded prices, a church website,
-              pastor fellowship, and help when a vendor falls short. {MEMBER_PRICE_LABEL}.
-            </span>
-          </span>
-          <span className="inline-flex items-center gap-2 text-sm font-medium text-paper">
-            See membership
-            <ArrowRight className="size-4 transition-transform duration-[var(--motion-quick)] group-hover:translate-x-0.5" />
-          </span>
-        </Link>
+      <OfferList id="what-we-do" intro={false} className="mt-10 border-t" />
+
+      <section className="border-b border-rule">
+        <div className="mx-auto max-w-6xl px-5 py-14 md:px-8 md:py-16">
+          <WhatItCosts className="max-w-3xl" />
+        </div>
       </section>
+
+      <WhichIsRight />
 
       <section className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
         <div className="grid gap-10 md:grid-cols-2">
@@ -119,47 +67,28 @@ function OrganizationsPage() {
         </div>
       </section>
 
-      <section className="border-y border-rule bg-cream">
-        <div className="mx-auto max-w-6xl px-5 py-16 md:px-8">
-          <h2 className="max-w-2xl text-3xl">What your organization gets</h2>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {HELPS.map((item) => (
-              <Link
-                key={item.title}
-                to={item.to}
-                className="group flex flex-col rounded-xl bg-paper p-6 shadow-[var(--shadow-border)] transition-[box-shadow] duration-[var(--motion-quick)] hover:shadow-[var(--shadow-border-hover)]"
-              >
-                <h3 className="font-display text-xl">{item.title}</h3>
-                <p className="mt-3 flex-1 text-sm text-muted">{item.body}</p>
-                <span className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-forest">
-                  {item.cta}
-                  <ArrowRight className="size-4 transition-transform duration-[var(--motion-quick)] group-hover:translate-x-0.5" />
-                </span>
-              </Link>
-            ))}
-          </div>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button asChild>
-              <Link to="/join">Take the seal</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link to="/membership">Become a member church</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link to="/happenings">See what’s happening</Link>
-            </Button>
-          </div>
-          <p className="mt-6 text-sm text-muted">
-            A business that sells to churches?{" "}
-            <Link
-              to="/buying/sell-to-churches"
-              className="text-forest underline-offset-4 hover:underline"
-            >
-              See the church vendor program
-            </Link>
-            .
-          </p>
+      <section className="mx-auto max-w-6xl px-5 pb-16 md:px-8">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button asChild>
+            <Link to="/buying/need">Post a need</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/membership">Become a member church</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link to="/join">Take the seal</Link>
+          </Button>
         </div>
+        <p className="mt-6 text-sm text-muted">
+          A business that sells to churches?{" "}
+          <Link
+            to="/buying/sell-to-churches"
+            className="text-forest underline-offset-4 hover:underline"
+          >
+            See the church vendor program
+          </Link>
+          .
+        </p>
       </section>
     </SiteShell>
   );

@@ -3,6 +3,7 @@ import { Check } from "lucide-react";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { FeeDisclosure } from "@/components/fee-disclosure";
 import { InvolvementForm } from "@/components/involvement-form";
+import { uugLead } from "@/components/uug-telemetry";
 import { MemberBenefits } from "@/components/member-gate";
 import { MemberHome } from "@/components/member-home";
 import { SiteShell } from "@/components/site-shell";
@@ -112,6 +113,13 @@ function MembershipPage() {
             >
               What members receive
             </a>
+            <Link
+              to="/organizations"
+              hash="which"
+              className="inline-flex min-h-11 items-center text-sm text-paper/85 underline-offset-4 hover:underline"
+            >
+              Compare the sign-ups
+            </Link>
           </div>
         </div>
       </section>
@@ -327,6 +335,7 @@ function ChurchStep({
         setError(result.error);
         return;
       }
+      if (!church) uugLead("member");
       onSaved(result.church);
       setEditing(false);
     } catch {

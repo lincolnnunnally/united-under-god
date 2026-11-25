@@ -5,15 +5,17 @@ import { Button } from "@/components/ui/button";
 
 type Props = {
   compact?: boolean;
+  /** False where the page already says the headline and the button (the home page's pantry section). */
+  intro?: boolean;
   className?: string;
 };
 
-export function DonorBenefits({ compact = false, className }: Props) {
+export function DonorBenefits({ compact = false, intro = true, className }: Props) {
   const items = compact ? DONOR_BENEFITS : DONOR_BENEFITS;
 
   return (
     <div className={className}>
-      {compact ? (
+      {!intro ? null : compact ? (
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
@@ -45,7 +47,7 @@ export function DonorBenefits({ compact = false, className }: Props) {
 
       <ol
         className={cn(
-          "mt-10 grid gap-6",
+          intro ? "mt-10 grid gap-6" : "grid gap-6",
           compact ? "sm:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-2",
         )}
       >

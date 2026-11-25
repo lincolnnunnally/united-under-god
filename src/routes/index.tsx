@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useEffect } from "react";
 import { DonorBenefits } from "@/components/donor-benefits";
+import { Doors, OfferList } from "@/components/front-door";
 import { InvolvementForm } from "@/components/involvement-form";
 import { LiveOnMissionMark } from "@/components/live-on-mission-mark";
 import { SealBadge } from "@/components/seal-mark";
@@ -80,6 +81,9 @@ function Home() {
           </div>
         </div>
       </section>
+
+      <Doors />
+      <OfferList limit={6} />
 
       <section className="tone-night relative isolate overflow-hidden bg-ink text-paper">
         <img
@@ -289,7 +293,7 @@ function Home() {
 
       <section className="bg-forest text-paper">
         <div className="mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-          <DonorBenefits compact />
+          <DonorBenefits compact intro={false} />
         </div>
       </section>
 
@@ -325,32 +329,6 @@ function Home() {
               </Link>
             </Button>
           </div>
-        </div>
-      </section>
-
-      <section className="relative isolate overflow-hidden tone-night bg-ink text-paper">
-        <img
-          src="/images/sanctuary.jpg"
-          alt="A congregation in worship, one hand raised toward the stage"
-          className="absolute inset-0 size-full object-cover opacity-40"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/75 to-ink/40" />
-        <div className="relative mx-auto max-w-6xl px-5 py-16 md:px-8 md:py-20">
-          <p className="text-xs font-semibold tracking-[0.18em] text-paper/70 uppercase">
-            For churches
-          </p>
-          <h2 className="mt-3 max-w-2xl text-3xl text-paper">Every word heard. Every Sunday.</h2>
-          <p className="mt-4 max-w-2xl text-paper/85">
-            Feedback during the prayer, a livestream that drops, members who
-            can’t hear the sermon? Get sound, streaming, and lighting planned
-            and installed for your sanctuary — with your volunteers trained.
-          </p>
-          <Button asChild variant="invert" className="mt-8">
-            <a href="https://sanctuaryavl.unitedundergod.org/">
-              Talk with us about your sanctuary
-              <ArrowRight className="size-4" />
-            </a>
-          </Button>
         </div>
       </section>
 
