@@ -17,9 +17,17 @@ function onMainSite() {
   return host === "unitedundergod.org" || host === "www.unitedundergod.org";
 }
 
+/**
+ * Path words whose next segment is a secret on this site, on top of the tracker's own list.
+ * /buying/need/<token> is the church's only key to its need and its quotes. (The vendor bid,
+ * case, mediation and review links keep their token in ?t=, and the tracker never sends the
+ * query.)
+ */
+const SECRET_PATH_WORDS = ["need"];
+
 function ready() {
   if (!onMainSite()) return false;
-  initTelemetry({ app: UUG_TELEMETRY_APP });
+  initTelemetry({ app: UUG_TELEMETRY_APP, maskAfter: SECRET_PATH_WORDS });
   return true;
 }
 
@@ -41,7 +49,8 @@ export function UugPageViews() {
 /** A visitor chose a door or an offer on the home page or /organizations. */
 export function uugChoice(kind: "door" | "offer" | "path", id: string) {
   if (!ready()) return;
-  track("cta_click", { kind, id, from: window.location.pathname });
+  // The tracker adds the (masked) path itself.
+  track("cta_click", { kind, id });
 }
 
 /** A sign-up reached us: the seal, a member church, a posted need, a vendor, a raised hand. */

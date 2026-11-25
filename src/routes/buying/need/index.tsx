@@ -129,7 +129,8 @@ function NeedForm() {
         return;
       }
       setDone({ saved: result.saved, emailed: result.emailed });
-      if (result.saved) uugLead("need");
+      // A filled honeypot is answered "saved" but nothing is saved; it is not a lead.
+      if (result.saved && !value("fax")) uugLead("need");
     } catch {
       setError(INQUIRY_UNREACHABLE);
     } finally {

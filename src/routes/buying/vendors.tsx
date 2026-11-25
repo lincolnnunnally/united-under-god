@@ -175,7 +175,8 @@ function VendorSignupForm() {
         return;
       }
       setDone({ saved: result.saved, emailed: result.emailed });
-      if (result.saved) uugLead("vendor");
+      // A filled honeypot is answered "saved" but nothing is saved; it is not a lead.
+      if (result.saved && !value("fax")) uugLead("vendor");
     } catch {
       setError(INQUIRY_UNREACHABLE);
     } finally {
